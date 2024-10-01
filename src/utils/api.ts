@@ -2,12 +2,12 @@ import { Result, Server, ServerId } from './interfaces'
 
 export async function getServers(): Promise<Server[]> {
     const jsonResponse = await fetch(`http://localhost:8000/api/get-servers`);
-    return await jsonResponse.json();
+    return await jsonResponse.json() as Server[];
 }
 
 export async function getServer(id: string): Promise<Server> {
     const jsonResponse = await fetch(`http://localhost:8000/api/get-server/${id}`);
-    return await jsonResponse.json();
+    return await jsonResponse.json() as Server;
 }
 
 export async function startServer(id: string): Promise<boolean> {
@@ -18,6 +18,12 @@ export async function startServer(id: string): Promise<boolean> {
 
 export async function stopServer(id: string): Promise<boolean> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/stop`);
+    const result = await jsonResponse.json() as Result;
+    return result.value;
+}
+
+export async function deleteServer(id: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/delete`);
     const result = await jsonResponse.json() as Result;
     return result.value;
 }

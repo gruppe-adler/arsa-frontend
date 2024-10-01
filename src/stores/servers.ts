@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getServers, getServer, addServer, startServer, stopServer, isRunning } from '../utils/api'
+import { getServers, getServer, addServer, startServer, stopServer, deleteServer, isRunning } from '../utils/api'
 import { Server } from '../utils/interfaces'
 
 interface State {
@@ -27,6 +27,9 @@ export const useServersStore = defineStore('servers', {
         },
         async stop(id: string) { 
             return await stopServer(id)
+        },
+        async delete(id: string) { 
+            return await deleteServer(id)
         },
         async isRunning(id: string) { 
             return await isRunning(id)

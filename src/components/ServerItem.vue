@@ -20,12 +20,29 @@ onUnmounted(() => clearInterval(isRunningInterval));
 </script>
 
 <template>
-  <li>
-    <button id="start-stop-button" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
-    <button id="start-stop-button" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
-    <p>{{ props.server?.name }} ({{ props.server?.uuid }})</p>
+  <li class="server-item">
+    <p>
+      <span class="column-left" v-if="isRunning">Online</span>
+      <span class="column-left" v-else="isRunning">Offline</span>
+      <button class="column-left" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
+      <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
+      <span class="column-center">{{ props.server?.name }} ({{ props.server?.uuid }})</span>
+      <button class="column-right" type="button" @click="serversStore.delete(props.server?.uuid);$emit('serverDeleted')" :disabled="isRunning">Delete</button>
+      <button class="column-right" type="button" @click="">Clone</button>
+    </p>
   </li>
 </template>
 
 <style scoped>
+  .server-item {
+  }
+  .column-left {
+    margin-right: 10px;
+  }
+  .column-center {
+  }
+  .column-right {
+    margin-left: 10px;
+    float: right;
+  }
 </style>
