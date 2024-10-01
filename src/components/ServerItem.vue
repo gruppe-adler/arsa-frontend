@@ -20,13 +20,14 @@ onUnmounted(() => clearInterval(isRunningInterval));
 </script>
 
 <template>
-  <li class="server-item">
+  <li>
     <p>
       <span class="column-left" v-if="isRunning">Online</span>
       <span class="column-left" v-else="isRunning">Offline</span>
       <button class="column-left" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
       <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
-      <span class="column-center">{{ props.server?.name }} ({{ props.server?.uuid }})</span>
+      <RouterLink :to="`/edit-server/${props.server?.uuid}`">{{ props.server?.name }}</RouterLink>
+      <span> ({{ props.server?.uuid }})</span>
       <button class="column-right" type="button" @click="serversStore.delete(props.server?.uuid);$emit('serverDeleted')" :disabled="isRunning">Delete</button>
       <button class="column-right" type="button" @click="">Clone</button>
     </p>
@@ -34,12 +35,8 @@ onUnmounted(() => clearInterval(isRunningInterval));
 </template>
 
 <style scoped>
-  .server-item {
-  }
   .column-left {
     margin-right: 10px;
-  }
-  .column-center {
   }
   .column-right {
     margin-left: 10px;

@@ -1,34 +1,28 @@
 <script setup lang="ts">
 
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
-import { Server, ServerConfig } from '../utils/interfaces'
+import { Server } from '../utils/interfaces'
 import ConfigForm from '../components/ConfigForm.vue'
-import { defaultConfig } from '../utils/defaults'
+import { defaultServer } from '../utils/defaults'
 
 const router = useRouter()
+const route = useRoute()
 
 const serversStore = useServersStore()
 
-const name = ref('')
+const server = ref<Server>(defaultServer)
+const result = serversStore.servers.find(i => i.uuid === route.params.id)
+if (result) server.value = result;
 
-const config = ref<ServerConfig>(defaultConfig)
-
-
-function addServer() {
+function updateServer() {
 /*   if(!name.value) return alert('Field \'name\' is required.');
   if(!config.value.publicAddress) return alert('Field \'publicAddress\' is required.');
   if(!config.value.a2s.address) return alert('Field \'a2sAddress\' is required.');
   if(!config.value.rcon.address) return alert('Field \'rconAddress\' is required.'); */
 
-  const server: Server = {
-    uuid: '',
-    name: name.value,
-    config: config.value
-  }
-
-  serversStore.add(server)
+  serversStore.update(server.value)
       .then(() => {
         router.push('/servers-list')
       })
@@ -37,11 +31,11 @@ function addServer() {
 </script>
 
 <template>
-  <h1>Add Server</h1>
-  <ConfigForm v-model:name="name" v-model:config="config"/>
+  <h1>Edit Server</h1>
+  <ConfigForm v-model:name="server.name" v-model:config="server.config"/>
   <br/>
   <br/>
-  <button id="add-button" type="button" @click="addServer()">Add</button>
+  <button type="button" @click="updateServer()">Update</button>
 </template>
 
 <style scoped>

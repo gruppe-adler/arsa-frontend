@@ -1,12 +1,13 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
-import AddServer from '../views/AddServer.vue'
 import ServersList from '../views/ServersList.vue'
+import AddServer from '../views/AddServer.vue'
+import EditServer from '../views/EditServer.vue'
 
 const routes = [
   { path: '/servers-list', component: ServersList },
   { path: '/add-server', component: AddServer },
-  { path: '/edit-server/:id', component: AddServer },
+  { path: '/edit-server/:id', component: EditServer },
   { path: '/', redirect: '/servers-list' }
 ]
 

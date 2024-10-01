@@ -6,7 +6,7 @@ export async function getServers(): Promise<Server[]> {
 }
 
 export async function getServer(id: string): Promise<Server> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/get-server/${id}`);
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}`);
     return await jsonResponse.json() as Server;
 }
 
@@ -43,4 +43,15 @@ export async function addServer(server: Server): Promise<string> {
     });
     const serverId = await jsonResponse.json() as ServerId;
     return serverId.uuid;
+}
+
+export async function updateServer(server: Server): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${server.uuid}/update`,{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(server),
+        mode: 'cors'
+    });
+    const result = await jsonResponse.json() as Result;
+    return result.value;
 }

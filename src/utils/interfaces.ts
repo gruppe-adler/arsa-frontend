@@ -12,8 +12,6 @@ export interface Server {
   config: ServerConfig
 }
 
-//TODO(@y0014984): Define Arrays
-
 export interface ServerConfig {
   bindAddress: string,
   bindPort: number,
@@ -29,19 +27,19 @@ export interface ServerConfig {
     password: string,
     permission: string,
     maxClients: number,
-    blacklist: [],
-    whitelist: []
+    blacklist: string[],
+    whitelist: string[]
   },
   game: {
     name: string,
     password: string,
     passwordAdmin: string,
-    admins: [],
+    admins: string[],
     scenarioId: string,
     maxPlayers: number,
     visible: boolean,
     crossPlatform: boolean,
-    supportedPlatforms: [],
+    supportedPlatforms: string[],
     gameProperties: {
       serverMaxViewDistance: number,
       serverMinGrassDistance: number,
@@ -51,11 +49,16 @@ export interface ServerConfig {
       battlEye: boolean,
       VONDisableUI: boolean,
       VONDisableDirectSpeechUI: boolean,
-      missionHeader: {}
+      missionHeader: object
     },
-    mods: []
+    mods: Mods[]
   },
   operating: {
     lobbyPlayerSynchronise: boolean
   }
+}
+
+export interface Mods {
+  modId: string,
+  name: string
 }
