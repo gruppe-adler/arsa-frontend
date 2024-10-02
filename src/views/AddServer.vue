@@ -17,10 +17,10 @@ const config = ref<ServerConfig>(defaultConfig)
 
 
 function addServer() {
-/*   if(!name.value) return alert('Field \'name\' is required.');
+  if(!name.value) return alert('Field \'name\' is required.');
   if(!config.value.publicAddress) return alert('Field \'publicAddress\' is required.');
   if(!config.value.a2s.address) return alert('Field \'a2sAddress\' is required.');
-  if(!config.value.rcon.address) return alert('Field \'rconAddress\' is required.'); */
+  if(!config.value.rcon.address) return alert('Field \'rconAddress\' is required.');
 
   const server: Server = {
     uuid: '',

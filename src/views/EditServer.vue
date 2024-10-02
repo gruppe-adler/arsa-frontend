@@ -17,10 +17,10 @@ const result = serversStore.servers.find(i => i.uuid === route.params.id)
 if (result) server.value = result;
 
 function updateServer() {
-/*   if(!name.value) return alert('Field \'name\' is required.');
-  if(!config.value.publicAddress) return alert('Field \'publicAddress\' is required.');
-  if(!config.value.a2s.address) return alert('Field \'a2sAddress\' is required.');
-  if(!config.value.rcon.address) return alert('Field \'rconAddress\' is required.'); */
+  if(!server.value.name) return alert('Field \'name\' is required.');
+  if(!server.value.config.publicAddress) return alert('Field \'publicAddress\' is required.');
+  if(!server.value.config.a2s.address) return alert('Field \'a2sAddress\' is required.');
+  if(!server.value.config.rcon.address) return alert('Field \'rconAddress\' is required.');
 
   serversStore.update(server.value)
       .then(() => {
