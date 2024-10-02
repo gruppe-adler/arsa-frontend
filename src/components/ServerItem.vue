@@ -2,12 +2,14 @@
 
 import { onUnmounted, ref }  from 'vue'
 import { useServersStore } from '../stores/servers'
+import { Server } from '../utils/interfaces';
+import { defaultServer } from '../utils/defaults';
 
 const serversStore = useServersStore()
 
-const props = defineProps({
-  server: Object
-})
+const props = defineProps({ server: Object })
+
+const emit = defineEmits(['serverDeleted', 'serverCloned'])
 
 const isRunning = ref(false)
 
@@ -16,6 +18,23 @@ const isRunningInterval = setInterval(() => {
 }, 1000);
 
 onUnmounted(() => clearInterval(isRunningInterval));
+
+function onClickDelete() {
+  if(confirm('Do you really want to delete this server?')) {
+    serversStore.delete(props.server?.uuid).then(() => {
+      emit('serverDeleted');
+    });
+  }
+}
+
+function onClickClone() {
+  const server: Server = props.server as Server || defaultServer;
+  server.name = server.name.concat(' Duplicate');
+  serversStore.add(server).then(() => {
+    delete(props.server?.uuid);
+    emit('serverCloned');
+  });
+}
 
 </script>
 
@@ -28,8 +47,8 @@ onUnmounted(() => clearInterval(isRunningInterval));
       <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
       <RouterLink :to="`/edit-server/${props.server?.uuid}`">{{ props.server?.name }}</RouterLink>
       <span> ({{ props.server?.uuid }})</span>
-      <button class="column-right" type="button" @click="serversStore.delete(props.server?.uuid);$emit('serverDeleted')" :disabled="isRunning">Delete</button>
-      <button class="column-right" type="button" @click="">Clone</button>
+      <button class="column-right" type="button" @click="onClickDelete" :disabled="isRunning">Delete</button>
+      <button class="column-right" type="button" @click="onClickClone">Clone</button>
     </p>
   </li>
 </template>

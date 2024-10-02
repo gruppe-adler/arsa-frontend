@@ -16,13 +16,17 @@ function onServerDeleted() {
   updateServerList();
 }
 
+function onServerCloned() {
+  updateServerList();
+}
+
 </script>
 
 <template>
   <div>
     <h1>Servers List</h1>
     <ul id="servers-list">
-      <ServerItem @server-deleted.once="onServerDeleted"
+      <ServerItem @server-deleted.once="onServerDeleted" @server-cloned.once="onServerCloned"
         v-for="item in serversStore.servers"
         :server="item"
       ></ServerItem>
