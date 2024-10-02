@@ -11,20 +11,20 @@ export const defaultConfig = {
         address: '',
         port: 19999,
         password: 'secret',
-        permission: 'monitor',
         maxClients: 16,
+        permission: 'monitor',
         blacklist: [],
         whitelist: []
     },
     game: {
-        name: 'name',
+        name: 'server name',
         password: 'password',
         passwordAdmin: 'adminPassword',
         admins: [],
-        scenarioId: '{ECC61978EDCC2B5A}Missions/23_Campaign.conf',
+        scenarioId: '{59AD59368755F41A}Missions/21_GM_Eden.conf',
         maxPlayers: 32,
         visible: true,
-        crossPlatform: true,
+        crossPlatform: false,
         supportedPlatforms: [
             "PLATFORM_PC",
             "PLATFORM_XBL"
@@ -32,27 +32,25 @@ export const defaultConfig = {
         gameProperties: {
             serverMaxViewDistance: 2500,
             serverMinGrassDistance: 50,
-            networkViewDistance: 1000,
-            disableThirdPerson: true,
             fastValidation: true,
+            networkViewDistance: 1000,
             battlEye: true,
+            disableThirdPerson: true,
             VONDisableUI: true,
             VONDisableDirectSpeechUI: true,
-            missionHeader: {
-            m_iPlayerCount: 40,
-            m_eEditableGameFlags: 6,
-            m_eDefaultGameFlags: 6
-            }
+            VONCanTransmitCrossFaction: false,
+            missionHeader: {}
         },
-        mods: [
-            {
-            modId: "5E68F6FA97DAB5CD",
-            name: "GRAD Undead"
-            }
-        ]
+        mods: []
     },
     operating: {
-        lobbyPlayerSynchronise: true
+        lobbyPlayerSynchronise: true,
+        disableNavmeshStreaming: undefined,
+        disableServerShutdown: false,
+        disableAI: false,
+        playerSaveTime: 120,
+        aiLimit: -1,
+        slotReservationTimeout: 60
     }
 }
 

@@ -34,11 +34,22 @@ function addServer() {
       })
 }
 
+function missionHeaderChanged(value: string) {
+    config.value.game.gameProperties.missionHeader = JSON.parse(value);
+}
+
+function disableNavmeshStreamingChanged(value: string) {
+    (value) ? config.value.operating.disableNavmeshStreaming = [] : config.value.operating.disableNavmeshStreaming = undefined;
+}
+
 </script>
 
 <template>
   <h1>Add Server</h1>
-  <ConfigForm v-model:name="name" v-model:config="config"/>
+  <ConfigForm
+    @missionHeaderChanged="missionHeaderChanged"
+    @disableNavmeshStreamingChanged="disableNavmeshStreamingChanged"
+    v-model:name="name" v-model:config="config"/>
   <br/>
   <br/>
   <button id="add-button" type="button" @click="addServer()">Add</button>

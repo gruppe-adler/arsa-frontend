@@ -25,14 +25,25 @@ function updateServer() {
   serversStore.update(server.value)
       .then(() => {
         router.push('/servers-list')
-      })
+      });
+}
+
+function missionHeaderChanged(value: string) {
+    server.value.config.game.gameProperties.missionHeader = JSON.parse(value);
+}
+
+function disableNavmeshStreamingChanged(value: string) {
+    (value) ? server.value.config.operating.disableNavmeshStreaming = [] : server.value.config.operating.disableNavmeshStreaming = undefined;
 }
 
 </script>
 
 <template>
   <h1>Edit Server</h1>
-  <ConfigForm v-model:name="server.name" v-model:config="server.config"/>
+  <ConfigForm
+    @missionHeaderChanged="missionHeaderChanged"
+    @disableNavmeshStreamingChanged="disableNavmeshStreamingChanged"
+    v-model:name="server.name" v-model:config="server.config"/>
   <br/>
   <br/>
   <button type="button" @click="updateServer()">Update</button>
