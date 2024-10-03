@@ -10,7 +10,7 @@ export const defaultConfig = {
     rcon: {
         address: '',
         port: 19999,
-        password: 'secret',
+        password: 'mE*mueuJnG27@LZrgK4pLjEL',
         maxClients: 16,
         permission: 'monitor',
         blacklist: [],
@@ -18,8 +18,8 @@ export const defaultConfig = {
     },
     game: {
         name: 'server name',
-        password: 'password',
-        passwordAdmin: 'adminPassword',
+        password: 'bEBArjt_Jt-A!Ce*xrr2huQo',
+        passwordAdmin: 'gHuaVyZCFQ!Rg984HMj6aoHn',
         admins: [],
         scenarioId: '{59AD59368755F41A}Missions/21_GM_Eden.conf',
         maxPlayers: 32,
