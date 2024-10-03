@@ -42,11 +42,12 @@ function onClickClone() {
   <li>
     <p>
       <span class="column-left" v-if="isRunning">Online</span>
-      <span class="column-left" v-else="isRunning">Offline</span>
+      <span class="column-left" v-else>Offline</span>
       <button class="column-left" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
       <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
       <span> [{{ props.server?.config.publicAddress }}:{{ props.server?.config.bindPort }}] </span>
-      <RouterLink :to="`/edit-server/${props.server?.uuid}`">{{ props.server?.name }}</RouterLink>
+      <RouterLink :to="`/edit-server/${props.server?.uuid}`" v-if="!isRunning">{{ props.server?.name }}</RouterLink>
+      <RouterLink :to="`/view-server/${props.server?.uuid}`" v-else>{{ props.server?.name }}</RouterLink>
       <span> ({{ props.server?.uuid }})</span>
       <button class="column-right" type="button" @click="onClickDelete" :disabled="isRunning">Delete</button>
       <button class="column-right" type="button" @click="onClickClone">Clone</button>
