@@ -140,7 +140,7 @@ onMounted(() => {
         <input id="rconPort-input" type="number" min="1" max="65535" step="1" name="rconPort" v-model="config.rcon.port">
         <br/>
         <label class="label" id="rconPassword-label" for="rconPassword-input">password (required, no spaces, min 3)</label>
-        <input id="rconPassword-input" type="password" autocomplete="off" name="rconPassword" v-model="config.rcon.password">
+        <input id="rconPassword-input" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" name="rconPassword" v-model="config.rcon.password">
         <button type="button" @click="togglePasswordVisibility('rconPassword-input', $event)">Show</button>
         <br/>
         <label class="label" id="rconMaxClients-label" for="rconMaxClients-input">maxClients (1-16 default: 16)</label>
@@ -180,11 +180,11 @@ onMounted(() => {
         <input id="gameName-input" type="text" name="gameName" maxlength="100" size="100" v-model="config.game.name">
         <br/>
         <label class="label" id="gamePassword-label" for="gamePassword-input">password (default: empty)</label>
-        <input id="gamePassword-input" type="password" autocomplete="off" name="gamePassword" v-model="config.game.password">
+        <input id="gamePassword-input" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" name="gamePassword" v-model="config.game.password">
         <button type="button" @click="togglePasswordVisibility('gamePassword-input', $event)">Show</button>
         <br/>
         <label class="label" id="gamePasswordAdmin-label" for="gamePasswordAdmin-input">passwordAdmin (no spaces, default: empty)</label>
-        <input id="gamePasswordAdmin-input" type="password" autocomplete="off" name="gamePasswordAdmin" v-model="config.game.passwordAdmin">
+        <input id="gamePasswordAdmin-input" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" name="gamePasswordAdmin" v-model="config.game.passwordAdmin">
         <button type="button" @click="togglePasswordVisibility('gamePasswordAdmin-input', $event)">Show</button>
         <br/>
         <label class="label" id="gameAdmins-label" for="gameAdmins-input">admins (select the ones you want)</label>
