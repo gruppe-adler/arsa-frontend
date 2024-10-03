@@ -6,6 +6,10 @@ export interface ServerId {
   uuid: string
 }
 
+export interface IpAddress {
+  ipv4: string
+}
+
 export interface Server {
   uuid: string
   name: string

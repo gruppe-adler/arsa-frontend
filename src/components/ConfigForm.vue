@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { useServersStore } from '../stores/servers'
 import { ServerConfig } from '../utils/interfaces';
 import { isIPv4 } from 'is-ip';
 
@@ -7,6 +8,8 @@ const emit = defineEmits(['missionHeaderChanged', 'disableNavmeshStreamingChange
 
 const config = defineModel<ServerConfig>('config', { required: true });
 const name = defineModel<string>('name', { required: true });
+
+const serversStore = useServersStore();
 
 function checkIpAddress(event: Event) {
     if (!isIPv4((event.target as HTMLInputElement).value)) alert('Not a valid IPv4 address.');
@@ -110,24 +113,28 @@ onMounted(() => {
         <h3>Config</h3>
         <label class="label" id="bindAddress-label" for="bindAddress-input">bindAddress (default: 0.0.0.0)</label>
         <input id="bindAddress-input" type="text" name="bindAddress" @change="checkIpAddress" v-model="config.bindAddress">
+        <button type="button" @click="config.bindAddress = serversStore.publicIp">Auto</button>
         <br/>
         <label class="label" id="bindPort-label" for="bindPort-input">bindPort (1-65535 default: 2001)</label>
         <input id="bindPort-input" type="number" min="1" max="65535" step="1" name="bindPort" v-model="config.bindPort">
         <br/>
         <label class="label" id="publicAddress-label" for="publicAddress-input">publicAddress* (default empty)</label>
         <input id="publicAddress-input" type="text" name="publicAddress" @change="checkIpAddress" v-model="config.publicAddress">
+        <button type="button" @click="config.publicAddress = serversStore.publicIp">Auto</button>
         <br/>
         <label class="label" id="publicPort-label" for="publicPort-input">publicPort (1-65535 default: 2001)</label>
         <input id="publicPort-input" type="number" min="1" max="65535" step="1" name="publicPort" v-model="config.publicPort">
         <h4>A2S</h4>
         <label class="label" id="a2sAddress-label" for="a2sAddress-input">address* (required)</label>
         <input id="a2sAddress-input" type="text" name="a2sAddress" @change="checkIpAddress" v-model="config.a2s.address">
+        <button type="button" @click="config.a2s.address = serversStore.publicIp">Auto</button>
         <br/>
         <label class="label" id="a2sPort-label" for="a2sPort-input">port (1-65535 default: 17777)</label>
         <input id="a2sPort-input" type="number" min="1" max="65535" step="1" name="a2sPort" v-model="config.a2s.port">
         <h4>RCON</h4>
         <label class="label" id="rconAddress-label" for="rconAddress-input">address* (required)</label>
         <input id="rconAddress-input" type="text" name="rconAddress" @change="checkIpAddress" v-model="config.rcon.address">
+        <button type="button" @click="config.rcon.address = serversStore.publicIp">Auto</button>
         <br/>
         <label class="label" id="rconPort-label" for="rconPort-input">port (1-65535 default: 19999)</label>
         <input id="rconPort-input" type="number" min="1" max="65535" step="1" name="rconPort" v-model="config.rcon.port">

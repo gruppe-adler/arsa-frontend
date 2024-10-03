@@ -1,4 +1,4 @@
-import { Result, Server, ServerId } from './interfaces'
+import { IpAddress, Result, Server, ServerId } from './interfaces'
 
 export async function getServers(): Promise<Server[]> {
     const jsonResponse = await fetch(`http://localhost:8000/api/get-servers`);
@@ -54,4 +54,10 @@ export async function updateServer(server: Server): Promise<boolean> {
     });
     const result = await jsonResponse.json() as Result;
     return result.value;
+}
+
+export async function getPublicIp(): Promise<string> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/get-public-ip`);
+    const ipAddress = await jsonResponse.json() as IpAddress;
+    return ipAddress.ipv4;
 }

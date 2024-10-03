@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia'
-import { getServers, getServer, addServer, updateServer, startServer, stopServer, deleteServer, isRunning } from '../utils/api'
+import { getServers, getServer, addServer, updateServer, startServer, stopServer, deleteServer, isRunning, getPublicIp } from '../utils/api'
 import { Server } from '../utils/interfaces'
 
 interface State {
     servers: Server[]
+    publicIp: string
 }
 
 export const useServersStore = defineStore('servers', {
     state: (): State => {
         return {
             servers: [],
+            publicIp: ''
         }
     },
     actions: {
@@ -36,6 +38,11 @@ export const useServersStore = defineStore('servers', {
         },
         async isRunning(id: string) { 
             return await isRunning(id)
+        },
+        async getPublicIp() { 
+            if (this.publicIp === '') {
+                this.publicIp = await getPublicIp()
+            };
         }
     },
 })

@@ -45,7 +45,7 @@ function onClickClone() {
       <span class="column-left" v-else="isRunning">Offline</span>
       <button class="column-left" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
       <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
-      <span> [{{ props.server?.config.bindPort }}] </span>
+      <span> [{{ props.server?.config.publicAddress }}:{{ props.server?.config.bindPort }}] </span>
       <RouterLink :to="`/edit-server/${props.server?.uuid}`">{{ props.server?.name }}</RouterLink>
       <span> ({{ props.server?.uuid }})</span>
       <button class="column-right" type="button" @click="onClickDelete" :disabled="isRunning">Delete</button>

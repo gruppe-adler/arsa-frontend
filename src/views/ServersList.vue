@@ -9,7 +9,7 @@ updateServerList();
 
 function updateServerList() {
   serversStore.getAll()
-    .then(() => console.log(serversStore.servers))
+    .then(() => serversStore.getPublicIp())
 }
 
 function onServerDeleted() {
