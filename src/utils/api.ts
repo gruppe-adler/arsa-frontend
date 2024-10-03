@@ -1,36 +1,49 @@
 import { IpAddress, Result, Server, ServerId } from './interfaces'
+import { useLogsStore } from '../stores/logs'
 
 export async function getServers(): Promise<Server[]> {
     const jsonResponse = await fetch(`http://localhost:8000/api/get-servers`);
+    //const logsStore = useLogsStore();
+    //logsStore.add(`Server list retrieved: ${jsonResponse}`);
     return await jsonResponse.json() as Server[];
 }
 
 export async function getServer(id: string): Promise<Server> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}`);
+    const logsStore = useLogsStore();
+    logsStore.add(`Server with UUID ${id} retrieved: ${jsonResponse}`);
     return await jsonResponse.json() as Server;
 }
 
 export async function startServer(id: string): Promise<boolean> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/start`);
     const result = await jsonResponse.json() as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`Server with UUID ${id} started: ${result.value}`);
     return result.value;
 }
 
 export async function stopServer(id: string): Promise<boolean> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/stop`);
     const result = await jsonResponse.json() as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`Server with UUID ${id} stopped: ${result.value}`);
     return result.value;
 }
 
 export async function deleteServer(id: string): Promise<boolean> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/delete`);
     const result = await jsonResponse.json() as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`Server with UUID ${id} deleted: ${result.value}`);
     return result.value;
 }
 
 export async function isRunning(id: string): Promise<boolean> {
     const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/isRunning`);
     const result = await jsonResponse.json() as Result;
+    //const logsStore = useLogsStore();
+    //logsStore.add(`Server with UUID ${id} is running: ${result.value}`);
     return result.value;
 }
 
@@ -42,6 +55,8 @@ export async function addServer(server: Server): Promise<string> {
         mode: 'cors'
     });
     const serverId = await jsonResponse.json() as ServerId;
+    const logsStore = useLogsStore();
+    logsStore.add(`New Server added with UUID: ${serverId.uuid}`);
     return serverId.uuid;
 }
 
@@ -53,11 +68,15 @@ export async function updateServer(server: Server): Promise<boolean> {
         mode: 'cors'
     });
     const result = await jsonResponse.json() as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`Server with UUID ${server.uuid} updated: ${result.value}`);
     return result.value;
 }
 
 export async function getPublicIp(): Promise<string> {
     const jsonResponse = await fetch(`http://localhost:8000/api/get-public-ip`);
     const ipAddress = await jsonResponse.json() as IpAddress;
+    const logsStore = useLogsStore();
+    logsStore.add(`Public IPv4 address retrieved: ${ipAddress.ipv4}`);
     return ipAddress.ipv4;
 }
