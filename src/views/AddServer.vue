@@ -3,43 +3,34 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
-import { Server, ServerConfig } from '../utils/interfaces'
+import { Server } from '../utils/interfaces'
 import ConfigForm from '../components/ConfigForm.vue'
-import { defaultConfig } from '../utils/defaults'
+import { defaultServer } from '../utils/defaults'
 
 const router = useRouter()
 
 const serversStore = useServersStore()
 
-const name = ref('')
-
-const config = ref<ServerConfig>(defaultConfig)
-
+const server = ref<Server>(defaultServer)
 
 function addServer() {
-  if(!name.value) return alert('Field \'name\' is required.');
-  if(!config.value.publicAddress) return alert('Field \'publicAddress\' is required.');
-  if(!config.value.a2s.address) return alert('Field \'a2sAddress\' is required.');
-  if(!config.value.rcon.address) return alert('Field \'rconAddress\' is required.');
+  if(!server.value.name) return alert('Field \'name\' is required.');
+  if(!server.value.config.publicAddress) return alert('Field \'publicAddress\' is required.');
+  if(!server.value.config.a2s.address) return alert('Field \'a2sAddress\' is required.');
+  if(!server.value.config.rcon.address) return alert('Field \'rconAddress\' is required.');
 
-  const server: Server = {
-    uuid: '',
-    name: name.value,
-    config: config.value
-  }
-
-  serversStore.add(server)
+  serversStore.add(server.value)
       .then(() => {
         router.push('/servers-list')
       })
 }
 
 function missionHeaderChanged(value: string) {
-    config.value.game.gameProperties.missionHeader = JSON.parse(value);
+    server.value.config.game.gameProperties.missionHeader = JSON.parse(value);
 }
 
 function disableNavmeshStreamingChanged(value: string) {
-    (value) ? config.value.operating.disableNavmeshStreaming = [] : config.value.operating.disableNavmeshStreaming = undefined;
+    (value) ? server.value.config.operating.disableNavmeshStreaming = [] : server.value.config.operating.disableNavmeshStreaming = undefined;
 }
 
 </script>
@@ -49,10 +40,10 @@ function disableNavmeshStreamingChanged(value: string) {
   <ConfigForm
     @missionHeaderChanged="missionHeaderChanged"
     @disableNavmeshStreamingChanged="disableNavmeshStreamingChanged"
-    v-model:name="name" v-model:config="config"/>
+    v-model:name="server.name" v-model:config="server.config"/>
   <br/>
   <br/>
-  <button id="add-button" type="button" @click="addServer()">Add</button>
+  <button type="button" @click="addServer()">Add</button>
 </template>
 
 <style scoped>
