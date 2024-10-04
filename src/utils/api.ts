@@ -8,43 +8,59 @@ export async function getServers(): Promise<Server[]> {
     return await jsonResponse.json() as Server[];
 }
 
-export async function getServer(id: string): Promise<Server> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}`);
+export async function getServer(uuid: string): Promise<Server> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}`);
     const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${id} retrieved: ${jsonResponse}`);
+    logsStore.add(`Server with UUID ${uuid} retrieved: ${jsonResponse}`);
     return await jsonResponse.json() as Server;
 }
 
-export async function startServer(id: string): Promise<boolean> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/start`);
+export async function startServer(uuid: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/start`);
     const result = await jsonResponse.json() as Result;
     const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${id} started: ${result.value}`);
+    logsStore.add(`Server with UUID ${uuid} started: ${result.value}`);
     return result.value;
 }
 
-export async function stopServer(id: string): Promise<boolean> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/stop`);
+export async function stopServer(uuid: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/stop`);
     const result = await jsonResponse.json() as Result;
     const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${id} stopped: ${result.value}`);
+    logsStore.add(`Server with UUID ${uuid} stopped: ${result.value}`);
     return result.value;
 }
 
-export async function deleteServer(id: string): Promise<boolean> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/delete`);
+export async function deleteServer(uuid: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/delete`);
     const result = await jsonResponse.json() as Result;
     const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${id} deleted: ${result.value}`);
+    logsStore.add(`Server with UUID ${uuid} deleted: ${result.value}`);
     return result.value;
 }
 
-export async function isRunning(id: string): Promise<boolean> {
-    const jsonResponse = await fetch(`http://localhost:8000/api/server/${id}/isRunning`);
+export async function isRunning(uuid: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/isRunning`);
     const result = await jsonResponse.json() as Result;
     //const logsStore = useLogsStore();
     //logsStore.add(`Server with UUID ${id} is running: ${result.value}`);
     return result.value;
+}
+
+export async function getLogs(uuid: string): Promise<string[]> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/logs`);
+    const result = await jsonResponse.json() as string[];
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting Logs for Server with UUID ${uuid}: ${result.length} (count)`);
+    return result;
+}
+
+export async function getLog(uuid: string, log: string, file: string): Promise<string> {
+    const jsonResponse = await fetch(`http://localhost:8000/api/server/${uuid}/log/${log}/${file}`);
+    const result = await jsonResponse.json() as string;
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
+    return result;
 }
 
 export async function addServer(server: Server): Promise<string> {

@@ -1,15 +1,18 @@
 <script setup lang="ts">
 
 import { onUnmounted, ref }  from 'vue'
+import { useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
 import { Server } from '../utils/interfaces';
 import { defaultServer } from '../utils/defaults';
 
-const serversStore = useServersStore()
-
 const props = defineProps({ server: Object })
 
 const emit = defineEmits(['serverDeleted', 'serverCloned'])
+
+const router = useRouter()
+
+const serversStore = useServersStore()
 
 const isRunning = ref(false)
 
@@ -36,6 +39,10 @@ function onClickClone() {
   });
 }
 
+function onClickLogs() {
+  router.push(`/server-logs-list/${props.server?.uuid}`);
+}
+
 </script>
 
 <template>
@@ -51,6 +58,7 @@ function onClickClone() {
       <span> ({{ props.server?.uuid }})</span>
       <button class="column-right" type="button" @click="onClickDelete" :disabled="isRunning">Delete</button>
       <button class="column-right" type="button" @click="onClickClone">Clone</button>
+      <button class="column-right" type="button" @click="onClickLogs">Logs</button>
     </p>
   </li>
 </template>

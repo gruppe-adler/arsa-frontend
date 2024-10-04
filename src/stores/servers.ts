@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getServers, getServer, addServer, updateServer, startServer, stopServer, deleteServer, isRunning, getPublicIp } from '../utils/api'
+import { getServers, getServer, addServer, updateServer, startServer, stopServer, deleteServer, isRunning, getLogs, getLog, getPublicIp } from '../utils/api'
 import { Server } from '../utils/interfaces'
 
 interface State {
@@ -18,8 +18,8 @@ export const useServersStore = defineStore('servers', {
         async getAll() { 
             this.servers = await getServers()
         },
-        async get(id: string) { 
-            return await getServer(id)
+        async get(uuid: string) { 
+            return await getServer(uuid)
         },
         async add(server: Server) {
             await addServer(server)
@@ -27,17 +27,23 @@ export const useServersStore = defineStore('servers', {
         async update(server: Server) {
             await updateServer(server)
         },
-        async start(id: string) { 
-            return await startServer(id)
+        async start(uuid: string) { 
+            return await startServer(uuid)
         },
-        async stop(id: string) { 
-            return await stopServer(id)
+        async stop(uuid: string) { 
+            return await stopServer(uuid)
         },
-        async delete(id: string) { 
-            return await deleteServer(id)
+        async delete(uuid: string) { 
+            return await deleteServer(uuid)
         },
-        async isRunning(id: string) { 
-            return await isRunning(id)
+        async isRunning(uuid: string) { 
+            return await isRunning(uuid)
+        },
+        async getLogs(uuid: string) { 
+            return await getLogs(uuid)
+        },
+        async getLog(uuid: string, log: string, file: string) { 
+            return await getLog(uuid, log, file)
         },
         async getPublicIp() { 
             if (this.publicIp === '') {
