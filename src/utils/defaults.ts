@@ -4,11 +4,11 @@ export const defaultConfig = {
     publicAddress: '',
     publicPort: 2001,
     a2s: {
-        address: '',
+        address: '0.0.0.0',
         port: 17777
     },
     rcon: {
-        address: '',
+        address: '0.0.0.0',
         port: 19999,
         password: 'mE*mueuJnG27@LZrgK4pLjEL',
         maxClients: 16,
