@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "docker": "docker buildx build -t arsa-frontend .",
+    "docker-run": "docker run -d --rm -p 80:80 --name arsa-frontend arsa-frontend"
   },
   "dependencies": {
     "is-ip": "^5.0.1",
