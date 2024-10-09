@@ -1,12 +1,11 @@
 <script setup lang="ts">
 
-import { onUnmounted, ref }  from 'vue'
 import { useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
 import { Server } from '../utils/interfaces';
 import { defaultServer } from '../utils/defaults';
 
-const props = defineProps({ server: Object })
+const model = defineModel<Server>()
 
 const emit = defineEmits(['serverDeleted', 'serverCloned'])
 
@@ -14,33 +13,25 @@ const router = useRouter()
 
 const serversStore = useServersStore()
 
-const isRunning = ref(false)
-
-const isRunningInterval = setInterval(() => {
-    serversStore.isRunning(props.server?.uuid).then(result => isRunning.value = result);
-}, 1000);
-
-onUnmounted(() => clearInterval(isRunningInterval));
-
 function onClickDelete() {
   if(confirm('Do you really want to delete this server?')) {
-    serversStore.delete(props.server?.uuid).then(() => {
+    serversStore.delete(model.value!.uuid).then(() => {
       emit('serverDeleted');
     });
   }
 }
 
 function onClickClone() {
-  const server: Server = props.server as Server || defaultServer;
+  const server: Server = model.value || defaultServer;
   server.name = server.name.concat(' Duplicate');
+  server.uuid = '';
   serversStore.add(server).then(() => {
-    delete(props.server?.uuid);
     emit('serverCloned');
   });
 }
 
 function onClickLogs() {
-  router.push(`/server-logs-list/${props.server?.uuid}`);
+  router.push(`/server-logs-list/${model.value!.uuid}`);
 }
 
 </script>
@@ -48,15 +39,15 @@ function onClickLogs() {
 <template>
   <li>
     <p>
-      <span class="column-left" v-if="isRunning">Online</span>
+      <span class="column-left" v-if="model!.isRunning">Online</span>
       <span class="column-left" v-else>Offline</span>
-      <button class="column-left" type="button" @click="serversStore.stop(props.server?.uuid)" v-if="isRunning">Stop</button>
-      <button class="column-left" type="button" @click="serversStore.start(props.server?.uuid)" v-else>Start</button>
-      <span> [{{ props.server?.config.publicAddress }}:{{ props.server?.config.bindPort }}] </span>
-      <RouterLink :to="`/edit-server/${props.server?.uuid}`" v-if="!isRunning">{{ props.server?.name }}</RouterLink>
-      <RouterLink :to="`/view-server/${props.server?.uuid}`" v-else>{{ props.server?.name }}</RouterLink>
-      <span> ({{ props.server?.uuid }})</span>
-      <button class="column-right" type="button" @click="onClickDelete" :disabled="isRunning">Delete</button>
+      <button class="column-left" type="button" @click="serversStore.stop(model!.uuid)" v-if="model!.isRunning">Stop</button>
+      <button class="column-left" type="button" @click="serversStore.start(model!.uuid)" v-else>Start</button>
+      <span> [{{ model!.config.publicAddress }}:{{ model!.config.bindPort }}] </span>
+      <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
+      <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
+      <span> ({{ model!.uuid }})</span>
+      <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
       <button class="column-right" type="button" @click="onClickClone">Clone</button>
       <button class="column-right" type="button" @click="onClickLogs">Logs</button>
     </p>

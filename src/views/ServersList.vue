@@ -1,11 +1,11 @@
 <script setup lang="ts">
 
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 import { useServersStore } from '../stores/servers'
 import { useLogsStore } from '../stores/logs'
 import ServerItem from '../components/ServerItem.vue'
-import { Server } from '../utils/interfaces';
+import { Server, ServerStatusUpdate } from '../utils/interfaces';
 
 const serversStore = useServersStore()
 const logsStore = useLogsStore()
@@ -30,6 +30,24 @@ const sortedServers = computed(() => {
   return clonedServers.sort((a: Server, b: Server) => (a.name <  b.name) ? -1 : 1)
 })
 
+import { useWebSocket } from '@vueuse/core';
+
+const ws = useWebSocket('ws://127.0.0.1:3000', {
+  heartbeat: {
+    message: 'ping',
+    interval: 1000,
+    pongTimeout: 1000,
+  },
+})
+
+watch(ws.data, (value) => {
+  if(value !== 'pong') {
+    logsStore.add(value);
+    const update: ServerStatusUpdate = JSON.parse(value);
+    serversStore.isRunningUpdate(update.uuid, update.isRunning);
+  }
+}) 
+
 </script>
 
 <template>
@@ -37,8 +55,8 @@ const sortedServers = computed(() => {
     <h1>Arma Reforger Servers List</h1>
     <ul id="servers-list">
       <ServerItem @server-deleted.once="onServerDeleted" @server-cloned.once="onServerCloned"
-        v-for="item in sortedServers"
-        :server="item"
+        v-for="(_item, idx) in sortedServers"
+        v-model="sortedServers[idx]"
       ></ServerItem>
     </ul>
     <h1>Host Server Log</h1>

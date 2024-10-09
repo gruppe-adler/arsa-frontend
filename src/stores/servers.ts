@@ -28,10 +28,20 @@ export const useServersStore = defineStore('servers', {
             await updateServer(server)
         },
         async start(uuid: string) { 
-            return await startServer(uuid)
+            const result = await startServer(uuid)
+            if (result) {
+                const server = this.servers.find(i => i.uuid === uuid);
+                if (server) server.isRunning = true;
+            }
+            return result
         },
         async stop(uuid: string) { 
-            return await stopServer(uuid)
+            const result = await stopServer(uuid)
+            if (result) {
+                const server = this.servers.find(i => i.uuid === uuid);
+                if (server) server.isRunning = false;
+            }
+            return result
         },
         async delete(uuid: string) { 
             return await deleteServer(uuid)
@@ -49,6 +59,10 @@ export const useServersStore = defineStore('servers', {
             if (this.publicIp === '') {
                 this.publicIp = await getPublicIp()
             };
+        },
+        async isRunningUpdate(uuid: string, isRunning: boolean) { 
+            const server = this.servers.find(i => i.uuid === uuid);
+            if (server) server.isRunning = isRunning;
         }
     },
 })
