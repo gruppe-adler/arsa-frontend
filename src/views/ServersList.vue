@@ -54,7 +54,7 @@ watch(ws.data, (value) => {
   <div>
     <h1>Arma Reforger Servers List</h1>
     <ul id="servers-list">
-      <ServerItem @server-deleted.once="onServerDeleted" @server-cloned.once="onServerCloned"
+      <ServerItem @server-deleted="onServerDeleted" @server-cloned="onServerCloned"
         v-for="(_item, idx) in sortedServers"
         v-model="sortedServers[idx]"
       ></ServerItem>
