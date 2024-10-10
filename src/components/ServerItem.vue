@@ -3,7 +3,6 @@
 import { useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
 import { Server } from '../utils/interfaces';
-import { defaultServer } from '../utils/defaults';
 
 const model = defineModel<Server>()
 
@@ -22,7 +21,7 @@ function onClickDelete() {
 }
 
 function onClickClone() {
-  const server: Server = model.value || defaultServer;
+  const server: Server = model.value!;
   server.name = server.name.concat(' Duplicate');
   server.uuid = '';
   serversStore.add(server).then(() => {
