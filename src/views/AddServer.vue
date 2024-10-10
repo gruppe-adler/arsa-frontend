@@ -11,7 +11,9 @@ const router = useRouter()
 
 const serversStore = useServersStore()
 
-const server = ref<Server>(defaultServer)
+// I need to clone the defaultServer const object. Otherwise it's changed by the form.
+// I don't know why this ref thing does that. Perhaps objects are always just references.
+const server = ref<Server>(Object.assign({}, defaultServer))
 
 function addServer() {
   if(!server.value.name) return alert('Field \'name\' is required.');
