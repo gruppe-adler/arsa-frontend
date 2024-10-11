@@ -42,7 +42,7 @@ function onClickLogs() {
       <span class="column-left" v-else>Offline</span>
       <button class="column-left" type="button" @click="serversStore.stop(model!.uuid)" v-if="model!.isRunning">Stop</button>
       <button class="column-left" type="button" @click="serversStore.start(model!.uuid)" v-else>Start</button>
-      <span> [{{ model!.config.publicAddress }}:{{ model!.config.bindPort }}] </span>
+      <span> [{{ model!.config.bindPort }}] </span>
       <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
       <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
       <span> ({{ model!.uuid }})</span>
