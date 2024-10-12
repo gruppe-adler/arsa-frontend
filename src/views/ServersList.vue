@@ -31,8 +31,9 @@ const sortedServers = computed(() => {
 })
 
 import { useWebSocket } from '@vueuse/core';
+const api = import.meta.env.VITE_API_URL
 
-const ws = useWebSocket('ws://127.0.0.1:3000/ws', {
+const ws = useWebSocket(`ws://${api}:3000/ws`, {
   heartbeat: {
     message: 'ping',
     interval: 1000,
