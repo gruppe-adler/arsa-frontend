@@ -32,7 +32,7 @@ const sortedServers = computed(() => {
 
 import { useWebSocket } from '@vueuse/core';
 
-const ws = useWebSocket('ws://127.0.0.1:3000', {
+const ws = useWebSocket('ws://127.0.0.1:3000/ws', {
   heartbeat: {
     message: 'ping',
     interval: 1000,
