@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useServersStore } from '../stores/servers'
 import { Server } from '../utils/interfaces'
@@ -15,6 +15,10 @@ const serversStore = useServersStore()
 // I don't know why this ref thing does that. Perhaps objects are always just references.
 const server = ref<Server>(Object.assign({}, defaultServer))
 
+const inputViolationCounter = ref(0);
+
+const disabled = computed<boolean>(() => (inputViolationCounter.value > 0) ? true : false );
+
 function addServer() {
   if(!server.value.name) return alert('Field \'name\' is required.');
   if(!server.value.config.publicAddress) return alert('Field \'publicAddress\' is required.');
@@ -27,25 +31,14 @@ function addServer() {
       })
 }
 
-function missionHeaderChanged(value: string) {
-    server.value.config.game.gameProperties.missionHeader = JSON.parse(value);
-}
-
-function disableNavmeshStreamingChanged(value: string) {
-    (value) ? server.value.config.operating.disableNavmeshStreaming = [] : server.value.config.operating.disableNavmeshStreaming = undefined;
-}
-
 </script>
 
 <template>
   <h1>Add Server</h1>
-  <ConfigForm
-    @missionHeaderChanged="missionHeaderChanged"
-    @disableNavmeshStreamingChanged="disableNavmeshStreamingChanged"
-    v-model:name="server.name" v-model:config="server.config"/>
+  <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:name="server.name" v-model:config="server.config"/>
   <br/>
   <br/>
-  <button type="button" @click="addServer()">Add</button>
+  <button type="button" :disabled @click="addServer()">Add</button>
 </template>
 
 <style scoped>
