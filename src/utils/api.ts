@@ -34,7 +34,10 @@ export async function stopServer(uuid: string): Promise<boolean> {
 }
 
 export async function deleteServer(uuid: string): Promise<boolean> {
-    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/delete`);
+    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}`,{
+        method: 'DELETE',
+        mode: 'cors'
+    });
     const result = await jsonResponse.json() as Result;
     const logsStore = useLogsStore();
     logsStore.add(`Server with UUID ${uuid} deleted: ${result.value}`);
@@ -79,8 +82,8 @@ export async function addServer(server: Server): Promise<string> {
 }
 
 export async function updateServer(server: Server): Promise<boolean> {
-    const jsonResponse = await fetch(`http://${api}:3000/api/server/${server.uuid}/update`,{
-        method: 'POST',
+    const jsonResponse = await fetch(`http://${api}:3000/api/server/${server.uuid}`,{
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(server),
         mode: 'cors'
