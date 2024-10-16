@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
 
+import crypto from 'crypto';
+import { onMounted } from 'vue';
 
 const props = defineProps({
     readonly: Boolean,

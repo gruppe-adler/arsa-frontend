@@ -1,5 +1,6 @@
 <script setup lang="ts">
 
+import crypto from 'crypto';
 import { watch } from 'vue';
 
 const props = defineProps({

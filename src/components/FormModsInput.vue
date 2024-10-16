@@ -1,4 +1,6 @@
 <script setup lang="ts">
+
+import crypto from 'crypto';
 import { onMounted, ref } from 'vue';
 import { type Mod } from '../utils/interfaces';
 

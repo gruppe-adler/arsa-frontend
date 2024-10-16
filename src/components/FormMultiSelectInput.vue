@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import crypto from 'crypto';
+
 const props = defineProps({
     readonly: Boolean,
     name: String,
