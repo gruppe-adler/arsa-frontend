@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
     readonly: Boolean,
@@ -9,7 +9,7 @@ const props = defineProps({
 });
 const model = defineModel<string[]>({ required: true });
 
-const selectId = crypto.randomUUID();
+const selectId = uuidv4();
 
 </script>
 

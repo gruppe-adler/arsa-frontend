@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref } from 'vue';
 
 const props = defineProps({
@@ -10,8 +10,8 @@ const props = defineProps({
 });
 const model = defineModel<string[] | undefined>({ required: true });
 
-const selectId = crypto.randomUUID();
-const inputId = crypto.randomUUID();
+const selectId = uuidv4();
+const inputId = uuidv4();
 
 const localOptions = ref<string[]>([]);
 if (model.value) { 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { watch } from 'vue';
 
 const props = defineProps({
@@ -14,7 +14,7 @@ const emit = defineEmits(['violIncr', 'violDecr'])
 
 const model = defineModel<string>({ required: true });
 
-const inputId = crypto.randomUUID();
+const inputId = uuidv4();
 
 function togglePasswordVisibility(event: Event) {
     const input: HTMLInputElement = document.getElementById(inputId) as HTMLInputElement;

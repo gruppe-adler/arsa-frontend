@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref } from 'vue';
 import { type Mod } from '../utils/interfaces';
 
@@ -10,10 +10,10 @@ const props = defineProps({
 });
 const model = defineModel<Mod[]>({ required: true });
 
-const selectId = crypto.randomUUID();
-const modIdInputId = crypto.randomUUID();
-const nameInputId = crypto.randomUUID();
-const versionInputId = crypto.randomUUID();
+const selectId = uuidv4();
+const modIdInputId = uuidv4();
+const nameInputId = uuidv4();
+const versionInputId = uuidv4();
 
 const localMods = ref<Mod[]>(Array.from(model.value));
 
