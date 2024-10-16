@@ -6,6 +6,7 @@ import EditServer from '../views/EditServer.vue'
 import ViewServer from '../views/ViewServer.vue'
 import ServerLogsList from '../views/ServerLogsList.vue'
 import ViewServerLog from '../views/ViewServerLog.vue'
+import PlayersList from '../views/PlayersList.vue'
 
 const routes = [
   { path: '/servers-list', component: ServersList },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/edit-server/:id', component: EditServer },
   { path: '/view-server/:id', component: ViewServer },
   { path: '/server-logs-list/:id', component: ServerLogsList },
+  { path: '/players-list/:id', component: PlayersList },
   { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
   { path: '/', redirect: '/servers-list' }
 ]

@@ -1,4 +1,4 @@
-import { IpAddress, Result, Server, ServerId } from './interfaces'
+import { IpAddress, Result, Server, ServerId, PlayerIdentityId } from './interfaces'
 import { useLogsStore } from '../stores/logs'
 
 const api = import.meta.env.VITE_API_URL
@@ -65,6 +65,22 @@ export async function getLog(uuid: string, log: string, file: string): Promise<s
     const result = await jsonResponse.json() as string;
     const logsStore = useLogsStore();
     logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
+    return result;
+}
+
+export async function getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
+    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log-players/${log}`);
+    const result = await jsonResponse.json() as PlayerIdentityId[];
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting Players from Log ${log} for Server with UUID: ${uuid}`);
+    return result;
+}
+
+export async function getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]> {
+    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/known-players`);
+    const result = await jsonResponse.json() as PlayerIdentityId[];
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting known Players for Server with UUID: ${uuid}`);
     return result;
 }
 

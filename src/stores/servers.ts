@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { getServers, getServer, addServer, updateServer, startServer, stopServer, deleteServer, isRunning, getLogs, getLog, getPublicIp } from '../utils/api'
+import { getServers, getServer, addServer, updateServer, startServer, stopServer, 
+    deleteServer, isRunning, getLogs, getLog, getPublicIp, getPlayersFromLog, getKnownPlayers } from '../utils/api'
 import { Server } from '../utils/interfaces'
 
 interface State {
@@ -54,6 +55,12 @@ export const useServersStore = defineStore('servers', {
         },
         async getLog(uuid: string, log: string, file: string) { 
             return await getLog(uuid, log, file)
+        },
+        async getPlayersFromLog(uuid: string, log: string) { 
+            return await getPlayersFromLog(uuid, log)
+        },
+        async getKnownPlayers(uuid: string) { 
+            return await getKnownPlayers(uuid)
         },
         async getPublicIp() { 
             if (this.publicIp === '') {

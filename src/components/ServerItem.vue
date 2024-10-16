@@ -33,6 +33,10 @@ function onClickLogs() {
   router.push(`/server-logs-list/${model.value!.uuid}`);
 }
 
+function onClickKnownPlayers() {
+  router.push(`/players-list/${model.value!.uuid}`);
+}
+
 </script>
 
 <template>
@@ -49,6 +53,7 @@ function onClickLogs() {
       <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
       <button class="column-right" type="button" @click="onClickClone">Clone</button>
       <button class="column-right" type="button" @click="onClickLogs">Logs</button>
+      <button class="column-right" type="button" @click="onClickKnownPlayers">Known Players</button>
     </p>
   </li>
 </template>

@@ -90,3 +90,8 @@ export interface Mod {
   name: string,
   version: string | undefined
 }
+
+export interface PlayerIdentityId {
+  name: string,
+  identityId: string
+}
