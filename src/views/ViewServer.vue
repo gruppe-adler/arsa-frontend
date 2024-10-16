@@ -9,6 +9,8 @@ import { defaultServer } from '../utils/defaults'
 
 const route = useRoute()
 
+const inputViolationCounter = ref(0);
+
 const serversStore = useServersStore()
 
 const server = ref<Server>(defaultServer)
@@ -21,6 +23,7 @@ if (result) server.value = result;
   <h1>View Server</h1>
   <ConfigForm
     readonly
+    v-model:input-violation-counter="inputViolationCounter"
     v-model:name="server.name" v-model:config="server.config"/>
 </template>
 
