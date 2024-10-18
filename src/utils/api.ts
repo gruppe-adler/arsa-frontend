@@ -61,8 +61,8 @@ export async function getLogs(uuid: string): Promise<string[]> {
 }
 
 export async function getLog(uuid: string, log: string, file: string): Promise<string> {
-    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log/${log}/${file}`);
-    const result = await jsonResponse.json() as string;
+    const textResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log/${log}/${file}`);
+    const result = await textResponse.text();
     const logsStore = useLogsStore();
     logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
     return result;
