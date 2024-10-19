@@ -5,6 +5,7 @@ import { computed, ref } from "vue";
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     placeholder: String
 });
 
@@ -12,7 +13,7 @@ const emit = defineEmits(['violIncr', 'violDecr'])
 
 const model = defineModel<object>({ required: true });
 
-const missionHeader = ref<string>(JSON.stringify(model.value));
+const missionHeader = ref<string>(JSON.stringify(model.value, null, 2));
 
 let violation = false;
 
@@ -39,15 +40,15 @@ const style = computed<string>(() => {
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <br />  
-    <input class="label" type="text" size="100" :style="style" :disabled="props.readonly" v-model="missionHeader" />
-    <br />
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <textarea :title="tooltip" class="json-input" rows="5" :style="style" :disabled="props.readonly" v-model="missionHeader" />
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .json-input {
+        resize: none;
+        overflow-y: scroll;
+    }
 </style>

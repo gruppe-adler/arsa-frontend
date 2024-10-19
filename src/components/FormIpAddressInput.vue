@@ -8,6 +8,7 @@ const serversStore = useServersStore();
 
 const props = defineProps({
     readonly: Boolean,
+    tooltip: String,
     name: String
 });
 
@@ -42,15 +43,17 @@ watch(
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <input type="text" :disabled="props.readonly" :style="style" v-model="model">
-    <button type="button" @click="model = serversStore.publicIp" :disabled="props.readonly">Auto</button>
-    <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <div class="form-custom-input">
+            <input :title="tooltip" class="ip-address-input" type="text" :disabled="props.readonly" :style="style" v-model="model">
+            <button class="form-input-button" type="button" @click="model = serversStore.publicIp" :disabled="props.readonly">Auto</button>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .ip-address-input {
+        flex-grow: 1;
+    }
 </style>

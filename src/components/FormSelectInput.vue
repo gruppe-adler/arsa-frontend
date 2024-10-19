@@ -6,6 +6,7 @@ import { onMounted } from 'vue';
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     options: Array<String>,
     selectedIndex: Number
 });
@@ -21,18 +22,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <label class="label" >{{ name }}</label>
-    <select :id="selectId" :disabled="props.readonly" v-model="model">
-        <option v-for="option in options" :value="option">
-            {{ option }}
-        </option>
-    </select>
-    <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <select :title="tooltip" :id="selectId" :disabled="props.readonly" v-model="model">
+            <option v-for="option in options" :value="option">
+                {{ option }}
+            </option>
+        </select>
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
 </style>

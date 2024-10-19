@@ -6,6 +6,7 @@ import { onMounted, ref } from 'vue';
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     optionalParam: Boolean
 });
 const model = defineModel<string[] | undefined>({ required: true });
@@ -67,23 +68,32 @@ onMounted(() => {
 </script>
 
 <template>
-    <label class="label" >{{ name }}</label>
-    <br/>
-    <select class="label" :id="selectId" size="5" style="width: 275px;" :disabled="props.readonly" @focusout="focusout" v-model="model" multiple>
-        <option v-for="option in localOptions" :value="option">
-            {{ option }}
-        </option>
-    </select>
-    <br/>
-    <input class="label" :id="inputId" type="text" :disabled="props.readonly">
-    <button type="button" @click="addItem()" :disabled="props.readonly">Add</button>
-    <button type="button" @click="removeItem()" :disabled="props.readonly">Delete</button>
-    <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <div>
+            <select :title="tooltip" class="multi-select-mod" :id="selectId" size="5" :disabled="props.readonly" @focusout="focusout" v-model="model" multiple>
+                <option v-for="option in localOptions" :value="option">
+                    {{ option }}
+                </option>
+            </select>
+            <div class="modify-group">
+                <input class="mod-input" :id="inputId" type="text" :disabled="props.readonly">
+                <button class="form-input-button" type="button" @click="addItem()" :disabled="props.readonly">Add</button>
+                <button class="form-input-button" type="button" @click="removeItem()" :disabled="props.readonly">Delete</button>
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .multi-select-mod {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .modify-group {
+        display: flex;
+    }
+    .mod-input {
+        flex-grow: 1;
+    }
 </style>

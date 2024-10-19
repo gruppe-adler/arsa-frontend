@@ -5,6 +5,7 @@ import { watch } from 'vue';
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     minVal: Number,
     maxVal: Number
 });
@@ -40,14 +41,11 @@ watch(
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <input type="number" :min="minVal" :max="maxVal" step="1" :disabled="props.readonly" :style="style" v-model="model">
-    <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <input :title="tooltip" class="form-custom-input" type="number" :min="minVal" :max="maxVal" step="1" :disabled="props.readonly" :style="style" v-model="model">
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
 </style>

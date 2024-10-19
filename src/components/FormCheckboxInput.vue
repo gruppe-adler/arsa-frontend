@@ -2,21 +2,22 @@
 
 const props = defineProps({
     readonly: Boolean,
-    name: String
+    name: String,
+    tooltip: String
 });
 const model = defineModel<boolean>({ required: true });
 
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <input type="checkbox" :disabled="props.readonly" v-model="model">
-    <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <input :title="tooltip" class="checkbox" type="checkbox" :disabled="props.readonly" v-model="model">
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .checkbox {
+        justify-self: start;
+    }
 </style>

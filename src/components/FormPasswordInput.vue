@@ -6,6 +6,7 @@ import { watch } from 'vue';
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     policyWhitespace: Boolean,
     policyMinimum: Number
 });
@@ -58,15 +59,17 @@ watch(
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-        <input :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
-        <button type="button" @click="togglePasswordVisibility($event)">Show</button>
-        <br/>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <div class="form-custom-input">
+            <input :title="tooltip" class="password-input" :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
+            <button class="form-input-button" type="button" @click="togglePasswordVisibility($event)">Show</button>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .password-input {
+        flex-grow: 1;
+    }
 </style>

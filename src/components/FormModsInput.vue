@@ -6,7 +6,8 @@ import { type Mod } from '../utils/interfaces';
 
 const props = defineProps({
     readonly: Boolean,
-    name: String
+    name: String,
+    tooltip: String
 });
 const model = defineModel<Mod[]>({ required: true });
 
@@ -63,27 +64,50 @@ onMounted(() => {
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <br/>
-    <select class="label" :id="selectId" size="5" style="width: 800px;" :disabled="props.readonly" @focusout="focusout" v-model="model" multiple>
-        <option v-for="mod in localMods" :value="mod">
-            {{ mod2string(mod) }}
-        </option>
-    </select>
-    <br/>
-    <label class="label" >modId</label>
-    <input :id="modIdInputId" type="text" :disabled="props.readonly">
-    <label class="label" >name</label>
-    <input :id="nameInputId" type="text" :disabled="props.readonly">
-    <label class="label" >version (optional)</label>
-    <input :id="versionInputId" type="text" :disabled="props.readonly">
-    <button type="button" @click="addMod" :disabled="props.readonly">Add</button>
-    <button type="button" @click="removeMod" :disabled="props.readonly">Delete</button>
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <div>
+            <select :title="tooltip" class="mod-select" :id="selectId" size="10" :disabled="props.readonly" @focusout="focusout" v-model="model" multiple>
+                <option v-for="mod in localMods" :value="mod">
+                    {{ mod2string(mod) }}
+                </option>
+            </select>
+            <div class="mod-modify-group">
+                <label class="form-input-label">modId</label>
+                <input :id="modIdInputId" type="text" :disabled="props.readonly">
+                <label class="form-input-label">name</label>
+                <input :id="nameInputId" type="text" :disabled="props.readonly">
+                <label class="form-input-label">version (optional)</label>
+                <input :id="versionInputId" type="text" :disabled="props.readonly">
+                <br/>
+                <div class="button-group">
+                    <button class="form-input-button" type="button" @click="addMod" :disabled="props.readonly">Add</button>
+                    <button class="form-input-button" type="button" @click="removeMod" :disabled="props.readonly">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
+    .mod-select {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .mod-modify-group {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: 1fr 1fr 1fr 1fr;
+        column-gap: 15px;
+        row-gap: 5px;
+    }
+
+    .mod-modify-input {
+
+    }
+
+    .button-group {
+        justify-self: end;
+    }
 </style>

@@ -1,3 +1,29 @@
 :root {
   font-family: sans-serif;
 }
+
+.form-container {
+  width: 800px;
+  text-align: left;
+}
+
+.form-input-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  column-gap: 15px;
+  margin-bottom: 5px;
+  min-height: 22px;
+}
+
+.form-input-label {
+  text-align: right;
+  grid-column: 1 / span 1;
+}
+
+.form-custom-input {
+  display: flex;
+}
+
+.form-input-button {
+  margin-left: 10px;
+}

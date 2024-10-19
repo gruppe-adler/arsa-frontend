@@ -35,11 +35,13 @@ function updateServer() {
 </script>
 
 <template>
-  <h1>Edit Server</h1>
-  <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:name="server.name" v-model:config="server.config"/>
-  <br/>
-  <br/>
-  <button type="button" :disabled @click="updateServer()">Update</button>
+  <div class="form-container">
+    <h1>Edit Server</h1>
+    <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:name="server.name" v-model:config="server.config"/>
+    <br/>
+    <br/>
+    <button type="button" :disabled @click="updateServer()">Update</button>
+  </div>
 </template>
 
 <style scoped>

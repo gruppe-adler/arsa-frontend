@@ -5,6 +5,7 @@ import { watch } from "vue";
 const props = defineProps({
     readonly: Boolean,
     name: String,
+    tooltip: String,
     placeholder: String,
     length: Number
 });
@@ -40,15 +41,12 @@ watch(
 </script>
 
 <template>
-    <label class="label">{{ name }}</label>
-    <input type="text" :maxlength="length" :size="length" :placeholder="placeholder!" :style="style"
-        :disabled="props.readonly" v-model.trim="model" />
-    <br />
+    <div class="form-input-container">
+        <label class="form-input-label">{{ name }}</label>
+        <input :title="tooltip" type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
+            :disabled="props.readonly" v-model.trim="model" />
+    </div>
 </template>
 
 <style scoped>
-.label {
-    margin-left: 10px;
-    margin-right: 10px;
-}
 </style>

@@ -34,11 +34,13 @@ function addServer() {
 </script>
 
 <template>
-  <h1>Add Server</h1>
-  <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:name="server.name" v-model:config="server.config"/>
-  <br/>
-  <br/>
-  <button type="button" :disabled @click="addServer()">Add</button>
+  <div class="form-container">
+    <h1>Add Server</h1>
+    <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:name="server.name" v-model:config="server.config"/>
+    <br/>
+    <br/>
+    <button type="button" :disabled @click="addServer()">Add</button>
+  </div>
 </template>
 
 <style scoped>
