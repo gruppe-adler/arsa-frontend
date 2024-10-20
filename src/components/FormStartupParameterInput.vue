@@ -38,7 +38,7 @@ watch(
 );
 
 const disabled = computed<boolean>(() => {
-    return (props.readonly || model.value.enabled) ? false : true;
+    return (props.readonly || !model.value.enabled) ? true : false;
 });
 
 </script>
