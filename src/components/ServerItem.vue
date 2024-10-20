@@ -44,8 +44,8 @@ function onClickKnownPlayers() {
     <p>
       <span class="column-left" v-if="model!.isRunning">Online</span>
       <span class="column-left" v-else>Offline</span>
-      <button class="column-left" type="button" @click="serversStore.stop(model!.uuid)" v-if="model!.isRunning">Stop</button>
-      <button class="column-left" type="button" @click="serversStore.start(model!.uuid)" v-else>Start</button>
+      <button class="column-left" style="background-color: rgba(255, 0, 0, 0.5);" type="button" @click="serversStore.stop(model!.uuid)" v-if="model!.isRunning">Stop</button>
+      <button class="column-left" style="background-color: rgba(0, 255, 0, 0.5);" type="button" @click="serversStore.start(model!.uuid)" v-else>Start</button>
       <span> [{{ model!.config.bindPort }}] </span>
       <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
       <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
