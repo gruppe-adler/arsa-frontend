@@ -103,10 +103,6 @@ onMounted(() => {
         row-gap: 5px;
     }
 
-    .mod-modify-input {
-
-    }
-
     .button-group {
         justify-self: end;
     }
