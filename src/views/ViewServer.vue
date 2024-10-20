@@ -20,11 +20,13 @@ if (result) server.value = result;
 </script>
 
 <template>
-  <h1>View Server</h1>
-  <ConfigForm
-    readonly
-    v-model:input-violation-counter="inputViolationCounter"
-    v-model:server="server"/>
+  <div class="form-container">
+    <h1>View Server</h1>
+    <ConfigForm
+      readonly
+      v-model:input-violation-counter="inputViolationCounter"
+      v-model:server="server"/>
+  </div>
 </template>
 
 <style scoped>
