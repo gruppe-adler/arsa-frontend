@@ -40,20 +40,26 @@ watch(
     { immediate: true }
 );
 
+async function getPublicIp(): Promise<void> {
+    model.value = await serversStore.getPublicIp()
+}
+
 </script>
 
 <template>
     <div class="form-input-container">
         <label class="form-input-label">{{ name }}</label>
         <div class="form-custom-input">
-            <input :title="tooltip" class="ip-address-input" type="text" :disabled="props.readonly" :style="style" v-model="model">
-            <button class="form-input-button" type="button" @click="model = serversStore.publicIp" :disabled="props.readonly">Auto</button>
+            <input :title="tooltip" class="ip-address-input" type="text" :disabled="props.readonly" :style="style"
+                v-model="model">
+            <button class="form-input-button" type="button" @click="getPublicIp"
+                :disabled="props.readonly">Auto</button>
         </div>
     </div>
 </template>
 
 <style scoped>
-    .ip-address-input {
-        flex-grow: 1;
-    }
+.ip-address-input {
+    flex-grow: 1;
+}
 </style>
