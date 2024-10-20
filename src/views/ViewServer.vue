@@ -24,7 +24,7 @@ if (result) server.value = result;
   <ConfigForm
     readonly
     v-model:input-violation-counter="inputViolationCounter"
-    v-model:name="server.name" v-model:config="server.config"/>
+    v-model:server="server"/>
 </template>
 
 <style scoped>
