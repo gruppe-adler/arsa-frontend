@@ -68,6 +68,17 @@ export async function getLog(uuid: string, log: string, file: string): Promise<s
     return result;
 }
 
+export async function deleteLog(uuid: string, log: string): Promise<boolean> {
+    const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log/${log}`, {
+        method: 'DELETE',
+        mode: 'cors'
+    });
+    const result = (await jsonResponse.json()) as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`Deleting Log ${log} for Server with UUID: ${uuid}`);
+    return result.value;
+}
+
 export async function getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
     const jsonResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log-players/${log}`);
     const result = (await jsonResponse.json()) as PlayerIdentityId[];

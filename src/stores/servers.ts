@@ -10,6 +10,7 @@ import {
     isRunning,
     getLogs,
     getLog,
+    deleteLog,
     getPublicIp,
     getPlayersFromLog,
     getKnownPlayers,
@@ -69,6 +70,9 @@ export const useServersStore = defineStore('servers', {
         },
         async getLog(uuid: string, log: string, file: string): Promise<string> {
             return await getLog(uuid, log, file);
+        },
+        async deleteLog(uuid: string, log: string): Promise<boolean> {
+            return await deleteLog(uuid, log);
         },
         async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
             return await getPlayersFromLog(uuid, log);
