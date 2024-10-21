@@ -13,8 +13,11 @@ const route = useRoute()
 const serversStore = useServersStore()
 
 const server = ref<Server>(defaultServer)
-const result = serversStore.servers.find(i => i.uuid === route.params.id)
-if (result) server.value = result;
+
+serversStore.getAll().then(() => {
+    const result = serversStore.servers.find(i => i.uuid === route.params.id)
+    if (result) server.value = result;
+});
 
 const inputViolationCounter = ref(0);
 

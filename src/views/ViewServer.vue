@@ -14,20 +14,19 @@ const inputViolationCounter = ref(0);
 const serversStore = useServersStore()
 
 const server = ref<Server>(defaultServer)
-const result = serversStore.servers.find(i => i.uuid === route.params.id)
-if (result) server.value = result;
+
+serversStore.getAll().then(() => {
+    const result = serversStore.servers.find(i => i.uuid === route.params.id)
+    if (result) server.value = result;
+});
 
 </script>
 
 <template>
-  <div class="form-container">
-    <h1>View Server</h1>
-    <ConfigForm
-      readonly
-      v-model:input-violation-counter="inputViolationCounter"
-      v-model:server="server"/>
-  </div>
+    <div class="form-container">
+        <h1>View Server</h1>
+        <ConfigForm readonly v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
+    </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
