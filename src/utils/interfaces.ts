@@ -99,11 +99,23 @@ export interface PlayerIdentityId {
 
 export interface StartupParameter {
     parameter: string;
-    tooltip: string,
+    tooltip: string;
     enabled: boolean;
     type: 'number' | 'string' | 'select';
     value: number | string | undefined;
     valueList?: string[];
     minVal?: number;
     maxVal?: number;
+}
+
+export interface DockerStats {
+    BlockIO: string;
+    CPUPerc: string;
+    Container: string;
+    ID: string;
+    MemPerc: string;
+    MemUsage: string;
+    Name: string;
+    NetIO: string;
+    PIDs: string;
 }

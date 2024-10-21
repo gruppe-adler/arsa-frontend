@@ -1,11 +1,25 @@
-import { defineStore } from 'pinia'
-import { getServers, getServer, addServer, updateServer, startServer, stopServer, 
-    deleteServer, isRunning, getLogs, getLog, getPublicIp, getPlayersFromLog, getKnownPlayers } from '../utils/api'
-import { PlayerIdentityId, Server } from '../utils/interfaces'
+import { defineStore } from 'pinia';
+import {
+    getServers,
+    getServer,
+    addServer,
+    updateServer,
+    startServer,
+    stopServer,
+    deleteServer,
+    isRunning,
+    getLogs,
+    getLog,
+    getPublicIp,
+    getPlayersFromLog,
+    getKnownPlayers,
+    getStats
+} from '../utils/api';
+import { PlayerIdentityId, Server, DockerStats } from '../utils/interfaces';
 
 interface State {
-    servers: Server[]
-    publicIp: string
+    servers: Server[];
+    publicIp: string;
 }
 
 export const useServersStore = defineStore('servers', {
@@ -13,64 +27,67 @@ export const useServersStore = defineStore('servers', {
         return {
             servers: [],
             publicIp: ''
-        }
+        };
     },
     actions: {
-        async getAll(): Promise<void> { 
-            this.servers = await getServers()
+        async getAll(): Promise<void> {
+            this.servers = await getServers();
         },
-        async get(uuid: string): Promise<Server> { 
-            return await getServer(uuid)
+        async get(uuid: string): Promise<Server> {
+            return await getServer(uuid);
         },
         async add(server: Server): Promise<string> {
-            return await addServer(server)
+            return await addServer(server);
         },
         async update(server: Server): Promise<boolean> {
-            return await updateServer(server)
+            return await updateServer(server);
         },
-        async start(uuid: string): Promise<boolean> { 
-            const result = await startServer(uuid)
+        async start(uuid: string): Promise<boolean> {
+            const result = await startServer(uuid);
             if (result) {
                 const server = this.servers.find(i => i.uuid === uuid);
                 if (server) server.isRunning = true;
             }
-            return result
+            return result;
         },
-        async stop(uuid: string): Promise<boolean> { 
-            const result = await stopServer(uuid)
+        async stop(uuid: string): Promise<boolean> {
+            const result = await stopServer(uuid);
             if (result) {
                 const server = this.servers.find(i => i.uuid === uuid);
                 if (server) server.isRunning = false;
             }
-            return result
+            return result;
         },
-        async delete(uuid: string): Promise<boolean> { 
-            return await deleteServer(uuid)
+        async delete(uuid: string): Promise<boolean> {
+            return await deleteServer(uuid);
         },
-        async isRunning(uuid: string): Promise<boolean> { 
-            return await isRunning(uuid)
+        async isRunning(uuid: string): Promise<boolean> {
+            return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<string[]> { 
-            return await getLogs(uuid)
+        async getLogs(uuid: string): Promise<string[]> {
+            return await getLogs(uuid);
         },
-        async getLog(uuid: string, log: string, file: string): Promise<string> { 
-            return await getLog(uuid, log, file)
+        async getLog(uuid: string, log: string, file: string): Promise<string> {
+            return await getLog(uuid, log, file);
         },
-        async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> { 
-            return await getPlayersFromLog(uuid, log)
+        async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
+            return await getPlayersFromLog(uuid, log);
         },
-        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]> { 
-            return await getKnownPlayers(uuid)
+        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]> {
+            return await getKnownPlayers(uuid);
         },
-        async getPublicIp(): Promise<string> { 
+        async getStats(uuid: string): Promise<DockerStats> {
+            return await getStats(uuid);
+        },
+        async getPublicIp(): Promise<string> {
             if (this.publicIp === '') {
                 this.publicIp = await getPublicIp();
             }
             return this.publicIp;
         },
-        async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> { 
+        async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {
             const server = this.servers.find(i => i.uuid === uuid);
             if (server) server.isRunning = isRunning;
         }
-    },
-})
+    }
+});
