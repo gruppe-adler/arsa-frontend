@@ -12,6 +12,10 @@ export interface Result {
     value: boolean;
 }
 
+export interface LogFile {
+    logFile: string;
+}
+
 export interface ServerId {
     uuid: string;
 }

@@ -8,8 +8,10 @@ import ServerLogsList from '../views/ServerLogsList.vue';
 import ViewServerLog from '../views/ViewServerLog.vue';
 import PlayersList from '../views/PlayersList.vue';
 import ServerStats from '../views/ServerStats.vue';
+import PageNotFound from '../views/PageNotFound.vue';
 
 const routes = [
+    { path: '/:pathMatch(.*)*', component: PageNotFound },
     { path: '/servers-list', component: ServersList },
     { path: '/add-server', component: AddServer },
     { path: '/edit-server/:id', component: EditServer },

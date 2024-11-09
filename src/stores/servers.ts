@@ -16,7 +16,7 @@ import {
     getKnownPlayers,
     getStats
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats } from '../utils/interfaces';
+import { PlayerIdentityId, Server, DockerStats, Result, LogFile } from '../utils/interfaces';
 
 interface State {
     servers: Server[];
@@ -65,11 +65,21 @@ export const useServersStore = defineStore('servers', {
         async isRunning(uuid: string): Promise<boolean> {
             return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<string[]> {
-            return await getLogs(uuid);
+        async getLogs(uuid: string): Promise<string[] | null> {
+            const result: string[] | null = await getLogs(uuid);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result;
+            }
         },
-        async getLog(uuid: string, log: string, file: string): Promise<string> {
-            return await getLog(uuid, log, file);
+        async getLog(uuid: string, log: string, file: string): Promise<string | null> {
+            const result: LogFile = await getLog(uuid, log, file);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result.logFile;
+            }
         },
         async deleteLog(uuid: string, log: string): Promise<boolean> {
             return await deleteLog(uuid, log);
@@ -77,11 +87,21 @@ export const useServersStore = defineStore('servers', {
         async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
             return await getPlayersFromLog(uuid, log);
         },
-        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]> {
-            return await getKnownPlayers(uuid);
+        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[] | null> {
+            const result: PlayerIdentityId[] | Result = await getKnownPlayers(uuid);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result;
+            }
         },
-        async getStats(uuid: string): Promise<DockerStats> {
-            return await getStats(uuid);
+        async getStats(uuid: string): Promise<DockerStats | null> {
+            const result: DockerStats | Result = await getStats(uuid);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result;
+            }
         },
         async getPublicIp(): Promise<string> {
             if (this.publicIp === '') {

@@ -1,4 +1,4 @@
-import { IpAddress, Result, Server, ServerId, PlayerIdentityId, DockerStats } from './interfaces';
+import { IpAddress, Result, Server, ServerId, PlayerIdentityId, DockerStats, LogFile } from './interfaces';
 import { useLogsStore } from '../stores/logs';
 
 const api = import.meta.env.VITE_API_URL;
@@ -60,9 +60,9 @@ export async function getLogs(uuid: string): Promise<string[]> {
     return result;
 }
 
-export async function getLog(uuid: string, log: string, file: string): Promise<string> {
+export async function getLog(uuid: string, log: string, file: string): Promise<LogFile> {
     const textResponse = await fetch(`http://${api}:3000/api/server/${uuid}/log/${log}/${file}`);
-    const result = await textResponse.text();
+    const result = (await textResponse.json()) as LogFile;
     const logsStore = useLogsStore();
     logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
     return result;
