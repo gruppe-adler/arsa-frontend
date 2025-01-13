@@ -19,7 +19,7 @@ export const defaultConfig: ServerConfig = {
         whitelist: []
     },
     game: {
-        name: 'my server\'s name',
+        name: "my server's name",
         password: 'bEBArjt_Jt-A!Ce*xrr2huQo',
         passwordAdmin: 'gHuaVyZCFQ!Rg984HMj6aoHn',
         admins: [],
@@ -27,7 +27,7 @@ export const defaultConfig: ServerConfig = {
         maxPlayers: 32,
         visible: true,
         crossPlatform: false,
-        supportedPlatforms: ['PLATFORM_PC', 'PLATFORM_XBL'],
+        supportedPlatforms: ['PLATFORM_PC', 'PLATFORM_XBL', 'PLATFORM_PSN'],
         gameProperties: {
             serverMaxViewDistance: 2500,
             serverMinGrassDistance: 50,
@@ -40,6 +40,7 @@ export const defaultConfig: ServerConfig = {
             VONCanTransmitCrossFaction: false,
             missionHeader: {}
         },
+        modsRequiredByDefault: true,
         mods: []
     },
     operating: {
@@ -49,7 +50,10 @@ export const defaultConfig: ServerConfig = {
         disableAI: false,
         playerSaveTime: 120,
         aiLimit: -1,
-        slotReservationTimeout: 60
+        slotReservationTimeout: 60,
+        joinQueue: {
+            maxSize: 0
+        }
     }
 };
 
@@ -87,7 +91,8 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'nds',
-        tooltip: 'The provided value stands for diameter, or the number of cells which are being replicated - default is 2 in each direction.',
+        tooltip:
+            'The provided value stands for diameter, or the number of cells which are being replicated - default is 2 in each direction.',
         enabled: false,
         type: 'number',
         value: 2,
@@ -104,7 +109,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'rpl-timeout-ms',
-        tooltip: 'sets the client/server timeout\'s value, in milliseconds',
+        tooltip: "sets the client/server timeout's value, in milliseconds",
         enabled: false,
         type: 'number',
         value: 10000,
@@ -121,7 +126,8 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'streamingBudget',
-        tooltip: 'The global streaming budget that is equally distributed between all connections. It cannot go under 100 to prevent the system stalling.',
+        tooltip:
+            'The global streaming budget that is equally distributed between all connections. It cannot go under 100 to prevent the system stalling.',
         enabled: false,
         type: 'number',
         value: 500,
@@ -146,7 +152,8 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'logLevel',
-        tooltip: 'allows for different log levels. Each level includes the ones below it (e.g error includes error and fatal). Possible values range from normal (where everything is logged) to fatal (where only extreme issues are logged)',
+        tooltip:
+            'allows for different log levels. Each level includes the ones below it (e.g error includes error and fatal). Possible values range from normal (where everything is logged) to fatal (where only extreme issues are logged)',
         enabled: false,
         type: 'select',
         value: 'normal',
@@ -156,7 +163,7 @@ export const StartupParameters: StartupParameter[] = [
 
 export const defaultServer: Server = {
     uuid: '',
-    name: 'my server\'s name',
+    name: "my server's name",
     isRunning: false,
     config: defaultConfig,
     startupParameters: StartupParameters
