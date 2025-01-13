@@ -100,6 +100,11 @@ function importModset() {
             if (!mod.required) mod.required = true;
             localMods.value.push(mod);
         });
+
+        setTimeout(() => {
+            selectAll();
+            model.value = localMods.value;
+        }, 0);
     } catch (error) {
         console.log(error);
     }
