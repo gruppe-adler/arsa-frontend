@@ -1,16 +1,13 @@
 <script setup lang="ts">
-
-import { useRouter } from 'vue-router'
-import { useServersStore } from '../stores/servers'
+import { useRouter } from 'vue-router';
+import { useServersStore } from '../stores/servers';
 import { Server } from '../utils/interfaces';
 
-const model = defineModel<Server>()
+const model = defineModel<Server>();
+const emit = defineEmits(['serverDeleted', 'serverCloned']);
 
-const emit = defineEmits(['serverDeleted', 'serverCloned'])
-
-const router = useRouter()
-
-const serversStore = useServersStore()
+const router = useRouter();
+const serversStore = useServersStore();
 
 function onClickDelete() {
   if (confirm('Do you really want to delete this server?')) {
@@ -21,8 +18,8 @@ function onClickDelete() {
 }
 
 function onClickClone() {
-  const server: Server = model.value!;
-  server.name = server.name.concat(' Duplicate');
+  const server: Server = { ...model.value! };
+  server.name = `${server.name} Duplicate`;
   server.uuid = '';
   serversStore.add(server).then(() => {
     emit('serverCloned');
@@ -40,38 +37,202 @@ function onClickStats() {
 function onClickKnownPlayers() {
   router.push(`/players-list/${model.value!.uuid}`);
 }
-
 </script>
 
 <template>
-  <li>
-    <p>
-      <span class="column-left" v-if="model!.isRunning">Online</span>
-      <span class="column-left" v-else>Offline</span>
-      <button class="column-left" style="background-color: rgba(255, 0, 0, 0.5);" type="button"
-        @click="serversStore.stop(model!.uuid)" v-if="model!.isRunning">Stop</button>
-      <button class="column-left" style="background-color: rgba(0, 255, 0, 0.5);" type="button"
-        @click="serversStore.start(model!.uuid)" v-else>Start</button>
-      <span> [{{ model!.config.bindPort }}] </span>
-      <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
-      <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
-      <span> ({{ model!.uuid }})</span>
-      <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
-      <button class="column-right" type="button" @click="onClickClone">Clone</button>
-      <button class="column-right" type="button" @click="onClickLogs">Logs</button>
-      <button class="column-right" type="button" @click="onClickStats" :disabled="!model!.isRunning">Stats</button>
-      <button class="column-right" type="button" @click="onClickKnownPlayers">Known Players</button>
-    </p>
+  <li class="serveritem">
+    <div class="server-status">
+      <span v-if="model!.isRunning" class="status-indicator online">{{ model!.config.bindPort }}</span>
+      <span v-else class="status-indicator offline">{{ model!.config.bindPort }}</span>
+      <button 
+        class="status-button stop-button" 
+        v-if="model!.isRunning" 
+        @click="serversStore.stop(model!.uuid)">
+        Stop
+      </button>
+      <button 
+        class="status-button start-button" 
+        v-else 
+        @click="serversStore.start(model!.uuid)">
+        Start
+      </button>
+    </div>
+
+    <div class="server-info">
+      <span class="port"></span>
+      <div>
+        <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning" class="server-link">
+          {{ model!.name }}
+        </RouterLink>
+        <RouterLink :to="`/view-server/${model!.uuid}`" v-else class="server-link">
+          {{ model!.name }}
+        </RouterLink>
+      </div>
+      <span class="serverid">({{ model!.uuid }})</span>
+    </div>
+
+    <div class="action-buttons">
+      <div class="cluster-right">
+        <button class="action-button" @click="onClickKnownPlayers">
+        Players
+      </button>
+        <button @click="onClickLogs" class="action-button">
+          Logs
+        </button>
+        <button @click="onClickStats" :disabled="!model!.isRunning" class="action-button">
+          Stats
+        </button>
+      </div>
+      <div class="cluster-right">
+        <button @click="onClickClone" class="action-button">
+          Clone
+        </button>
+        <button @click="onClickDelete" :disabled="model!.isRunning" class="action-button delete-button">
+          Delete
+        </button>
+      </div>
+      
+    </div>
   </li>
 </template>
 
 <style scoped>
-.column-left {
-  margin-right: 10px;
+.serveritem {
+  display: flex;
+  flex-direction: row;
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
-.column-right {
-  margin-left: 10px;
-  float: right;
+.server-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
+
+.status-indicator {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.online {
+  color: #fff;
+  background-color: #4caf50;
+}
+
+.offline {
+  color: #fff;
+  background-color: #f44336;
+}
+
+.status-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.stop-button {
+  background-color: rgba(244, 67, 54, 0.8);
+  color: #fff;
+}
+
+.stop-button:hover {
+  background-color: rgba(244, 67, 54, 1);
+}
+
+.server-info {
+  display: flex;
+  width: 70%;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.server-link {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.server-link:hover {
+  text-decoration: underline;
+}
+
+.serverid {
+  color: #aaa;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+
+.action-buttons {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.serveritem:hover .action-buttons {
+  opacity: 1;
+}
+
+.cluster-left,
+.cluster-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-button {
+  padding: 0.2rem .5rem;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  background-color: #e0e0e0;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-button:hover {
+  background-color: #d6d6d6;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #d32f2f;
+}
+
+.icon-clone::before {
+  content: '\1F4CB'; /* Clipboard icon */
+}
+
+.icon-delete::before {
+  content: '\1F5D1'; /* Trash bin icon */
+}
+
+.icon-logs::before {
+  content: '\1F4D3'; /* Notebook icon */
+}
+
+.icon-stats::before {
+  content: '\1F4CA'; /* Bar chart icon */
+}
+
 </style>
