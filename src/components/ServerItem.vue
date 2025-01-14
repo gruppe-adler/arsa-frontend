@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { Server } from '../utils/interfaces';
+import { Copy, Trash2, UsersRound, ScrollText, ChartColumn } from 'lucide-vue-next';
 
 const model = defineModel<Server>();
 const emit = defineEmits(['serverDeleted', 'serverCloned']);
@@ -70,29 +71,23 @@ function onClickKnownPlayers() {
       </div>
       <span class="serverid">({{ model!.uuid }})</span>
     </div>
-
-    <div class="action-buttons">
       <div class="cluster-right">
         <button class="action-button" @click="onClickKnownPlayers">
-        Players
-      </button>
+          <UsersRound size="16" />Players
+        </button>
         <button @click="onClickLogs" class="action-button">
-          Logs
+          <ScrollText size="16" />Logs
         </button>
         <button @click="onClickStats" :disabled="!model!.isRunning" class="action-button">
-          Stats
+          <ChartColumn size="16" />Stats
         </button>
-      </div>
-      <div class="cluster-right">
         <button @click="onClickClone" class="action-button">
-          Clone
+          <Copy size="16" />
         </button>
         <button @click="onClickDelete" :disabled="model!.isRunning" class="action-button delete-button">
-          Delete
+          <Trash2 size="16" />
         </button>
       </div>
-      
-    </div>
   </li>
 </template>
 
@@ -176,18 +171,17 @@ function onClickKnownPlayers() {
   margin-top: 0.2rem;
 }
 
-.action-buttons {
+.cluster-right {
   width: 70%;
   display: flex;
-  flex-direction: column;
-  align-items: end;
-  justify-content: space-between;
+  flex-direction: row;
+  justify-content:right;
   gap: 1rem;
   opacity: 0;
   transition: opacity 0.3s;
 }
 
-.serveritem:hover .action-buttons {
+.serveritem:hover .cluster-right {
   opacity: 1;
 }
 
@@ -209,6 +203,8 @@ function onClickKnownPlayers() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 4rem;
+  justify-content: center; 
 }
 
 .action-button:hover {
@@ -217,22 +213,6 @@ function onClickKnownPlayers() {
 
 .delete-button:hover:not(:disabled) {
   background-color: #d32f2f;
-}
-
-.icon-clone::before {
-  content: '\1F4CB'; /* Clipboard icon */
-}
-
-.icon-delete::before {
-  content: '\1F5D1'; /* Trash bin icon */
-}
-
-.icon-logs::before {
-  content: '\1F4D3'; /* Notebook icon */
-}
-
-.icon-stats::before {
-  content: '\1F4CA'; /* Bar chart icon */
 }
 
 </style>

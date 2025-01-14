@@ -13,6 +13,7 @@
     "dependencies": {
         "@vueuse/core": "^11.1.0",
         "is-ip": "^5.0.1",
+        "lucide-vue-next": "^0.471.0",
         "pinia": "^2.2.2",
         "uuid": "^10.0.0",
         "vue": "^3.4.37",
