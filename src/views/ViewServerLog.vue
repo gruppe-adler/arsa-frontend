@@ -13,13 +13,18 @@ const found = ref(false);
 const serversStore = useServersStore();
 
 const serverLog = ref('');
-serversStore.getLog(route.params.id as string, route.params.log as string, route.params.file as string).then(log => {
-    if (log) {
-        serverLog.value = log.replace(/\n/g, '<br>');
-        found.value = true;
-    }
-    loading.value = false;
-});
+
+refresh();
+
+function refresh() {
+    serversStore.getLog(route.params.id as string, route.params.log as string, route.params.file as string).then(log => {
+        if (log) {
+            serverLog.value = log.replace(/\n/g, '<br>');
+            found.value = true;
+        }
+        loading.value = false;
+    });
+}
 
 async function importPlayers() {
     const importedPlayers = await serversStore.getPlayersFromLog(route.params.id as string, route.params.log as string);
@@ -34,6 +39,7 @@ async function importPlayers() {
         <h1>View Server Log {{ route.params.log }}/{{ route.params.file }}</h1>
         <button type="button" @click="importPlayers()">Import Players</button>
         <p v-html="serverLog"></p>
+        <button type="button" @click="refresh()">Refresh</button>
     </div>
 </template>
 
