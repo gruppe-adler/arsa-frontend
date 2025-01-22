@@ -14,6 +14,8 @@ const serversStore = useServersStore();
 
 const serverLog = ref('');
 
+const arsVersion = ref('');
+
 refresh();
 
 function refresh() {
@@ -22,6 +24,17 @@ function refresh() {
             serverLog.value = log.replace(/\n/g, '<br>');
             found.value = true;
         }
+
+        // extract version if any
+        const versionRegEx = new RegExp(
+            'version ([0-9]+.[0-9]+.[0-9]+.[0-9]+) built ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC)'
+        );
+        const versionResult = versionRegEx.exec(serverLog.value);
+
+        if (versionResult !== null) {
+            arsVersion.value = `Arma Reforger Server v${versionResult[1]} (build date ${versionResult[2]})`;
+        }
+
         loading.value = false;
     });
 }
@@ -38,6 +51,7 @@ async function importPlayers() {
     <div v-else>
         <h1>View Server Log {{ route.params.log }}/{{ route.params.file }}</h1>
         <button type="button" @click="importPlayers()">Import Players</button>
+        <p>{{ arsVersion }}</p>
         <p v-html="serverLog"></p>
         <button type="button" @click="refresh()">Refresh</button>
     </div>
