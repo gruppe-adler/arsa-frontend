@@ -12,22 +12,26 @@ import {
     getLog,
     deleteLog,
     getPublicIp,
+    getArsStatus,
+    recreateArsDockerImage,
     getPlayersFromLog,
     getKnownPlayers,
     getStats
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats, Result, LogFile } from '../utils/interfaces';
+import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus } from '../utils/interfaces';
 
 interface State {
     servers: Server[];
     publicIp: string;
+    arsStatus: ArsStatus;
 }
 
 export const useServersStore = defineStore('servers', {
     state: (): State => {
         return {
             servers: [],
-            publicIp: ''
+            publicIp: '',
+            arsStatus: ArsStatus.UNKNOWN
         };
     },
     actions: {
@@ -108,6 +112,16 @@ export const useServersStore = defineStore('servers', {
                 this.publicIp = await getPublicIp();
             }
             return this.publicIp;
+        },
+        async getArsStatus(): Promise<ArsStatus> {
+            if (this.arsStatus === ArsStatus.UNKNOWN) {
+                this.arsStatus = await getArsStatus();
+            }
+            return this.arsStatus;
+        },
+        async recreateArsDockerImage(): Promise<boolean> {
+            const result = await recreateArsDockerImage();
+            return result;
         },
         async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {
             const server = this.servers.find(i => i.uuid === uuid);

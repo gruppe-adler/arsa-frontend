@@ -1,4 +1,4 @@
-import { IpAddress, Result, Server, ServerId, PlayerIdentityId, DockerStats, LogFile } from './interfaces';
+import { IpAddress, Result, Server, ServerId, PlayerIdentityId, DockerStats, LogFile, ArsStatusResult, ArsStatus } from './interfaces';
 import { useLogsStore } from '../stores/logs';
 
 const api = import.meta.env.VITE_API_URL;
@@ -135,4 +135,22 @@ export async function getPublicIp(): Promise<string> {
     const logsStore = useLogsStore();
     logsStore.add(`Public IPv4 address retrieved: ${ipAddress.ipv4}`);
     return ipAddress.ipv4;
+}
+
+export async function getArsStatus(): Promise<ArsStatus> {
+    const jsonResponse = await fetch(`http://${api}:3000/api/get-ars-status`);
+
+    const result = (await jsonResponse.json()) as ArsStatusResult;
+    const logsStore = useLogsStore();
+    logsStore.add(`ARS status fetched`);
+    return result.status;
+}
+
+export async function recreateArsDockerImage(): Promise<boolean> {
+    const jsonResponse = await fetch(`http://${api}:3000/api/recreate-ars-docker-image`);
+
+    const result = (await jsonResponse.json()) as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`ARS docker image recreation started`);
+    return result.value;
 }

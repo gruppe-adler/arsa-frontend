@@ -24,9 +24,36 @@ export interface IpAddress {
     ipv4: string;
 }
 
+export interface ArsStatusResult {
+    status: ArsStatus;
+}
+
+export enum ArsStatus {
+    UNKNOWN,
+    AVAILABLE,
+    RECREATING,
+    RECREATING_FAILURE,
+    UNAVAILABLE
+}
+
 export interface ServerStatusUpdate {
+    type: 'isRunningUpdate' | 'arsStatusUpdate' | 'message';
+}
+
+export interface IsRunningUpdate extends ServerStatusUpdate {
+    type: 'isRunningUpdate';
     uuid: string;
     isRunning: boolean;
+}
+
+export interface ArsStatusUpdate extends ServerStatusUpdate {
+    type: 'arsStatusUpdate';
+    arsStatus: ArsStatus;
+}
+
+export interface ServerMessage extends ServerStatusUpdate {
+    type: 'message';
+    message: string;
 }
 
 export interface Server {
