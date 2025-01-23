@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { type Mod } from '../utils/interfaces';
 
 const props = defineProps({
@@ -22,6 +22,14 @@ const importModsInputId = uuidv4();
 const exportModsInputId = uuidv4();
 
 const localMods = ref<Mod[]>(Array.from(model.value));
+
+watch(
+    model,
+    value => {
+        localMods.value = Array.from(value);
+    },
+    { immediate: true }
+);
 
 function addMod() {
     const modIdInput: HTMLInputElement | null = document.getElementById(modIdInputId) as HTMLInputElement;
