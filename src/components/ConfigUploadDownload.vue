@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Server } from '../utils/interfaces';
+import { Server, ServerConfig } from '../utils/interfaces';
+
+import Ajv from 'ajv';
+import ajvFormats from 'ajv-formats';
+import ajvKeywords from 'ajv-keywords';
+import { arsConfigSchema } from '../utils/json-schema';
+
+const ajv = new Ajv({ allErrors: true, useDefaults: true });
+ajvFormats(ajv);
+ajvKeywords(ajv);
+
+const validate = ajv.compile(arsConfigSchema);
 
 const server = defineModel<Server>('server', { required: true });
 
@@ -32,9 +43,18 @@ function onFileChanged($event: Event) {
 
 function uploadConfig() {
     if (file.value) {
-        file.value.text().then(content => (server.value.config = JSON.parse(content)));
+        file.value.text().then(content => {
+            const json = JSON.parse(content) as ServerConfig;
+            const valid = validate(json);
+
+            if (!valid) {
+                console.log(validate.errors);
+                alert('JSON validation failed. See browser console for details. Config upload aborted.');
+            } else server.value.config = json;
+        });
     }
     if (fileSelector.value) fileSelector.value.value = '';
+    uploadConfigDisabled.value = true;
 }
 </script>
 

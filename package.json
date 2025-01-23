@@ -12,6 +12,10 @@
     },
     "dependencies": {
         "@vueuse/core": "^11.1.0",
+        "ajv": "^8.17.1",
+        "ajv-formats": "^3.0.1",
+        "ajv-keywords": "^5.1.0",
+        "fluent-json-schema": "^5.0.0",
         "is-ip": "^5.0.1",
         "pinia": "^2.2.2",
         "uuid": "^10.0.0",
