@@ -109,6 +109,7 @@ export interface ServerConfig {
     };
     operating: {
         lobbyPlayerSynchronise: boolean;
+        disableCrashReporter: boolean;
         disableNavmeshStreaming: string[] | undefined;
         disableServerShutdown: boolean;
         disableAI: boolean;
