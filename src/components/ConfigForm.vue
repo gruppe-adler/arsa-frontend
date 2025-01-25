@@ -329,6 +329,12 @@ function violDecr() {
             :readonly="props.readonly"
             v-model="server.config.operating.lobbyPlayerSynchronise"
         ></FormCheckboxInput>
+        <FormCheckboxInput
+            :name="'disableCrashReporter'"
+            :tooltip="'default: false'"
+            :readonly="props.readonly"
+            v-model="server.config.operating.disableCrashReporter"
+        ></FormCheckboxInput>
         <FormMultiSelectModInput
             :name="'disableNavmeshStreaming'"
             :tooltip="'default: undefined'"
