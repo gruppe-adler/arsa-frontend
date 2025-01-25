@@ -6,6 +6,7 @@ import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
 import ajvKeywords from 'ajv-keywords';
 import { arsConfigSchema } from '../utils/json-schema';
+import { defaultConfig } from '../utils/defaults';
 
 const ajv = new Ajv({ allErrors: true, useDefaults: true });
 ajvFormats(ajv);
@@ -44,7 +45,16 @@ function onFileChanged($event: Event) {
 function uploadConfig() {
     if (file.value) {
         file.value.text().then(content => {
-            const json = JSON.parse(content) as ServerConfig;
+            let json: ServerConfig = defaultConfig;
+
+            try {
+                json = JSON.parse(content);
+            } catch (error) {
+                console.log(error);
+                alert('Not valid JSON. See browser console for details');
+                return;
+            }
+
             const valid = validate(json);
 
             if (!valid) {

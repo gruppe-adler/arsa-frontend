@@ -11,6 +11,31 @@ const RCON_PERMISSION = {
     monitor: 'monitor'
 };
 
+const arsMod = S.object()
+    .prop(
+        'modId',
+        S.raw({
+            type: 'string',
+            regexp: { pattern: '^[0-9A-F]{16}$', flags: 's' }
+        })
+    )
+    .required()
+    .prop('name', S.string().minLength(1))
+    .required()
+    .prop(
+        'version',
+        S.raw({
+            type: 'string',
+            regexp: { pattern: '^[0-9]+.[0-9]+.[0-9]+$', flags: 's' }
+        })
+    )
+    .prop('required', S.boolean());
+
+const arsModset = S.array().items(arsMod);
+
+export const arsModSchema = arsMod.valueOf();
+export const arsModsetSchema = arsModset.valueOf();
+
 export const arsConfigSchema = S.object()
     .id('http://arsa.gruppe-adler.de/server-config')
     .title('Arma Reforger Server Config')
@@ -139,24 +164,7 @@ export const arsConfigSchema = S.object()
             .required()
             .prop('modsRequiredByDefault', S.boolean().default(true))
             .required()
-            .prop(
-                'mods',
-                S.array().items(
-                    S.object()
-                        .prop(
-                            'modId',
-                            S.raw({
-                                type: 'string',
-                                regexp: { pattern: '^[0-9A-F]{16}$', flags: 's' }
-                            })
-                        )
-                        .required()
-                        .prop('name', S.string())
-                        .required()
-                        .prop('version', S.string())
-                        .prop('required', S.boolean())
-                )
-            )
+            .prop('mods', arsModset)
             .required()
     )
     .required()

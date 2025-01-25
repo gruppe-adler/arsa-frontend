@@ -3,6 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref, watch } from 'vue';
 import { type Mod } from '../utils/interfaces';
 
+import Ajv from 'ajv';
+import ajvFormats from 'ajv-formats';
+import ajvKeywords from 'ajv-keywords';
+import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
+
+const ajv = new Ajv({ allErrors: true, useDefaults: true });
+ajvFormats(ajv);
+ajvKeywords(ajv);
+
+const validateMod = ajv.compile(arsModSchema);
+const validateModset = ajv.compile(arsModsetSchema);
+
 const props = defineProps({
     readonly: Boolean,
     name: String,
@@ -46,8 +58,11 @@ function addMod() {
         required: required
     };
 
-    if (!isValidMod(mod)) {
-        alert('Mod is not valid');
+    const valid = validateMod(mod);
+
+    if (!valid) {
+        console.log(validateMod.errors);
+        alert('JSON Mod validation failed. See browser console for details. Adding Mod aborted.');
         return;
     }
 
@@ -98,24 +113,34 @@ function importModset() {
 
     modsetString = '['.concat(modsetString, ']');
 
+    let modset: Mod[] = [];
+
     try {
-        const modset: Mod[] = JSON.parse(modsetString);
-
-        if (modset.length === 0) return;
-
-        if (!isValidModset(modset)) return;
-        modset.forEach(mod => {
-            if (!mod.required) mod.required = true;
-            localMods.value.push(mod);
-        });
-
-        setTimeout(() => {
-            selectAll();
-            model.value = localMods.value;
-        }, 0);
+        modset = JSON.parse(modsetString);
     } catch (error) {
         console.log(error);
+        alert('Not valid JSON. See browser console for details');
+        return;
     }
+    if (modset.length === 0) return;
+
+    const valid = validateModset(modset);
+
+    if (!valid) {
+        console.log(validateModset.errors);
+        alert('JSON Modset validation failed. See browser console for details. Modset import aborted.');
+        return;
+    }
+
+    modset.forEach(mod => {
+        if (!mod.required) mod.required = true;
+        localMods.value.push(mod);
+    });
+
+    setTimeout(() => {
+        selectAll();
+        model.value = localMods.value;
+    }, 0);
 }
 
 function exportModset() {
@@ -129,52 +154,6 @@ function exportModset() {
         // remove the '[' ']' at start/end because the Reforger export misses them too
         textarea.value = json.substring(2, json.length - 2);
     }, 0);
-}
-
-function isValidModset(modset: Mod[]) {
-    try {
-        modset.forEach(mod => {
-            if (!isValidMod(mod)) throw new Error('isValidModset: mod is not valid');
-        });
-    } catch (error) {
-        console.log(error);
-
-        return false;
-    }
-
-    return true;
-}
-
-function isValidMod(mod: Mod) {
-    try {
-        if (!mod.modId) throw new Error('isValidMod: modId missing');
-        if (!mod.name) throw new Error('isValidMod: name missing');
-
-        if (typeof mod.modId !== 'string') throw new Error('isValidMod: modId is not string');
-        if (typeof mod.name !== 'string') throw new Error('isValidMod: name is not string');
-
-        if (mod.modId.length !== 16) throw new Error('isValidMod: modId has wrong length');
-        if (mod.name.length === 0) throw new Error('isValidMod: name is empty string');
-
-        const modIdRegEx = new RegExp('^[0-9,A-F]{16}$');
-        if (!modIdRegEx.test(mod.modId)) throw new Error('isValidMod: modId has wrong format');
-
-        if (mod.version) {
-            if (typeof mod.version !== 'string') throw new Error('isValidMod: version is not string');
-
-            const modVersionRegEx = new RegExp('^[0-9]+.[0-9]+.[0-9]+$');
-            if (!modVersionRegEx.test(mod.version)) throw new Error('isValidMod: version has wrong format');
-        }
-
-        if (mod.required) {
-            if (typeof mod.required !== 'boolean') throw new Error('isValidMod: required is not boolean');
-        }
-    } catch (error) {
-        console.log(error);
-
-        return false;
-    }
-    return true;
 }
 
 function selectAll() {
