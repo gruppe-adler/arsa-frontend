@@ -17,7 +17,7 @@ updateArsStatus();
 
 const api = import.meta.env.VITE_API_URL;
 
-const ws = useWebSocket(`ws://${api}/ws`, {
+const ws = useWebSocket(`wss://${api}/ws`, {
     heartbeat: {
         message: 'ping',
         interval: 1000,
