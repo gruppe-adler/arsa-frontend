@@ -37,7 +37,7 @@ export const arsModSchema = arsMod.valueOf();
 export const arsModsetSchema = arsModset.valueOf();
 
 export const arsConfigSchema = S.object()
-    .id('http://arsa.gruppe-adler.de/server-config')
+    .id('https://arsa.gruppe-adler.de/server-config')
     .title('Arma Reforger Server Config')
     .description('Used in conjunction with Server Settings')
     .prop('bindAddress', S.string().format(S.FORMATS.IPV4).default('0.0.0.0'))
