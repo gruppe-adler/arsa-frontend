@@ -27,7 +27,7 @@ function refresh() {
 
         // extract version if any
         const versionRegEx = new RegExp(
-            'version ([0-9]+.[0-9]+.[0-9]+.[0-9]+) built ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC)'
+            'version ([0-9]+.[0-9]+.[0-9]+.[0-9]+) built ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{1,2}:[0-9]{2}:[0-9]{2} UTC)'
         );
         const versionResult = versionRegEx.exec(serverLog.value);
 
