@@ -6,7 +6,8 @@ const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
-    optionalParam: Boolean
+    optionalParam: Boolean,
+    regEx: Array
 });
 const model = defineModel<string[] | undefined>({ required: true });
 
@@ -27,6 +28,22 @@ watch(
 
 function addItem() {
     const input: HTMLInputElement = document.getElementById(inputId) as HTMLInputElement;
+
+    if (props.regEx) {
+        let successCounter = 0;
+        props.regEx.forEach(element => {
+            const regEx = new RegExp(element as string);
+            const regExResult = regEx.exec(input.value);
+            if (regExResult !== null) {
+                successCounter++;
+            }
+        });
+        if (successCounter === 0) {
+            alert('Malformatted string. See reference for details.');
+            return;
+        }
+    }
+
     localOptions.value.push(input.value);
     input.value = '';
     assignNewValue();

@@ -196,6 +196,7 @@ function violDecr() {
         <FormMultiSelectModInput
             :name="'admins'"
             :tooltip="'default []'"
+            :regEx="['^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '^[0-9]{17}$']"
             :readonly="props.readonly"
             v-model="server.config.game.admins"
         ></FormMultiSelectModInput>
