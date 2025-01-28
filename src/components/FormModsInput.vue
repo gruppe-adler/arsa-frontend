@@ -187,16 +187,7 @@ onMounted(() => {
     <div class="form-input-container">
         <label class="form-input-label">{{ name }}</label>
         <div>
-            <select
-                :title="tooltip"
-                class="mod-select"
-                :id="selectId"
-                size="10"
-                :disabled="props.readonly"
-                @focusout="focusout"
-                v-model="model"
-                multiple
-            >
+            <select :title="tooltip" class="mod-select" :id="selectId" size="10" :disabled="props.readonly" @focusout="focusout" multiple>
                 <option v-for="mod in localMods" :value="mod">
                     {{ mod2string(mod) }}
                 </option>

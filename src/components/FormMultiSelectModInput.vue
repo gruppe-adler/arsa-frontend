@@ -83,7 +83,6 @@ onMounted(() => {
                 size="5"
                 :disabled="props.readonly"
                 @focusout="focusout"
-                v-model="model"
                 multiple
             >
                 <option v-for="option in localOptions" :value="option">
