@@ -12,17 +12,17 @@ import ServerStats from '../views/ServerStats.vue';
 import PageNotFound from '../views/PageNotFound.vue';
 
 const routes = [
-    { path: '/app/:pathMatch(.*)*', component: PageNotFound },
-    { path: '/app/servers-list', component: ServersList },
-    { path: '/app/add-server', component: AddServer },
-    { path: '/app/ars-service', component: ArsService },
-    { path: '/app/edit-server/:id', component: EditServer },
-    { path: '/app/view-server/:id', component: ViewServer },
-    { path: '/app/server-logs-list/:id', component: ServerLogsList },
-    { path: '/app/server-stats/:id', component: ServerStats },
-    { path: '/app/players-list/:id', component: PlayersList },
-    { path: '/app/view-server-log/:id/:log/:file', component: ViewServerLog },
-    { path: '/app/', redirect: '/app/servers-list' }
+    { path: '/:pathMatch(.*)*', component: PageNotFound },
+    { path: '/servers-list', component: ServersList },
+    { path: '/add-server', component: AddServer },
+    { path: '/ars-service', component: ArsService },
+    { path: '/edit-server/:id', component: EditServer },
+    { path: '/view-server/:id', component: ViewServer },
+    { path: '/server-logs-list/:id', component: ServerLogsList },
+    { path: '/server-stats/:id', component: ServerStats },
+    { path: '/players-list/:id', component: PlayersList },
+    { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
+    { path: '/', redirect: '/servers-list' }
 ];
 
 const router = createRouter({

@@ -5,9 +5,9 @@ import WebSocket from './WebSocket.vue';
 <template>
     <div>
         <nav style="float: left">
-            <RouterLink class="menu-item" to="/app/servers-list">Servers List</RouterLink>
-            <RouterLink class="menu-item" to="/app/add-server">Add Server</RouterLink>
-            <RouterLink class="menu-item" to="/app/ars-service">ARS Service</RouterLink>
+            <RouterLink class="menu-item" to="/servers-list">Servers List</RouterLink>
+            <RouterLink class="menu-item" to="/add-server">Add Server</RouterLink>
+            <RouterLink class="menu-item" to="/ars-service">ARS Service</RouterLink>
         </nav>
 
         <WebSocket />
