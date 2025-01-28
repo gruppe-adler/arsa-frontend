@@ -37,6 +37,7 @@ updateArsStatus();
         >
             Recreate ARS Docker Image
         </button>
+        <span class="warning">Don't use this button unless you know what you're doing.</span>
     </div>
     <HostServerLog />
 </template>
@@ -47,5 +48,9 @@ updateArsStatus();
 }
 .result {
     margin-left: 10px;
+}
+.warning {
+    margin-left: 10px;
+    color: red;
 }
 </style>
