@@ -28,7 +28,7 @@ function addServer() {
 
 <template>
     <div class="form-container">
-        <h1>Add Server</h1>
+        <h1>Add Arma Reforger Server</h1>
         <ConfigUploadDownload v-model:server="server" />
         <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
         <br />

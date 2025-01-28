@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
     <div v-else>
-        <h1>Server Stats</h1>
+        <h1>Arma Reforger Server Stats</h1>
         <p>Timestamp: {{ timestamp }}</p>
         <p>BlockIO: {{ stats?.BlockIO }}</p>
         <p>CPUPerc: {{ stats?.CPUPerc }}</p>

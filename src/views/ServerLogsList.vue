@@ -41,7 +41,7 @@ function onClickDelete(logName: string) {
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
     <div v-else>
-        <h1>Server Logs List</h1>
+        <h1>Arma Reforger Server Logs List</h1>
         <ul id="logs" v-if="sortedServerLogs.length > 0">
             <li v-for="serverLog in sortedServerLogs">
                 {{ serverLog }}:

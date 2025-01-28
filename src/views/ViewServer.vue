@@ -33,7 +33,7 @@ serversStore.getAll().then(() => {
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
     <div class="form-container" v-else>
-        <h1>View Server</h1>
+        <h1>View Arma Reforger Server</h1>
         <ConfigForm readonly v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
     </div>
 </template>

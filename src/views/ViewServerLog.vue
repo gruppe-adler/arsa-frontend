@@ -49,7 +49,7 @@ async function importPlayers() {
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
     <div v-else>
-        <h1>View Server Log {{ route.params.log }}/{{ route.params.file }}</h1>
+        <h1>View Arma Reforger Server Log {{ route.params.log }}/{{ route.params.file }}</h1>
         <button type="button" @click="importPlayers()">Import Players</button>
         <p>{{ arsVersion }}</p>
         <p v-html="serverLog"></p>

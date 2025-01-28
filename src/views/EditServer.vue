@@ -43,7 +43,7 @@ function updateServer() {
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
     <div class="form-container" v-else>
-        <h1>Edit Server</h1>
+        <h1>Edit Arma Reforger Server</h1>
         <ConfigUploadDownload v-model:server="server" />
         <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
         <br />
