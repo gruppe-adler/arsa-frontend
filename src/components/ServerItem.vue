@@ -67,8 +67,8 @@ function onClickKnownPlayers() {
                 Start
             </button>
             <span> [{{ model!.config.bindPort }}] </span>
-            <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
-            <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
+            <RouterLink :to="`/app/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
+            <RouterLink :to="`/app/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
             <span> ({{ model!.uuid }})</span>
             <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
             <button class="column-right" type="button" @click="onClickClone">Clone</button>

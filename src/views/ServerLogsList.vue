@@ -45,9 +45,9 @@ function onClickDelete(logName: string) {
         <ul id="logs" v-if="sortedServerLogs.length > 0">
             <li v-for="serverLog in sortedServerLogs">
                 {{ serverLog }}:
-                <RouterLink class="links" :to="`/view-server-log/${route.params.id}/${serverLog}/console.log`">console.log </RouterLink>
-                <RouterLink class="links" :to="`/view-server-log/${route.params.id}/${serverLog}/error.log`">error.log </RouterLink>
-                <RouterLink class="links" :to="`/view-server-log/${route.params.id}/${serverLog}/script.log`">script.log </RouterLink>
+                <RouterLink class="links" :to="`/app/view-server-log/${route.params.id}/${serverLog}/console.log`">console.log </RouterLink>
+                <RouterLink class="links" :to="`/app/view-server-log/${route.params.id}/${serverLog}/error.log`">error.log </RouterLink>
+                <RouterLink class="links" :to="`/app/view-server-log/${route.params.id}/${serverLog}/script.log`">script.log </RouterLink>
                 <button class="form-input-button" type="button" @click="onClickDelete(serverLog)">Delete</button>
             </li>
         </ul>
