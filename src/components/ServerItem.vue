@@ -32,6 +32,10 @@ function onClickLogs() {
     router.push(`/server-logs-list/${model.value!.uuid}`);
 }
 
+function onClickSize() {
+    router.push(`/server-size/${model.value!.uuid}`);
+}
+
 function onClickStats() {
     router.push(`/server-stats/${model.value!.uuid}`);
 }
@@ -73,6 +77,7 @@ function onClickKnownPlayers() {
             <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
             <button class="column-right" type="button" @click="onClickClone">Clone</button>
             <button class="column-right" type="button" @click="onClickLogs">Logs</button>
+            <button class="column-right" type="button" @click="onClickSize">Size</button>
             <button class="column-right" type="button" @click="onClickStats" :disabled="!model!.isRunning">Stats</button>
             <button class="column-right" type="button" @click="onClickKnownPlayers">Known Players</button>
         </p>

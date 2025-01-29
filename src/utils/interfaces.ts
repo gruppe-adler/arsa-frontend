@@ -12,6 +12,15 @@ export interface Result {
     value: boolean;
 }
 
+export interface ResultSize {
+    profileDir: string;
+    serverDir: string;
+    modsDir: string;
+    logsDir: string;
+    allMods: string;
+    allLogs: string;
+}
+
 export interface LogFile {
     logFile: string;
 }
