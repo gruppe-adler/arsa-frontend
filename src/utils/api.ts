@@ -1,4 +1,15 @@
-import { IpAddress, Result, Server, ServerId, PlayerIdentityId, DockerStats, LogFile, ArsStatusResult, ArsStatus } from './interfaces';
+import {
+    IpAddress,
+    Result,
+    Server,
+    ServerId,
+    PlayerIdentityId,
+    DockerStats,
+    LogFile,
+    ArsStatusResult,
+    ArsStatus,
+    ResultSize
+} from './interfaces';
 import { useLogsStore } from '../stores/logs';
 
 const api = import.meta.env.VITE_API_URL;
@@ -104,6 +115,14 @@ export async function getStats(uuid: string): Promise<DockerStats> {
     return result;
 }
 
+export async function getSize(uuid: string): Promise<ResultSize> {
+    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/size`);
+    const result = (await jsonResponse.json()) as ResultSize;
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting Size for Server with UUID: ${uuid}`);
+    return result;
+}
+
 export async function addServer(server: Server): Promise<string> {
     const jsonResponse = await fetch(`${apiProtocol}://${api}/api/add-server`, {
         method: 'POST',
@@ -140,7 +159,6 @@ export async function getPublicIp(): Promise<string> {
 
 export async function getArsStatus(): Promise<ArsStatus> {
     const jsonResponse = await fetch(`${apiProtocol}://${api}/api/get-ars-status`);
-
     const result = (await jsonResponse.json()) as ArsStatusResult;
     const logsStore = useLogsStore();
     logsStore.add(`ARS status fetched`);
@@ -149,7 +167,6 @@ export async function getArsStatus(): Promise<ArsStatus> {
 
 export async function recreateArsDockerImage(): Promise<boolean> {
     const jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`);
-
     const result = (await jsonResponse.json()) as Result;
     const logsStore = useLogsStore();
     logsStore.add(`ARS docker image recreation started`);

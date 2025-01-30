@@ -16,9 +16,10 @@ import {
     recreateArsDockerImage,
     getPlayersFromLog,
     getKnownPlayers,
-    getStats
+    getStats,
+    getSize
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus } from '../utils/interfaces';
+import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus, ResultSize } from '../utils/interfaces';
 
 interface State {
     servers: Server[];
@@ -101,6 +102,14 @@ export const useServersStore = defineStore('servers', {
         },
         async getStats(uuid: string): Promise<DockerStats | null> {
             const result: DockerStats | Result = await getStats(uuid);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result;
+            }
+        },
+        async getSize(uuid: string): Promise<ResultSize | null> {
+            const result: ResultSize | Result = await getSize(uuid);
             if ((result as unknown as Result).value === false) {
                 return null;
             } else {
