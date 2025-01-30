@@ -17,9 +17,10 @@ import {
     getPlayersFromLog,
     getKnownPlayers,
     getStats,
-    getSize
+    getSize,
+    getCrashReportsLog
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus, ResultSize } from '../utils/interfaces';
+import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus, ResultSize, ResultLogs } from '../utils/interfaces';
 
 interface State {
     servers: Server[];
@@ -70,9 +71,9 @@ export const useServersStore = defineStore('servers', {
         async isRunning(uuid: string): Promise<boolean> {
             return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<string[] | null> {
-            const result: string[] | null = await getLogs(uuid);
-            if ((result as unknown as Result).value === false) {
+        async getLogs(uuid: string): Promise<ResultLogs | null> {
+            const result: ResultLogs = await getLogs(uuid);
+            if (!result.success) {
                 return null;
             } else {
                 return result;
@@ -80,6 +81,14 @@ export const useServersStore = defineStore('servers', {
         },
         async getLog(uuid: string, log: string, file: string): Promise<string | null> {
             const result: LogFile = await getLog(uuid, log, file);
+            if ((result as unknown as Result).value === false) {
+                return null;
+            } else {
+                return result.logFile;
+            }
+        },
+        async getCrashReportsLog(uuid: string): Promise<string | null> {
+            const result: LogFile = await getCrashReportsLog(uuid);
             if ((result as unknown as Result).value === false) {
                 return null;
             } else {
