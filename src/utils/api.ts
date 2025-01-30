@@ -8,7 +8,8 @@ import {
     LogFile,
     ArsStatusResult,
     ArsStatus,
-    ResultSize
+    ResultSize,
+    ResultLogs
 } from './interfaces';
 import { useLogsStore } from '../stores/logs';
 
@@ -64,11 +65,11 @@ export async function isRunning(uuid: string): Promise<boolean> {
     return result.value;
 }
 
-export async function getLogs(uuid: string): Promise<string[]> {
+export async function getLogs(uuid: string): Promise<ResultLogs> {
     const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/logs`);
-    const result = (await jsonResponse.json()) as string[];
+    const result = (await jsonResponse.json()) as ResultLogs;
     const logsStore = useLogsStore();
-    logsStore.add(`Getting Logs for Server with UUID ${uuid}: ${result.length} (count)`);
+    logsStore.add(`Getting Logs for Server with UUID ${uuid}`);
     return result;
 }
 
@@ -77,6 +78,14 @@ export async function getLog(uuid: string, log: string, file: string): Promise<L
     const result = (await textResponse.json()) as LogFile;
     const logsStore = useLogsStore();
     logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
+    return result;
+}
+
+export async function getCrashReportsLog(uuid: string): Promise<LogFile> {
+    const textResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/crash-reports-log`);
+    const result = (await textResponse.json()) as LogFile;
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting CrashReports.log for Server with UUID: ${uuid}`);
     return result;
 }
 

@@ -7,6 +7,7 @@ import ArsService from '../views/ArsService.vue';
 import ViewServer from '../views/ViewServer.vue';
 import ServerLogsList from '../views/ServerLogsList.vue';
 import ViewServerLog from '../views/ViewServerLog.vue';
+import ViewCrashReportsLog from '../views/ViewCrashReportsLog.vue';
 import PlayersList from '../views/PlayersList.vue';
 import ServerStats from '../views/ServerStats.vue';
 import ServerSize from '../views/ServerSize.vue';
@@ -24,6 +25,7 @@ const routes = [
     { path: '/server-size/:id', component: ServerSize },
     { path: '/players-list/:id', component: PlayersList },
     { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
+    { path: '/view-crash-reports-log/:id', component: ViewCrashReportsLog },
     { path: '/', redirect: '/servers-list' }
 ];
 
