@@ -49,12 +49,15 @@ function addMod() {
     const versionInput: HTMLInputElement | null = document.getElementById(versionInputId) as HTMLInputElement;
     const requiredInput: HTMLInputElement | null = document.getElementById(requiredInputId) as HTMLInputElement;
 
+    let version: string | undefined = versionInput?.value || '';
+    if (version === '') version = undefined;
+
     const required = requiredInput !== null ? requiredInput.checked : true;
 
     const mod: Mod = {
         modId: modIdInput?.value || '',
         name: nameInput?.value || '',
-        version: versionInput?.value || '',
+        version: version,
         required: required
     };
 
