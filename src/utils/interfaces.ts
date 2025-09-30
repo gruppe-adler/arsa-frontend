@@ -88,6 +88,7 @@ export interface Server {
 }
 
 export interface ServerConfig {
+    steamAppId: number;
     bindAddress: string;
     bindPort: number;
     publicAddress: string;

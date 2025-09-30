@@ -14,6 +14,7 @@ import {
     getPublicIp,
     getArsStatus,
     recreateArsDockerImage,
+    recreateArsDockerImageWithSteamAppId,
     getPlayersFromLog,
     getKnownPlayers,
     getStats,
@@ -139,6 +140,10 @@ export const useServersStore = defineStore('servers', {
         },
         async recreateArsDockerImage(): Promise<boolean> {
             const result = await recreateArsDockerImage();
+            return result;
+        },
+        async recreateArsDockerImageWithSteamAppId(steamAppId: number): Promise<boolean> {
+            const result = await recreateArsDockerImageWithSteamAppId(steamAppId);
             return result;
         },
         async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { ArsStatus } from '../utils/interfaces';
 import HostServerLog from '../components/HostServerLog.vue';
+import FormSelectInput from '../components/FormSelectInput.vue';
 
 const serversStore = useServersStore();
+const selectedSteamAppId = ref<string>('1874900');
 
 async function updateArsStatus() {
     const result = await serversStore.getArsStatus();
@@ -12,7 +14,8 @@ async function updateArsStatus() {
 }
 
 async function recreateArsDockerImage() {
-    await serversStore.recreateArsDockerImage();
+    const steamAppId = parseInt(selectedSteamAppId.value);
+    await serversStore.recreateArsDockerImageWithSteamAppId(steamAppId);
 }
 
 const arsStatus = computed<string>(() => {
@@ -29,6 +32,15 @@ updateArsStatus();
         <span class="result">{{ arsStatus }}</span>
     </div>
     <div>
+        <FormSelectInput
+            :name="'Steam App Version for Docker Image'"
+            :tooltip="'Select between stable (1874900) and experimental (1890870) Arma Reforger Server versions'"
+            :options="['1874900', '1890870']"
+            :selectedIndex="selectedSteamAppId === '1874900' ? 0 : 1"
+            :readonly="false"
+            v-model="selectedSteamAppId"
+        />
+        <br />
         <button
             class="form-input-button"
             type="button"

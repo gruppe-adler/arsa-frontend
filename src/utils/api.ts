@@ -181,3 +181,16 @@ export async function recreateArsDockerImage(): Promise<boolean> {
     logsStore.add(`ARS docker image recreation started`);
     return result.value;
 }
+
+export async function recreateArsDockerImageWithSteamAppId(steamAppId: number): Promise<boolean> {
+    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ steamAppId }),
+        mode: 'cors'
+    });
+    const result = (await jsonResponse.json()) as Result;
+    const logsStore = useLogsStore();
+    logsStore.add(`ARS docker image recreation started with Steam App ID: ${steamAppId}`);
+    return result.value;
+}

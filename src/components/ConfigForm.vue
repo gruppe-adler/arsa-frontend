@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Server } from '../utils/interfaces';
 import FormTextInput from './FormTextInput.vue';
 import FormIpAddressInput from './FormIpAddressInput.vue';
@@ -17,6 +18,14 @@ const props = defineProps({ readonly: Boolean });
 const server = defineModel<Server>('server', { required: true });
 
 const inputViolationCounter = defineModel<number>('inputViolationCounter', { required: true });
+
+// Computed property to handle steamAppId as string for FormSelectInput
+const steamAppIdString = computed({
+    get: () => server.value.config.steamAppId.toString(),
+    set: (value: string) => {
+        server.value.config.steamAppId = parseInt(value);
+    }
+});
 
 function violIncr() {
     inputViolationCounter.value++;
@@ -51,6 +60,14 @@ function violDecr() {
             ></FormStartupParameterInput>
         </ul>
         <h3>Config</h3>
+        <FormSelectInput
+            :name="'Steam App Version'"
+            :tooltip="'Select between stable (1874900) and experimental (1890870) Arma Reforger Server versions'"
+            :options="['1874900', '1890870']"
+            :selectedIndex="server.config.steamAppId === 1874900 ? 0 : 1"
+            :readonly="props.readonly"
+            v-model="steamAppIdString"
+        ></FormSelectInput>
         <FormIpAddressInput
             :name="'bindAddress'"
             :tooltip="'default: 0.0.0.0'"

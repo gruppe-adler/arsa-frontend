@@ -1,6 +1,7 @@
 import { Server, ServerConfig, StartupParameter } from './interfaces';
 
 export const defaultConfig: ServerConfig = {
+    steamAppId: 1874900,
     bindAddress: '0.0.0.0',
     bindPort: 2001,
     publicAddress: '',
