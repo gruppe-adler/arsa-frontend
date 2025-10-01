@@ -31,8 +31,11 @@ const sortedServers = computed(() => {
 </script>
 
 <template>
-    <div>
-        <h1>Arma Reforger Servers List</h1>
+    <div class="servers-list-container">
+        <div class="page-header">
+            <h1>🖥️ Arma Reforger Servers</h1>
+            <p class="subtitle">Manage and monitor your Arma Reforger game servers</p>
+        </div>
         <ul id="servers-list" v-if="sortedServers.length > 0">
             <ServerItem
                 @server-deleted="onServerDeleted"
@@ -47,8 +50,37 @@ const sortedServers = computed(() => {
 </template>
 
 <style scoped>
+.servers-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(26, 31, 46, 0.6) 0%, rgba(37, 45, 61, 0.6) 100%);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.page-header h1 {
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-accent) 0%, var(--text-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
 #servers-list {
     list-style-type: none;
-    padding: 0px;
+    padding: 0;
+    margin: 0;
 }
 </style>
