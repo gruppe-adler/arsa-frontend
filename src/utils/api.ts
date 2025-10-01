@@ -5,6 +5,7 @@ import {
     ServerId,
     PlayerIdentityId,
     DockerStats,
+    DockerImageInfo,
     LogFile,
     ArsStatusResult,
     ArsStatus,
@@ -174,12 +175,49 @@ export async function getArsStatus(): Promise<ArsStatus> {
     return result.status;
 }
 
-export async function recreateArsDockerImage(): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`);
-    const result = (await jsonResponse.json()) as Result;
+export async function recreateArsDockerImage(steamAppId?: number): Promise<{ value: boolean; steamAppId: number }> {
+    let jsonResponse: Response;
+    
+    if (steamAppId) {
+        // Use POST with body if steamAppId is provided
+        jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ steamAppId }),
+        });
+    } else {
+        // Use GET if no steamAppId provided (uses current setting)
+        jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`);
+    }
+    
+    const result = await jsonResponse.json();
     const logsStore = useLogsStore();
-    logsStore.add(`ARS docker image recreation started`);
-    return result.value;
+    logsStore.add(`ARS docker image recreation started with Steam App ID ${result.steamAppId || 'default'}`);
+    return result;
+}
+
+export async function getSteamAppIdInfo(): Promise<DockerImageInfo> {
+    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/steam-app-id`);
+    const result = await jsonResponse.json() as DockerImageInfo;
+    const logsStore = useLogsStore();
+    logsStore.add(`Steam App ID info fetched`);
+    return result;
+}
+
+export async function setSteamAppId(steamAppId: number): Promise<{ value: boolean; steamAppId: number; info: DockerImageInfo }> {
+    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/steam-app-id`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ steamAppId }),
+    });
+    const result = await jsonResponse.json();
+    const logsStore = useLogsStore();
+    logsStore.add(`Steam App ID set to ${steamAppId}`);
+    return result;
 }
 
 export async function recreateArsDockerImageWithSteamAppId(steamAppId: number): Promise<boolean> {

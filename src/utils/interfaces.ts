@@ -182,3 +182,12 @@ export interface DockerStats {
     NetIO: string;
     PIDs: string;
 }
+
+export interface DockerImageInfo {
+    currentSteamAppId: number;
+    lastBuild?: {
+        steamAppId: number;
+        timestamp: number;
+    };
+    needsRebuild: boolean;
+}

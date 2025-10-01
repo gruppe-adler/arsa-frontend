@@ -138,7 +138,7 @@ export const useServersStore = defineStore('servers', {
             }
             return this.arsStatus;
         },
-        async recreateArsDockerImage(): Promise<boolean> {
+        async recreateArsDockerImage(): Promise<{ value: boolean; steamAppId: number }> {
             const result = await recreateArsDockerImage();
             return result;
         },
