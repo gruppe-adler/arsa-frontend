@@ -3,18 +3,11 @@ import Menu from './components/Menu.vue'
 </script>
 
 <template>
-  <div><Menu/></div>
-  <div><RouterView/></div>
+  <Menu />
+  <main class="main-content">
+    <RouterView />
+  </main>
 </template>
 
 <style scoped>
-  Menu {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  RouterView {
-    grid-column: 1;
-    grid-row: 2;
-  }
 </style>

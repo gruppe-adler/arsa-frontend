@@ -6,6 +6,8 @@ import { Server } from '../utils/interfaces';
 import { defaultServer } from '../utils/defaults';
 import ConfigForm from '../components/ConfigForm.vue';
 import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
+import TabsWrapper from '../components/TabsWrapper.vue';
+import Tab from '../components/Tab.vue';
 
 const router = useRouter();
 
@@ -13,7 +15,7 @@ const serversStore = useServersStore();
 
 // I need to clone the defaultServer const object. Otherwise it's changed by the form.
 // I don't know why this ref thing does that. Perhaps objects are always just references.
-const server = ref<Server>(Object.assign({}, defaultServer));
+const server = ref<Server>(JSON.parse(JSON.stringify(defaultServer))); // Deep clone to prevent mutation of the default object
 
 const inputViolationCounter = ref(0);
 
@@ -29,12 +31,25 @@ function addServer() {
 <template>
     <div class="form-container">
         <h1>Add Arma Reforger Server</h1>
-        <ConfigUploadDownload v-model:server="server" />
-        <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
-        <br />
-        <br />
-        <button type="button" :disabled @click="addServer()">Add</button>
+        <form @submit.prevent="addServer">
+            <TabsWrapper>
+                <Tab title="Configuration">
+                    <ConfigForm v-model:input-violation-counter="inputViolationCounter" v-model:server="server" />
+                </Tab>
+                <Tab title="Import / Export">
+                    <ConfigUploadDownload v-model:server="server" />
+                </Tab>
+            </TabsWrapper>
+            <div class="form-actions">
+                <button type="submit" :disabled="disabled">Add Server</button>
+            </div>
+        </form>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.form-actions {
+  margin-top: var(--spacing-lg);
+  text-align: right;
+}
+</style>

@@ -1,33 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  font-family: sans-serif;
+  /* Core Brand Colors */
+  --color-highlight-rgb: 209, 141, 31;
+  --color-highlight: rgb(var(--color-highlight-rgb)); /* Adler Orange */
+  --color-positive: #28a745;
+  --color-negative: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+
+  /* Light Mode (Default) */
+  --bg-body: #f0f2f5;
+  --bg-surface: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+
+  /* Dark Mode */
+  --bg-body-dark: #121212;
+  --bg-surface-dark: #1e1e1e;
+  --text-primary-dark: #e0e0e0;
+  --text-secondary-dark: #a0a0a0;
+  --border-color-dark: #333333;
+  --shadow-color-dark: rgba(0, 0, 0, 0.4);
+
+  /* Spacing & Radius */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-body: var(--bg-body-dark);
+    --bg-surface: var(--bg-surface-dark);
+    --text-primary: var(--text-primary-dark);
+    --text-secondary: var(--text-secondary-dark);
+    --border-color: var(--border-color-dark);
+    --shadow-color: var(--shadow-color-dark);
+  }
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  margin: 0;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+main {
+  padding: var(--spacing-lg);
 }
 
 ul {
-  padding-inline-start: 0px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: var(--color-highlight);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: hsl(from var(--color-highlight) h s calc(l - 10%));
+}
+
+h1, h2, h3 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.25rem; }
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 6px var(--shadow-color);
+  padding: var(--spacing-lg);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 7px 14px var(--shadow-color);
+  transform: translateY(-2px);
 }
 
 .form-container {
-  width: 800px;
+  max-width: 800px;
+  margin: var(--spacing-xl) auto;
   text-align: left;
 }
 
 .form-input-container {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  column-gap: 15px;
-  margin-bottom: 5px;
-  min-height: 22px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  align-items: start;
 }
 
 .form-input-label {
   text-align: right;
-  grid-column: 1 / span 1;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding-top: var(--spacing-sm);
 }
 
 .form-custom-input {
   display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
-.form-input-button {
-  margin-left: 10px;
+input, select, textarea {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
+
+.form-custom-input input {
+  flex: 1;
+  width: auto;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-highlight);
+  box-shadow: 0 0 0 3px rgba(var(--color-highlight-rgb), 0.2);
+}
+
+button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--color-highlight);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+button:active {
+  transform: translateY(0);
+  filter: brightness(1);
+}
+
+/* Custom Form Controls */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  margin-right: var(--spacing-sm);
+  flex: none;
+  cursor: pointer;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  transform: scale(0);
+  transition: 0.1s transform ease-in-out;
+  box-shadow: inset 1em 1em white;
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+}
+
+input[type="radio"]::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 0.1s transform ease-in-out;
+  box-shadow: inset 1em 1em white;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: var(--color-highlight);
+  border-color: var(--color-highlight);
+}
+
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-md) center;
+  background-size: 16px 12px;
+  padding-right: var(--spacing-xl);
+}
+
+/* Utility Classes */
+.btn-positive { background-color: var(--color-positive); }
+.btn-negative { background-color: var(--color-negative); }
+.btn-warning { background-color: var(--color-warning); }
+.btn-info { background-color: var(--color-info); }
