@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { computed, watch } from "vue";
-import { StartupParameter } from "../utils/interfaces";
+import { StartupParameter } from "../api/model";
 
 const props = defineProps({
     readonly: Boolean
@@ -51,8 +51,8 @@ const disabled = computed<boolean>(() => {
                 v-model="model.enabled">
             <input class="startup-parameter-input" :title="model.tooltip" type="text" :style="style"
                 :disabled="disabled" v-model.trim="model.value" v-if="model.type == 'string'" />
-            <input class="startup-parameter-input" :title="model.tooltip" type="number" :min="model.minVal"
-                :max="model.maxVal" step="1" :style="style" :disabled="disabled" v-model.trim="model.value"
+            <input class="startup-parameter-input" :title="model.tooltip" type="number" :min="model.minVal ?? 0"
+                :max="model.maxVal ?? 0" step="1" :style="style" :disabled="disabled" v-model.trim="model.value"
                 v-if="model.type == 'number'" />
             <select class="startup-parameter-input" :title="model.tooltip" :style="style" :disabled="disabled"
                 v-model="model.value" v-if="model.type == 'select'">

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useServersStore } from '../stores/servers';
-import { ArsStatus } from '../utils/interfaces';
 import HostServerLog from '../components/HostServerLog.vue';
+import { ArsStatus } from '../api/model';
 
 const serversStore = useServersStore();
 
@@ -33,7 +33,7 @@ updateArsStatus();
             class="form-input-button"
             type="button"
             @click="recreateArsDockerImage()"
-            :disabled="serversStore.arsStatus === ArsStatus.RECREATING || serversStore.arsStatus === ArsStatus.UNKNOWN"
+            :disabled="serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown"
         >
             Recreate ARS Docker Image
         </button>

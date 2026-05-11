@@ -2,11 +2,11 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useServersStore } from '../stores/servers';
-import { Server } from '../utils/interfaces';
 import { defaultServer } from '../utils/defaults';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
 import ConfigForm from '../components/ConfigForm.vue';
+import { Server } from '../api/model';
 
 const route = useRoute();
 

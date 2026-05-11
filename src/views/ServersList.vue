@@ -3,9 +3,9 @@ import { computed } from 'vue';
 
 import { useServersStore } from '../stores/servers';
 import ServerItem from '../components/ServerItem.vue';
-import { Server } from '../utils/interfaces';
 import EmptyState from '../components/EmptyState.vue';
 import HostServerLog from '../components/HostServerLog.vue';
+import { Server } from '../api/model';
 
 const serversStore = useServersStore();
 

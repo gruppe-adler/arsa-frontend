@@ -1,0 +1,1315 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "arsa-backend-rs",
+        "description": "",
+        "license": { "name": "" },
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/api/v1": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_servers",
+                "responses": {
+                    "200": {
+                        "description": "List of all servers",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Server"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/public-ip": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_public_ip",
+                "responses": {
+                    "200": {
+                        "description": "The public IPv4 for this server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IPv4Response"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pull-image/{branch}": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_pull_image",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch to pull",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/Branch" },
+                        "example": "stable"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server": {
+            "put": {
+                "tags": ["arsa"],
+                "operationId": "put_server",
+                "requestBody": {
+                    "description": "Server configuration to create a new server",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/StartupParameterWrapper"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "required": [
+                                            "name",
+                                            "isRunning",
+                                            "config"
+                                        ],
+                                        "properties": {
+                                            "config": {
+                                                "$ref": "#/components/schemas/ServerConfig"
+                                            },
+                                            "isRunning": { "type": "boolean" },
+                                            "name": { "type": "string" },
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "example": {
+                                "config": {
+                                    "a2s": {
+                                        "address": "0.0.0.0",
+                                        "port": 2303
+                                    },
+                                    "bindAddress": "0.0.0.0",
+                                    "bindPort": 2302,
+                                    "game": {
+                                        "admins": ["admin1", "admin2"],
+                                        "crossPlatform": true,
+                                        "gameProperties": {
+                                            "VONCanTransmitCrossFaction": false,
+                                            "VONDisableDirectSpeechUI": false,
+                                            "VONDisableUI": false,
+                                            "battlEye": true,
+                                            "disableThirdPerson": false,
+                                            "fastValidation": true,
+                                            "missionHeader": {},
+                                            "networkViewDistance": 2000,
+                                            "serverMaxViewDistance": 10000,
+                                            "serverMinGrassDistance": 50
+                                        },
+                                        "maxPlayers": 64,
+                                        "mods": [
+                                            {
+                                                "modId": "mod1",
+                                                "name": "CBA_A3",
+                                                "required": true,
+                                                "version": "3.15.0"
+                                            }
+                                        ],
+                                        "modsRequiredByDefault": false,
+                                        "name": "Test Server",
+                                        "password": "password",
+                                        "passwordAdmin": "adminPassword",
+                                        "scenarioId": "veh_rc_enoch",
+                                        "supportedPlatforms": ["PLATFORM_PC"],
+                                        "visible": true
+                                    },
+                                    "operating": {
+                                        "aiLimit": 5000,
+                                        "disableAI": false,
+                                        "disableCrashReporter": false,
+                                        "disableNavmeshStreaming": [],
+                                        "disableServerShutdown": false,
+                                        "joinQueue": { "maxSize": 10 },
+                                        "lobbyPlayerSynchronise": true,
+                                        "playerSaveTime": 180,
+                                        "slotReservationTimeout": 60
+                                    },
+                                    "publicAddress": "1.2.3.4",
+                                    "publicPort": 2302,
+                                    "rcon": {
+                                        "address": "0.0.0.0",
+                                        "blacklist": [],
+                                        "maxClients": 5,
+                                        "password": "admin123",
+                                        "permission": "admin",
+                                        "port": 2305,
+                                        "whitelist": []
+                                    }
+                                },
+                                "isRunning": false,
+                                "name": "My Arma Server",
+                                "startupParameters": [
+                                    {
+                                        "enabled": true,
+                                        "parameter": "port",
+                                        "tooltip": "Server port",
+                                        "type": "number",
+                                        "value": 2302
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server was created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid server configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["arsa"],
+                "operationId": "post_server",
+                "requestBody": {
+                    "description": "Server configuration to create a new server",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/StartupParameterWrapper"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "required": [
+                                            "name",
+                                            "isRunning",
+                                            "config"
+                                        ],
+                                        "properties": {
+                                            "config": {
+                                                "$ref": "#/components/schemas/ServerConfig"
+                                            },
+                                            "isRunning": { "type": "boolean" },
+                                            "name": { "type": "string" },
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "example": {
+                                "config": {
+                                    "a2s": {
+                                        "address": "0.0.0.0",
+                                        "port": 2303
+                                    },
+                                    "bindAddress": "0.0.0.0",
+                                    "bindPort": 2302,
+                                    "game": {
+                                        "admins": ["admin1", "admin2"],
+                                        "crossPlatform": true,
+                                        "gameProperties": {
+                                            "VONCanTransmitCrossFaction": false,
+                                            "VONDisableDirectSpeechUI": false,
+                                            "VONDisableUI": false,
+                                            "battlEye": true,
+                                            "disableThirdPerson": false,
+                                            "fastValidation": true,
+                                            "missionHeader": {},
+                                            "networkViewDistance": 2000,
+                                            "serverMaxViewDistance": 10000,
+                                            "serverMinGrassDistance": 50
+                                        },
+                                        "maxPlayers": 64,
+                                        "mods": [
+                                            {
+                                                "modId": "mod1",
+                                                "name": "CBA_A3",
+                                                "required": true,
+                                                "version": "3.15.0"
+                                            }
+                                        ],
+                                        "modsRequiredByDefault": false,
+                                        "name": "Test Server",
+                                        "password": "password",
+                                        "passwordAdmin": "adminPassword",
+                                        "scenarioId": "veh_rc_enoch",
+                                        "supportedPlatforms": ["PLATFORM_PC"],
+                                        "visible": true
+                                    },
+                                    "operating": {
+                                        "aiLimit": 5000,
+                                        "disableAI": false,
+                                        "disableCrashReporter": false,
+                                        "disableNavmeshStreaming": [],
+                                        "disableServerShutdown": false,
+                                        "joinQueue": { "maxSize": 10 },
+                                        "lobbyPlayerSynchronise": true,
+                                        "playerSaveTime": 180,
+                                        "slotReservationTimeout": 60
+                                    },
+                                    "publicAddress": "1.2.3.4",
+                                    "publicPort": 2302,
+                                    "rcon": {
+                                        "address": "0.0.0.0",
+                                        "blacklist": [],
+                                        "maxClients": 5,
+                                        "password": "admin123",
+                                        "permission": "admin",
+                                        "port": 2305,
+                                        "whitelist": []
+                                    }
+                                },
+                                "isRunning": false,
+                                "name": "My Arma Server",
+                                "startupParameters": [
+                                    {
+                                        "enabled": true,
+                                        "parameter": "port",
+                                        "tooltip": "Server port",
+                                        "type": "number",
+                                        "value": 2302
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Server was created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UuidResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid server configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/known-players": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_player_log",
+                "responses": {
+                    "200": {
+                        "description": "List of known players",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PlayerIdentityId"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_server",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The server model",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Server"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["arsa"],
+                "operationId": "delete_server",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server was deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/crash-reports-log": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_crash_log",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Crash reports log content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileContentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server or log was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/is-running": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "is_server_running",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server running status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/logs": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_logs",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of logs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResultLogs"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/logs/{log}": {
+            "delete": {
+                "tags": ["arsa"],
+                "operationId": "delete_log",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" }
+                    },
+                    {
+                        "name": "log",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "type": "string" }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The log was deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid log directory name",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server or log was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/logs/{log}/{log_type}": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_log_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "log",
+                        "in": "path",
+                        "description": "Log folder name",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "profileDir"
+                    },
+                    {
+                        "name": "log_type",
+                        "in": "path",
+                        "description": "Log file type",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/LogType" },
+                        "example": "console.log"
+                    },
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" }
+                    },
+                    {
+                        "name": "log",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "type": "string" }
+                    },
+                    {
+                        "name": "log_type",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/LogType" }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Log file content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileContentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid log directory name",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server or log was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/size": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_size_method",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server directory sizes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResultSize"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/start": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "start_server",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server was started and/or is running",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/stats": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_stats",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server statistics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DockerStats"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found or stats unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/server/{id}/stop": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "stop_server",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Server was stopped",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/status": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_status",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArsStatus"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "A2S": {
+                "type": "object",
+                "required": ["address", "port"],
+                "properties": {
+                    "address": { "type": "string" },
+                    "port": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "ArsStatus": {
+                "type": "string",
+                "enum": [
+                    "Unknown",
+                    "Available",
+                    "Recreating",
+                    "RecreatingFailure",
+                    "Unavailable"
+                ],
+                "example": "Available"
+            },
+            "Branch": { "type": "string", "enum": ["stable", "experimental"] },
+            "DockerStats": {
+                "type": "object",
+                "required": [
+                    "timestamp",
+                    "blockIoRead",
+                    "blockIoWrite",
+                    "cpuPercentage",
+                    "name",
+                    "id",
+                    "memUsage",
+                    "memLimit",
+                    "networkRxBytes",
+                    "networkTxBytes",
+                    "pidCount"
+                ],
+                "properties": {
+                    "blockIoRead": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "blockIoWrite": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "cpuPercentage": { "type": "number", "format": "double" },
+                    "id": { "type": "string" },
+                    "memLimit": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "memUsage": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "name": { "type": "string" },
+                    "networkRxBytes": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "networkTxBytes": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "pidCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "required": ["message"],
+                "properties": { "message": { "type": "string" } }
+            },
+            "FileContentResponse": {
+                "type": "object",
+                "required": ["file_content"],
+                "properties": { "file_content": { "type": "string" } }
+            },
+            "Game": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "password",
+                    "passwordAdmin",
+                    "admins",
+                    "scenarioId",
+                    "maxPlayers",
+                    "visible",
+                    "crossPlatform",
+                    "supportedPlatforms",
+                    "gameProperties",
+                    "modsRequiredByDefault",
+                    "mods"
+                ],
+                "properties": {
+                    "admins": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    },
+                    "crossPlatform": { "type": "boolean" },
+                    "gameProperties": {
+                        "$ref": "#/components/schemas/GameProperties"
+                    },
+                    "maxPlayers": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "mods": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Mod" }
+                    },
+                    "modsRequiredByDefault": { "type": "boolean" },
+                    "name": { "type": "string" },
+                    "password": { "type": "string" },
+                    "passwordAdmin": { "type": "string" },
+                    "scenarioId": { "type": "string" },
+                    "supportedPlatforms": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Platform" }
+                    },
+                    "visible": { "type": "boolean" }
+                }
+            },
+            "GameProperties": {
+                "type": "object",
+                "required": [
+                    "serverMaxViewDistance",
+                    "serverMinGrassDistance",
+                    "fastValidation",
+                    "networkViewDistance",
+                    "battlEye",
+                    "disableThirdPerson",
+                    "VONDisableUI",
+                    "VONDisableDirectSpeechUI",
+                    "VONCanTransmitCrossFaction",
+                    "missionHeader"
+                ],
+                "properties": {
+                    "VONCanTransmitCrossFaction": { "type": "boolean" },
+                    "VONDisableDirectSpeechUI": { "type": "boolean" },
+                    "VONDisableUI": { "type": "boolean" },
+                    "battlEye": { "type": "boolean" },
+                    "disableThirdPerson": { "type": "boolean" },
+                    "fastValidation": { "type": "boolean" },
+                    "missionHeader": {},
+                    "networkViewDistance": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "serverMaxViewDistance": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "serverMinGrassDistance": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "IPv4Response": {
+                "type": "object",
+                "required": ["ipv4"],
+                "properties": { "ipv4": { "type": "string" } }
+            },
+            "JoinQueue": {
+                "type": "object",
+                "required": ["maxSize"],
+                "properties": {
+                    "maxSize": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Log": {
+                "type": "object",
+                "required": [
+                    "dir",
+                    "containsConsoleLog",
+                    "containsScriptLog",
+                    "containsErrorLog",
+                    "containsCrashLog"
+                ],
+                "properties": {
+                    "containsConsoleLog": { "type": "boolean" },
+                    "containsCrashLog": { "type": "boolean" },
+                    "containsErrorLog": { "type": "boolean" },
+                    "containsScriptLog": { "type": "boolean" },
+                    "dir": { "type": "string" }
+                }
+            },
+            "LogType": {
+                "type": "string",
+                "enum": ["console.log", "error.log", "script.log", "crash.log"]
+            },
+            "Mod": {
+                "type": "object",
+                "required": ["modId", "name"],
+                "properties": {
+                    "modId": { "type": "string" },
+                    "name": { "type": "string" },
+                    "required": { "type": ["boolean", "null"] },
+                    "version": { "type": ["string", "null"] }
+                }
+            },
+            "Operating": {
+                "type": "object",
+                "required": [
+                    "lobbyPlayerSynchronise",
+                    "disableCrashReporter",
+                    "disableServerShutdown",
+                    "disableAI",
+                    "playerSaveTime",
+                    "aiLimit",
+                    "slotReservationTimeout",
+                    "joinQueue"
+                ],
+                "properties": {
+                    "aiLimit": { "type": "integer", "format": "int32" },
+                    "disableAI": { "type": "boolean" },
+                    "disableCrashReporter": { "type": "boolean" },
+                    "disableNavmeshStreaming": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    },
+                    "disableServerShutdown": { "type": "boolean" },
+                    "joinQueue": { "$ref": "#/components/schemas/JoinQueue" },
+                    "lobbyPlayerSynchronise": { "type": "boolean" },
+                    "playerSaveTime": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "slotReservationTimeout": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Platform": {
+                "type": "string",
+                "enum": ["PLATFORM_PC", "PLATFORM_XBL", "PLATFORM_PSN"]
+            },
+            "PlayerIdentityId": {
+                "type": "object",
+                "required": ["name", "identityId"],
+                "properties": {
+                    "identityId": { "type": "string" },
+                    "name": { "type": "string" }
+                }
+            },
+            "Rcon": {
+                "type": "object",
+                "required": [
+                    "address",
+                    "port",
+                    "password",
+                    "maxClients",
+                    "permission",
+                    "blacklist",
+                    "whitelist"
+                ],
+                "properties": {
+                    "address": { "type": "string" },
+                    "blacklist": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    },
+                    "maxClients": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "password": { "type": "string" },
+                    "permission": { "type": "string" },
+                    "port": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "whitelist": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                }
+            },
+            "ResultLogs": {
+                "type": "object",
+                "required": ["success", "containsCrashReportLog", "logs"],
+                "properties": {
+                    "containsCrashReportLog": { "type": "boolean" },
+                    "logs": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Log" }
+                    },
+                    "success": { "type": "boolean" }
+                }
+            },
+            "ResultSize": {
+                "type": "object",
+                "required": [
+                    "addonsSize",
+                    "logsSize",
+                    "profileSize",
+                    "mods",
+                    "logs"
+                ],
+                "properties": {
+                    "addonsSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "logs": { "type": "array", "items": { "type": "string" } },
+                    "logsSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "mods": { "type": "array", "items": { "type": "string" } },
+                    "profileSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Server": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/StartupParameterWrapper" },
+                    {
+                        "type": "object",
+                        "required": ["name", "isRunning", "config"],
+                        "properties": {
+                            "config": {
+                                "$ref": "#/components/schemas/ServerConfig"
+                            },
+                            "isRunning": { "type": "boolean" },
+                            "name": { "type": "string" },
+                            "uuid": { "type": "string", "format": "uuid" }
+                        }
+                    }
+                ]
+            },
+            "ServerConfig": {
+                "type": "object",
+                "required": [
+                    "bindAddress",
+                    "bindPort",
+                    "publicAddress",
+                    "publicPort",
+                    "a2s",
+                    "rcon",
+                    "game",
+                    "operating"
+                ],
+                "properties": {
+                    "a2s": { "$ref": "#/components/schemas/A2S" },
+                    "bindAddress": { "type": "string" },
+                    "bindPort": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "game": { "$ref": "#/components/schemas/Game" },
+                    "operating": { "$ref": "#/components/schemas/Operating" },
+                    "publicAddress": { "type": "string" },
+                    "publicPort": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "rcon": { "$ref": "#/components/schemas/Rcon" }
+                }
+            },
+            "StartupParameter": {
+                "type": "object",
+                "required": ["parameter", "tooltip", "enabled", "type"],
+                "properties": {
+                    "enabled": { "type": "boolean" },
+                    "maxVal": {
+                        "type": ["integer", "null"],
+                        "format": "int32"
+                    },
+                    "minVal": {
+                        "type": ["integer", "null"],
+                        "format": "int32"
+                    },
+                    "parameter": { "type": "string" },
+                    "tooltip": { "type": "string" },
+                    "type": { "type": "string" },
+                    "value": {},
+                    "valueList": {
+                        "type": ["array", "null"],
+                        "items": { "type": "string" }
+                    }
+                }
+            },
+            "StartupParameterWrapper": {
+                "type": "object",
+                "required": ["startupParameters"],
+                "properties": {
+                    "startupParameters": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StartupParameter"
+                        }
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "type": "object",
+                "required": ["success"],
+                "properties": { "success": { "type": "boolean" } }
+            },
+            "UuidResponse": {
+                "type": "object",
+                "required": ["uuid"],
+                "properties": { "uuid": { "type": "string", "format": "uuid" } }
+            }
+        }
+    },
+    "tags": [{ "name": "arsa", "description": "ARSA API endpoints" }]
+}

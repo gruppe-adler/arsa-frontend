@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia'
 
 interface State {
-    logs: string[]
+    logs: Log[]
+}
+
+interface Log {
+    timestamp: Date,
+    log: string,
 }
 
 export const useLogsStore = defineStore('logs', {
@@ -11,9 +16,8 @@ export const useLogsStore = defineStore('logs', {
         }
     },
     actions: {
-        async add(entry: string) { 
-            const now = new Date();
-            this.logs.push(`[${now.toISOString()}]: ${entry}`);
+        async add(entry: string) {
+            this.logs.push({ timestamp: new Date(), log: entry });
         },
     },
 })

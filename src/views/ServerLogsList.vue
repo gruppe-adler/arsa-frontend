@@ -5,7 +5,7 @@ import { useServersStore } from '../stores/servers';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
 import EmptyState from '../components/EmptyState.vue';
-import { ResultLogs, Log } from '../utils/interfaces';
+import { Log, ResultLogs } from '../api/model';
 
 const route = useRoute();
 
@@ -17,7 +17,7 @@ const serversStore = useServersStore();
 const serverLogs = ref<ResultLogs>({
     success: false,
     logs: [],
-    containsCrashReportsLog: false
+    containsCrashReportLog: false
 });
 
 getLogs();
@@ -47,7 +47,7 @@ function onClickDelete(logName: string) {
     <NotFound v-else-if="!found" />
     <div v-else>
         <h1>Arma Reforger Server Logs List</h1>
-        <RouterLink class="links" :to="`/view-crash-reports-log/${route.params.id}`" v-if="serverLogs.containsCrashReportsLog"
+        <RouterLink class="links" :to="`/view-crash-reports-log/${route.params.id}`" v-if="serverLogs.containsCrashReportLog"
             >CrashReports.log
         </RouterLink>
         <ul id="logs" v-if="sortedServerLogs.length > 0">

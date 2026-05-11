@@ -9,7 +9,7 @@ const logsStore = useLogsStore();
     <div>
         <h1>Host Server Log</h1>
         <ul id="logs" v-if="logsStore.logs.length > 0">
-            <li v-for="logEntry in logsStore.logs">{{ logEntry }}</li>
+            <li v-for="log in logsStore.logs">{{ log.timestamp.toLocaleString() }}: {{ log.log }}</li>
         </ul>
         <EmptyState v-else />
     </div>

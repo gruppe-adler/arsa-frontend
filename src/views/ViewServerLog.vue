@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
+import { LogType } from '../api/model';
 
 const route = useRoute();
 
@@ -19,9 +20,9 @@ const arsVersion = ref('');
 refresh();
 
 function refresh() {
-    serversStore.getLog(route.params.id as string, route.params.log as string, route.params.file as string).then(log => {
+    serversStore.getLog(route.params.id as string, route.params.log as string, route.params.file as LogType).then(log => {
         if (log) {
-            serverLog.value = log.replace(/\n/g, '<br>');
+            serverLog.value = log.file_content.replace(/\n/g, '<br>');
             found.value = true;
         }
 
@@ -39,10 +40,10 @@ function refresh() {
     });
 }
 
-async function importPlayers() {
-    const importedPlayers = await serversStore.getPlayersFromLog(route.params.id as string, route.params.log as string);
-    alert(`Imported ${importedPlayers.length} player(s) from log.`);
-}
+// async function importPlayers() {
+//     const importedPlayers = await serversStore.getPlayersFromLog(route.params.id as string, route.params.log as string);
+//     alert(`Imported ${importedPlayers.length} player(s) from log.`);
+// }
 </script>
 
 <template>
@@ -50,7 +51,7 @@ async function importPlayers() {
     <NotFound v-else-if="!found" />
     <div v-else>
         <h1>View Arma Reforger Server Log {{ route.params.log }}/{{ route.params.file }}</h1>
-        <button type="button" @click="importPlayers()">Import Players</button>
+        <!--<button type="button" @click="importPlayers()">Import Players</button>-->
         <p>{{ arsVersion }}</p>
         <p v-html="serverLog"></p>
         <button type="button" @click="refresh()">Refresh</button>

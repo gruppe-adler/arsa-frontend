@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
 import { useServersStore } from '../stores/servers';
-import { PlayerIdentityId } from '../utils/interfaces';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
 import EmptyState from '../components/EmptyState.vue';
-
-const route = useRoute();
+import { PlayerIdentityId } from '../api/model';
 
 const loading = ref(true);
 const found = ref(false);
@@ -15,7 +12,7 @@ const found = ref(false);
 const serversStore = useServersStore();
 
 const knownPlayers = ref<PlayerIdentityId[]>([]);
-serversStore.getKnownPlayers(route.params.id as string).then(players => {
+serversStore.getKnownPlayers().then(players => {
     if (players) {
         knownPlayers.value = players;
         found.value = true;

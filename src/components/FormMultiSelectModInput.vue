@@ -7,7 +7,7 @@ const props = defineProps({
     name: String,
     tooltip: String,
     optionalParam: Boolean,
-    regEx: Array
+    regEx: Array,
 });
 const model = defineModel<string[] | undefined>({ required: true });
 
@@ -93,23 +93,19 @@ onMounted(() => {
     <div class="form-input-container">
         <label class="form-input-label">{{ name }}</label>
         <div>
-            <select
-                :title="tooltip"
-                class="multi-select-mod"
-                :id="selectId"
-                size="5"
-                :disabled="props.readonly"
-                @focusout="focusout"
-                multiple
-            >
+            <select :title="tooltip" class="multi-select-mod" :id="selectId" size="5" :disabled="props.readonly"
+                @focusout="focusout" multiple>
                 <option v-for="option in localOptions" :value="option">
                     {{ option }}
                 </option>
             </select>
             <div class="modify-group">
-                <input class="mod-input" :id="inputId" type="text" :disabled="props.readonly" />
-                <button class="form-input-button" type="button" @click="addItem()" :disabled="props.readonly">Add</button>
-                <button class="form-input-button" type="button" @click="removeItem()" :disabled="props.readonly">Delete</button>
+                <input class="mod-input" :id="inputId" type="text" :disabled="props.readonly"
+                    pattern="(^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$){1}" required />
+                <button class="form-input-button" type="button" @click="addItem()"
+                    :disabled="props.readonly">Add</button>
+                <button class="form-input-button" type="button" @click="removeItem()"
+                    :disabled="props.readonly">Delete</button>
             </div>
         </div>
     </div>
@@ -120,10 +116,20 @@ onMounted(() => {
     width: 100%;
     margin-bottom: 5px;
 }
+
 .modify-group {
     display: flex;
 }
+
 .mod-input {
     flex-grow: 1;
+}
+
+input:valid {
+    background-color: palegreen;
+}
+
+input:invalid {
+    background-color: lightpink;
 }
 </style>

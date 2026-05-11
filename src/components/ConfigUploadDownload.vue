@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Server, ServerConfig } from '../utils/interfaces';
 
 import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
 import ajvKeywords from 'ajv-keywords';
 import { arsConfigSchema } from '../utils/json-schema';
 import { defaultConfig } from '../utils/defaults';
+import { Server, ServerConfig } from '../api/model';
 
 const ajv = new Ajv({ allErrors: true, useDefaults: true });
 ajvFormats(ajv);

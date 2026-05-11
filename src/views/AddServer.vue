@@ -2,10 +2,11 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
-import { Server } from '../utils/interfaces';
+
 import { defaultServer } from '../utils/defaults';
 import ConfigForm from '../components/ConfigForm.vue';
 import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
+import { Server } from '../api/model';
 
 const router = useRouter();
 

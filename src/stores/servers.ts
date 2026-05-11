@@ -14,13 +14,12 @@ import {
     getPublicIp,
     getArsStatus,
     recreateArsDockerImage,
-    getPlayersFromLog,
     getKnownPlayers,
     getStats,
     getSize,
     getCrashReportsLog
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus, ResultSize, ResultLogs } from '../utils/interfaces';
+import { ArsStatus, DockerStats, FileContentResponse, LogType, PlayerIdentityId, ResultLogs, ResultSize, Server } from '../api/model';
 
 interface State {
     servers: Server[];
@@ -33,7 +32,7 @@ export const useServersStore = defineStore('servers', {
         return {
             servers: [],
             publicIp: '',
-            arsStatus: ArsStatus.UNKNOWN
+            arsStatus: ArsStatus.Unknown
         };
     },
     actions: {
@@ -71,59 +70,27 @@ export const useServersStore = defineStore('servers', {
         async isRunning(uuid: string): Promise<boolean> {
             return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<ResultLogs | null> {
-            const result: ResultLogs = await getLogs(uuid);
-            if (!result.success) {
-                return null;
-            } else {
-                return result;
-            }
+        async getLogs(uuid: string): Promise<ResultLogs> {
+            return await getLogs(uuid);
         },
-        async getLog(uuid: string, log: string, file: string): Promise<string | null> {
-            const result: LogFile = await getLog(uuid, log, file);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result.logFile;
-            }
+        async getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
+            return await getLog(uuid, log, file);
         },
-        async getCrashReportsLog(uuid: string): Promise<string | null> {
-            const result: LogFile = await getCrashReportsLog(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result.logFile;
-            }
+        async getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
+            return await getCrashReportsLog(uuid);
         },
         async deleteLog(uuid: string, log: string): Promise<boolean> {
             return await deleteLog(uuid, log);
         },
-        async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
-            return await getPlayersFromLog(uuid, log);
-        },
-        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[] | null> {
-            const result: PlayerIdentityId[] | Result = await getKnownPlayers(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+        async getKnownPlayers(): Promise<PlayerIdentityId[] | null> {
+            return await getKnownPlayers();
         },
         async getStats(uuid: string): Promise<DockerStats | null> {
-            const result: DockerStats | Result = await getStats(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+            return await getStats(uuid);
         },
         async getSize(uuid: string): Promise<ResultSize | null> {
-            const result: ResultSize | Result = await getSize(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+            const result: ResultSize = await getSize(uuid);
+            return result;
         },
         async getPublicIp(): Promise<string> {
             if (this.publicIp === '') {
@@ -132,7 +99,7 @@ export const useServersStore = defineStore('servers', {
             return this.publicIp;
         },
         async getArsStatus(): Promise<ArsStatus> {
-            if (this.arsStatus === ArsStatus.UNKNOWN) {
+            if (this.arsStatus === ArsStatus.Unknown) {
                 this.arsStatus = await getArsStatus();
             }
             return this.arsStatus;

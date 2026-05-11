@@ -19,7 +19,7 @@ refresh();
 function refresh() {
     serversStore.getCrashReportsLog(route.params.id as string).then(log => {
         if (log) {
-            crashReportsLog.value = log.replace(/\n/g, '<br>');
+            crashReportsLog.value = log.file_content.replace(/\n/g, '<br>');
             found.value = true;
         }
         loading.value = false;

@@ -23,7 +23,7 @@ const routes = [
     { path: '/server-logs-list/:id', component: ServerLogsList },
     { path: '/server-stats/:id', component: ServerStats },
     { path: '/server-size/:id', component: ServerSize },
-    { path: '/players-list/:id', component: PlayersList },
+    { path: '/players-list/', component: PlayersList },
     { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
     { path: '/view-crash-reports-log/:id', component: ViewCrashReportsLog },
     { path: '/', redirect: '/servers-list' }

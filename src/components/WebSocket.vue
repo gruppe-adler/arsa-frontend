@@ -3,7 +3,8 @@ import { useWebSocket } from '@vueuse/core';
 import { watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
-import { ArsStatus, ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import { ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import { ArsStatus } from '../api/model';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
