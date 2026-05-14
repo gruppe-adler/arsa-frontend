@@ -39,7 +39,7 @@ const settingsSubTabs = [
     <!-- ── Settings tab ── -->
     <template v-if="props.tab === 'settings'">
 
-      <FormTabs :tabs="settingsSubTabs" v-model="settingsSubTab" class="sub-tabs" />
+      <FormTabs :tabs="settingsSubTabs" v-model="settingsSubTab" list-class="sub-tabs" />
 
       <!-- ── Server sub-tab ── -->
       <template v-if="settingsSubTab === 'server'">

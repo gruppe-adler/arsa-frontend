@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SwitchRoot, SwitchThumb } from 'reka-ui';
+
 const props = defineProps({
     readonly: Boolean,
     name: String,
@@ -10,12 +12,18 @@ const model = defineModel<boolean>({ required: true });
 <template>
     <div class="form-input-container">
         <label class="form-input-label">{{ name }}</label>
-        <label class="switch" :title="tooltip" :class="{ 'switch-disabled': props.readonly }">
-            <input type="checkbox" :disabled="props.readonly" v-model="model" />
-            <span class="switch-track">
-                <span class="switch-knob"></span>
-            </span>
-        </label>
+        <SwitchRoot
+            class="switch"
+            :class="{ 'switch-disabled': props.readonly }"
+            :title="tooltip"
+            :disabled="props.readonly"
+            :checked="model"
+            @update:checked="model = $event"
+        >
+            <SwitchThumb class="switch-track">
+                <span class="switch-knob" />
+            </SwitchThumb>
+        </SwitchRoot>
     </div>
 </template>
 
@@ -28,13 +36,9 @@ const model = defineModel<boolean>({ required: true });
     height: 20px;
     cursor: pointer;
     flex-shrink: 0;
-}
-.switch input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
+    background: none;
+    border: none;
+    padding: 0;
 }
 .switch-track {
     position: absolute;
@@ -42,8 +46,9 @@ const model = defineModel<boolean>({ required: true });
     background: var(--line-strong);
     border-radius: 10px;
     transition: background 140ms ease;
+    display: block;
 }
-.switch input:checked ~ .switch-track {
+.switch[data-state="checked"] .switch-track {
     background: var(--ink);
 }
 .switch-knob {
@@ -56,8 +61,9 @@ const model = defineModel<boolean>({ required: true });
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     transition: transform 140ms ease;
+    display: block;
 }
-.switch input:checked ~ .switch-track .switch-knob {
+.switch[data-state="checked"] .switch-knob {
     transform: translateX(16px);
 }
 .switch-disabled {

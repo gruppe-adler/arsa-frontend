@@ -214,8 +214,9 @@ ul { padding-inline-start: 0; }
   border-bottom: 2px solid transparent;
   cursor: pointer;
 }
-.tabs .tab-btn:hover { color: var(--ink); }
+.tabs .tab-btn:hover:not(:disabled) { color: var(--ink); }
 .tabs .tab-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+.tabs .tab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* sub-tabs — segmented pill control, sits below the main tab bar */
 .sub-tabs {
@@ -458,6 +459,33 @@ ul { padding-inline-start: 0; }
 }
 .form-input-button:hover { background: var(--bg-soft); border-color: var(--ink-4); }
 .form-input-button:disabled { color: var(--ink-4); background: var(--bg-soft); border-color: var(--line); cursor: not-allowed; }
+
+/* ---------- reka-ui select dropdown ---------- */
+.select-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; cursor: pointer;
+}
+.select-trigger:disabled { cursor: not-allowed; }
+.select-content {
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.12);
+  z-index: 50;
+  min-width: var(--reka-select-trigger-width);
+  overflow: hidden;
+}
+.select-item {
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  cursor: pointer;
+  outline: none;
+  color: var(--ink);
+  user-select: none;
+}
+.select-item[data-highlighted] { background: var(--bg-soft); }
+.select-item[data-state="checked"] { color: var(--indigo); font-weight: 500; }
 
 /* ---------- btn-group ---------- */
 .btn-group {

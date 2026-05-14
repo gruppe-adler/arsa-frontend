@@ -1,34 +1,42 @@
 <script setup lang="ts">
-
-import { v4 as uuidv4 } from 'uuid';
-import { onMounted } from 'vue';
+import {
+    SelectRoot, SelectTrigger, SelectValue, SelectPortal,
+    SelectContent, SelectViewport, SelectItem, SelectItemText,
+} from 'reka-ui';
 
 const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
     options: Array<String>,
-    selectedIndex: Number
+    selectedIndex: Number,
 });
 const model = defineModel<string>({ required: true });
-
-const selectId = uuidv4();
-
-onMounted(() => {
-    const select: HTMLSelectElement = document.getElementById(selectId) as HTMLSelectElement;
-    select.selectedIndex = props.selectedIndex!;
-});
-
 </script>
 
 <template>
     <div class="form-input-container">
         <label class="form-input-label">{{ name }}</label>
-        <select :title="tooltip" :id="selectId" :disabled="props.readonly" v-model="model">
-            <option v-for="option in options" :value="option">
-                {{ option }}
-            </option>
-        </select>
+        <SelectRoot :disabled="props.readonly" v-model="model">
+            <SelectTrigger class="select-input select-trigger" :title="tooltip">
+                <SelectValue />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </SelectTrigger>
+            <SelectPortal>
+                <SelectContent class="select-content" position="popper" :side-offset="4">
+                    <SelectViewport>
+                        <SelectItem
+                            v-for="opt in options"
+                            :key="String(opt)"
+                            :value="String(opt)"
+                            class="select-item"
+                        >
+                            <SelectItemText>{{ opt }}</SelectItemText>
+                        </SelectItem>
+                    </SelectViewport>
+                </SelectContent>
+            </SelectPortal>
+        </SelectRoot>
     </div>
 </template>
 
