@@ -25,6 +25,27 @@
   --gutter: 56px;
 }
 
+:root[data-theme="dark"] {
+  --bg:           oklch(18% 0.008 250);
+  --bg-soft:      oklch(21% 0.010 250);
+  --bg-sunken:    oklch(24% 0.012 250);
+  --line:         oklch(30% 0.012 250);
+  --line-strong:  oklch(38% 0.014 250);
+
+  --ink:   oklch(94% 0.006 250);
+  --ink-2: oklch(78% 0.010 250);
+  --ink-3: oklch(60% 0.012 250);
+  --ink-4: oklch(45% 0.014 250);
+
+  --green:       oklch(65% 0.15 150);
+  --green-soft:  oklch(24% 0.04 150);
+  --red:         oklch(62% 0.18 25);
+  --red-soft:    oklch(24% 0.04 25);
+  --indigo:      oklch(58% 0.16 265);
+  --indigo-soft: oklch(24% 0.04 265);
+  --amber:       oklch(72% 0.14 75);
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 

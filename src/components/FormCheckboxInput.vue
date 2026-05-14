@@ -58,7 +58,7 @@ const model = defineModel<boolean>({ required: true });
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: white;
+    background: var(--bg);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
     transition: transform 140ms ease;
     display: block;
