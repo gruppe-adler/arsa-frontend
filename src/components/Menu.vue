@@ -1,22 +1,27 @@
-<script setup lang="ts">
-import WebSocket from './WebSocket.vue';
-</script>
+<script setup lang="ts"></script>
 
 <template>
-    <div>
-        <nav style="float: left">
-            <RouterLink class="menu-item" to="/servers-list">Servers List</RouterLink>
-            <RouterLink class="menu-item" to="/add-server">Add Server</RouterLink>
-            <RouterLink class="menu-item" to="/ars-service">ARS Service</RouterLink>
-        </nav>
-
-        <WebSocket />
-    </div>
-    <br />
+  <nav class="nav">
+    <RouterLink class="nav-link" to="/servers-list">Servers</RouterLink>
+    <RouterLink class="nav-link" to="/add-server">Add server</RouterLink>
+    <RouterLink class="nav-link" to="/ars-service">ARS Service</RouterLink>
+  </nav>
 </template>
 
 <style scoped>
-.menu-item {
-    margin-right: 10px;
+.nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
 }
+.nav-link {
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-weight: 500;
+  font-size: 14px;
+}
+.nav-link:hover { color: var(--ink); background: var(--bg-soft); }
+.nav-link.router-link-active { color: var(--ink); background: var(--bg-sunken); }
 </style>

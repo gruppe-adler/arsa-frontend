@@ -3,7 +3,7 @@ import { useWebSocket } from '@vueuse/core';
 import { watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
-import { ArsStatus, ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import { ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -42,8 +42,4 @@ watch(ws.data, value => {
 });
 </script>
 
-<template>
-    <span style="float: right">ARS Status: {{ ArsStatus[serversStore.arsStatus] }}</span>
-</template>
-
-<style scoped></style>
+<template></template>
