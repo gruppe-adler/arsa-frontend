@@ -31,18 +31,16 @@ function onClickClone() {
     server.uuid = '';
     serversStore.add(server).then(() => emit('serverCloned'));
 }
-function onClickLogs()    { router.push(`/server-logs-list/${model.value!.uuid}`); }
-function onClickSize()    { router.push(`/server-size/${model.value!.uuid}`); }
-function onClickStats()   { router.push(`/server-stats/${model.value!.uuid}`); }
-function onClickPlayers() { router.push(`/players-list/${model.value!.uuid}`); }
-
-function onClickName() {
-    if (model.value!.isRunning) {
-        router.push(`/view-server/${model.value!.uuid}`);
-    } else {
-        router.push(`/edit-server/${model.value!.uuid}`);
-    }
+function serverRoute(tab?: string) {
+    const base = model.value!.isRunning ? `/view-server/${model.value!.uuid}` : `/edit-server/${model.value!.uuid}`;
+    return tab ? `${base}?tab=${tab}` : base;
 }
+
+function onClickLogs()    { router.push(serverRoute('logs')); }
+function onClickSize()    { router.push(serverRoute('size')); }
+function onClickStats()   { router.push(serverRoute('stats')); }
+function onClickPlayers() { router.push(serverRoute('players')); }
+function onClickName()    { router.push(serverRoute()); }
 
 const shortUuid = (uuid: string) => uuid.slice(0, 8);
 const arsAvailable = () => serversStore.arsStatus === ArsStatus.AVAILABLE;
