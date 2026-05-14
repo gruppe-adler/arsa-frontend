@@ -88,6 +88,7 @@ main {
   border-radius: var(--radius-lg);
   background: var(--bg);
   overflow: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
 }
 .empty-servers {
   padding: 40px 24px;
