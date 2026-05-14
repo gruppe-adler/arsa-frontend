@@ -17,8 +17,8 @@ const model = defineModel<boolean>({ required: true });
             :class="{ 'switch-disabled': props.readonly }"
             :title="tooltip"
             :disabled="props.readonly"
-            :checked="model"
-            @update:checked="model = $event"
+            :model-value="model"
+            @update:model-value="model = $event"
         >
             <SwitchThumb class="switch-track">
                 <span class="switch-knob" />

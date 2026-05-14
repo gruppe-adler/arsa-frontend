@@ -29,6 +29,10 @@ watch(
 );
 
 const disabled = computed<boolean>(() => (props.readonly || !model.value.enabled) ? true : false);
+
+function setEnabled(val: boolean) {
+    model.value = { ...model.value, enabled: val };
+}
 </script>
 
 <template>
@@ -38,8 +42,8 @@ const disabled = computed<boolean>(() => (props.readonly || !model.value.enabled
             <SwitchRoot
                 class="switch sp-switch"
                 :disabled="props.readonly"
-                :checked="model.enabled"
-                @update:checked="model.enabled = $event"
+                :model-value="model.enabled"
+                @update:model-value="setEnabled($event)"
             >
                 <SwitchThumb class="switch-track">
                     <span class="switch-knob" />
