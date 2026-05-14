@@ -43,32 +43,30 @@ const rows = [
 </script>
 
 <template>
-  <div class="tab-loading" v-if="loading">Loading…</div>
-  <template v-else>
-    <div class="tab-actions">
-      <span class="timestamp" v-if="timestamp">Last updated {{ timestamp }}</span>
-      <span class="stretch"></span>
-      <button class="btn" @click="updateStats">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg>
-        Refresh
-      </button>
-      <button class="btn btn-stop" v-if="autoUpdateRunning" @click="stopAutoUpdate">Stop auto-update</button>
-      <button class="btn btn-start" v-else @click="startAutoUpdate">Auto-update</button>
-    </div>
+  <div class="tab-actions">
+    <span class="timestamp" v-if="timestamp">Last updated {{ timestamp }}</span>
+    <span class="stretch"></span>
+    <button class="btn" @click="updateStats" :disabled="loading">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg>
+      Refresh
+    </button>
+    <button class="btn btn-stop" v-if="autoUpdateRunning" @click="stopAutoUpdate">Stop auto-update</button>
+    <button class="btn btn-start" v-else @click="startAutoUpdate">Auto-update</button>
+  </div>
 
-    <div class="data-table" v-if="stats">
-      <div class="table-row" v-for="row in rows" :key="row.key">
-        <span class="stat-label">{{ row.label }}</span>
-        <span class="mono stat-value">{{ stats[row.key] ?? '—' }}</span>
-      </div>
+  <div class="data-table" v-if="stats">
+    <div class="table-row" v-for="row in rows" :key="row.key">
+      <span class="stat-label">{{ row.label }}</span>
+      <span class="mono stat-value">{{ stats[row.key] ?? '—' }}</span>
     </div>
-    <div class="empty-box" v-else>No stats available. Server may be offline.</div>
-  </template>
+  </div>
+  <div class="empty-box" v-else>
+    <span v-if="loading" class="loading-text">Loading…</span>
+    <span v-else>No stats available. Server may be offline.</span>
+  </div>
 </template>
 
 <style scoped>
-.tab-loading { color: var(--ink-3); font-size: 13px; padding: 24px 0; }
-
 .tab-actions {
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 20px;

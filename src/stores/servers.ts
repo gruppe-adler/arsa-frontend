@@ -110,11 +110,12 @@ export const useServersStore = defineStore('servers', {
             }
         },
         async getStats(uuid: string): Promise<DockerStats | null> {
-            const result: DockerStats | Result = await getStats(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
+            try {
+                const result: DockerStats | Result = await getStats(uuid);
+                if ((result as unknown as Result).value === false) return null;
                 return result;
+            } catch {
+                return null;
             }
         },
         async getSize(uuid: string): Promise<ResultSize | null> {

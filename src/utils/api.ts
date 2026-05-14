@@ -117,7 +117,10 @@ export async function getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]>
 }
 
 export async function getStats(uuid: string): Promise<DockerStats> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/stats`);
+    const abort = new AbortController();
+    const timeout = setTimeout(() => abort.abort(), 8_000);
+    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/stats`, { signal: abort.signal });
+    clearTimeout(timeout);
     const result = (await jsonResponse.json()) as DockerStats;
     const logsStore = useLogsStore();
     logsStore.add(`Getting Stats for Server with UUID: ${uuid}`);
