@@ -100,4 +100,10 @@ const allLogs = computed(() => {
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+@media (max-width: 480px) {
+  .size-card-head { padding: 14px 16px; }
+  .size-subsection { padding: 0 16px; }
+  .size-subrow { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
 </style>

@@ -80,4 +80,8 @@ const sorted = computed(() =>
   font-size: 14px;
   background: var(--bg);
 }
+
+@media (max-width: 480px) {
+  .table-row { padding: 10px 16px; gap: 12px; }
+}
 </style>

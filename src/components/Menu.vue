@@ -3,7 +3,6 @@
 <template>
   <nav class="nav">
     <RouterLink class="nav-link" to="/servers-list">Servers</RouterLink>
-    <RouterLink class="nav-link" to="/add-server">Add server</RouterLink>
     <RouterLink class="nav-link" to="/ars-service">ARS Service</RouterLink>
   </nav>
 </template>

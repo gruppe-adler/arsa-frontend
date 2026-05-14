@@ -32,8 +32,8 @@ const arsStatusLabel = computed(() => ArsStatus[serversStore.arsStatus])
       <Menu />
       <div class="status-chip">
         <span class="dot" :class="arsStatusDot"></span>
-        <span>ARS</span>
-        <span class="status-chip-value">{{ arsStatusLabel }}</span>
+        <span class="status-chip-label">ARS</span>
+        <span class="status-chip-value status-chip-label">{{ arsStatusLabel }}</span>
       </div>
     </div>
   </header>
@@ -88,4 +88,17 @@ const arsStatusLabel = computed(() => ArsStatus[serversStore.arsStatus])
   white-space: nowrap;
 }
 .status-chip-value { color: var(--ink); font-weight: 500; }
+
+@media (max-width: 480px) {
+  .topbar-inner { gap: 8px; padding: 0 16px; }
+  .brand-name { display: none; }
+  .brand-sub  { display: none; }
+  .status-chip-label { display: none; }
+  .status-chip {
+    padding: 5px 8px;
+    gap: 0;
+    border: none;
+    background: transparent;
+  }
+}
 </style>

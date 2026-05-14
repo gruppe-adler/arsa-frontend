@@ -155,4 +155,10 @@ main {
   font-weight: 500;
   color: var(--ink);
 }
+
+@media (max-width: 480px) {
+  .page-header h1 { font-size: 22px; }
+  .ars-grid { grid-template-columns: 1fr; }
+  .card-foot { flex-wrap: wrap; }
+}
 </style>

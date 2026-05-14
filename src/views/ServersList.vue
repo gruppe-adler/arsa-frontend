@@ -94,4 +94,10 @@ main {
   display: flex; align-items: center; justify-content: center;
 }
 .empty-label { color: var(--ink-3); font-size: 14px; margin: 0; }
+
+@media (max-width: 480px) {
+  .page-header h1 { font-size: 22px; }
+  .page-header { gap: 12px; flex-wrap: wrap; }
+  .page-actions { flex-shrink: 1; }
+}
 </style>

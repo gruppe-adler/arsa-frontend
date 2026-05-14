@@ -87,4 +87,8 @@ main {
 .header-actions {
   display: flex; align-items: center; gap: 8px;
 }
+
+@media (max-width: 480px) {
+  .page-header h1 { font-size: 22px; }
+}
 </style>

@@ -313,4 +313,9 @@ onMounted(() => selectAll());
   display: flex; justify-content: flex-end; gap: 8px;
   padding: 12px 16px;
 }
+
+@media (max-width: 480px) {
+  .add-mod-row { grid-template-columns: 1fr; gap: 4px; }
+  .mods-actions { flex-wrap: wrap; }
+}
 </style>

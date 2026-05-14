@@ -142,4 +142,10 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.AVAILABLE;
 .server-actions .btn { padding: 6px 10px; font-size: 12.5px; }
 
 .divider-v { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
+
+@media (max-width: 480px) {
+  .server-row { grid-template-columns: 1fr; gap: 10px; padding: 16px; }
+  .server-actions { flex-wrap: wrap; }
+  .divider-v { display: none; }
+}
 </style>

@@ -109,4 +109,8 @@ const rows = [
   font-size: 14px;
   background: var(--bg);
 }
+
+@media (max-width: 480px) {
+  .table-row { grid-template-columns: 1fr; gap: 2px; padding: 10px 16px; }
+}
 </style>

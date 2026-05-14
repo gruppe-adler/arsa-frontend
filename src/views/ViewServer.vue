@@ -122,4 +122,9 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
 }
 .tab-btn:hover { color: var(--ink); }
 .tab-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+@media (max-width: 480px) {
+  .server-detail-header h1 { font-size: 20px; }
+  .header-actions { flex-wrap: wrap; }
+}
 </style>

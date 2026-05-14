@@ -97,4 +97,8 @@ input[type="file"] { display: none; }
   border-color: color-mix(in oklab, var(--indigo), transparent 60%);
   background: var(--indigo-soft);
 }
+
+@media (max-width: 480px) {
+  .import-label { max-width: 100px; }
+}
 </style>
