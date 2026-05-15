@@ -95,12 +95,21 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.AVAILABLE;
 
       <span class="divider-v"></span>
 
-      <button class="btn btn-ghost" @click="onClickPlayers">Players</button>
-      <button class="btn btn-ghost" :disabled="!model!.isRunning" @click="onClickStats">Stats</button>
-      <button class="btn btn-ghost" @click="onClickSize">Size</button>
-      <button class="btn btn-ghost" @click="onClickLogs">Logs</button>
-      <button class="btn btn-ghost" @click="onClickClone">Clone</button>
-      <button class="btn btn-ghost btn-danger" :disabled="model!.isRunning" @click="onClickDelete">Delete</button>
+      <div class="btn-group">
+
+        <button class="btn" @click="onClickPlayers">Players</button>
+        <button class="btn" :disabled="!model!.isRunning" @click="onClickStats">Stats</button>
+        <button class="btn" @click="onClickSize">Size</button>
+        <button class="btn" @click="onClickLogs">Logs</button>
+
+      </div>
+
+      <span class="divider-v"></span>
+
+       <div class="btn-group">
+          <button class="btn" type="button" @click="onClickClone">Clone</button>
+          <button class="btn btn-danger" type="button" @click="onClickDelete">Delete</button>
+        </div>
     </div>
   </div>
 </template>

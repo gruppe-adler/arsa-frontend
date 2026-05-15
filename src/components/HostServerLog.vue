@@ -73,7 +73,7 @@ function formatTimestamp(iso: string): string {
     return t.replace('Z', '');
 }
 
-const parsedLogs = computed(() => logsStore.logs.map(parseEntry));
+const parsedLogs = computed(() => logsStore.logs.map(parseEntry).reverse());
 
 const copyStates = ref<Record<string, boolean>>({});
 const copyTimers: Record<string, ReturnType<typeof setTimeout>> = {};
