@@ -2,6 +2,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { watch } from 'vue';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -60,9 +61,12 @@ watch(
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <div class="form-custom-input">
-            <input :title="tooltip" class="password-input" :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
+            <input class="password-input" :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
             <button class="form-input-button" type="button" @click="togglePasswordVisibility($event)">Show</button>
         </div>
     </div>

@@ -61,7 +61,7 @@ export const defaultConfig: ServerConfig = {
 export const StartupParameters: StartupParameter[] = [
     {
         parameter: 'autoReload',
-        tooltip: 'value is in seconds',
+        tooltip: 'Automatically reloads the scenario when the session ends after the provided delay (in seconds), without shutting down the server. Useful for continuous mission rotation. Set to 0 to disable auto-restart.',
         enabled: false,
         type: 'number',
         value: 10,
@@ -69,14 +69,14 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'loadSessionSave',
-        tooltip: 'It can be used alone to load the latest save, or with a specific save file name.',
+        tooltip: 'Loads a previous game session save. Use alone to load the latest save, or provide a specific save file name. Enables persistent progression across server restarts.',
         enabled: false,
         type: 'string',
         value: ''
     },
     {
         parameter: 'logStats',
-        tooltip: 'defined interval in milliseconds',
+        tooltip: 'Logs performance statistics at the defined interval (in milliseconds). Useful for monitoring server performance and identifying bottlenecks. Higher values reduce log frequency.',
         enabled: false,
         type: 'number',
         value: 10000,
@@ -84,7 +84,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'maxFPS',
-        tooltip: 'should always be set to prevent high load on server',
+        tooltip: 'Sets maximum FPS limit for the server. Essential for preventing excessive CPU load - always enable this on dedicated servers. Lower values (20-30) reduce resource usage while maintaining acceptable performance.',
         enabled: true,
         type: 'number',
         value: 30,
@@ -93,7 +93,7 @@ export const StartupParameters: StartupParameter[] = [
     {
         parameter: 'nds',
         tooltip:
-            'The provided value stands for diameter, or the number of cells which are being replicated - default is 2 in each direction.',
+            'Network Dynamic Simulation (NDS) streams only relevant entities to each client. Value represents diameter (number of cells in each direction). Default is 2. Higher values increase network traffic but improve client awareness of distant entities.',
         enabled: false,
         type: 'number',
         value: 2,
@@ -101,7 +101,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'nwkResolution',
-        tooltip: 'defines what resolution Spatial Map cells should be set at in a 100..1000m range',
+        tooltip: 'Sets the resolution of Spatial Map cells in meters (100-1000 range). Affects how the server divides the world for network streaming. Lower values provide finer granularity but increase processing overhead.',
         enabled: false,
         type: 'number',
         value: 500,
@@ -110,7 +110,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'rpl-timeout-ms',
-        tooltip: "sets the client/server timeout's value, in milliseconds",
+        tooltip: 'Sets client/server connection timeout in milliseconds. Determines how long the server waits before disconnecting an unresponsive client. Increase for clients with unstable connections.',
         enabled: false,
         type: 'number',
         value: 10000,
@@ -118,7 +118,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'staggeringBudget',
-        tooltip: 'defines how many stationary spatial map cells are allowed to be processed in one tick in 1..10201 range',
+        tooltip: 'Defines how many stationary spatial map cells can be processed per tick (1-10201 range). Higher values improve responsiveness but increase CPU load. Adjust based on server performance.',
         enabled: false,
         type: 'number',
         value: 5000,
@@ -128,7 +128,7 @@ export const StartupParameters: StartupParameter[] = [
     {
         parameter: 'streamingBudget',
         tooltip:
-            'The global streaming budget that is equally distributed between all connections. It cannot go under 100 to prevent the system stalling.',
+            'Global streaming budget distributed equally among all connections. Controls total bandwidth for entity replication. Cannot go below 100 to prevent system stalling. Increase for better client experience on high-bandwidth servers.',
         enabled: false,
         type: 'number',
         value: 500,
@@ -136,7 +136,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'streamsDelta',
-        tooltip: 'is a tool to limit the amount of streams being opened for a client in range 1..1000 (default 100)',
+        tooltip: 'Limits the number of streams opened for each client (1-1000 range, default 100). Controls rate of entity updates sent to clients. Lower values reduce bandwidth usage but may cause delayed entity appearance.',
         enabled: false,
         type: 'number',
         value: 200,
@@ -145,7 +145,7 @@ export const StartupParameters: StartupParameter[] = [
     },
     {
         parameter: 'keepNumOfLogs',
-        tooltip: 'sets the maximum amount of logs to keep (default: 10)',
+        tooltip: 'Maximum number of log files to keep before rotation. Older logs are automatically deleted. Increase for longer log retention, decrease to save disk space.',
         enabled: false,
         type: 'number',
         value: 10,
@@ -154,7 +154,7 @@ export const StartupParameters: StartupParameter[] = [
     {
         parameter: 'logLevel',
         tooltip:
-            'allows for different log levels. Each level includes the ones below it (e.g error includes error and fatal). Possible values range from normal (where everything is logged) to fatal (where only extreme issues are logged)',
+            'Sets minimum log severity level. Each level includes lower levels (e.g., "error" includes error and fatal). Options: normal (all logs), warning, error, fatal. Use "warning" or "error" in production to reduce log volume.',
         enabled: false,
         type: 'select',
         value: 'normal',

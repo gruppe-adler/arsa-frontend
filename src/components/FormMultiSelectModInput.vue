@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref, watch } from 'vue';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -62,10 +63,12 @@ onMounted(() => selectAll());
 
 <template>
   <div class="form-input-container">
-    <label class="form-input-label">{{ name }}</label>
+    <label class="form-input-label">
+      {{ name }}
+      <InfoTooltip v-if="tooltip" :content="tooltip" />
+    </label>
     <div class="multiselect-wrap">
       <select
-        :title="tooltip"
         class="multiselect-list"
         :id="selectId"
         size="5"

@@ -2,6 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref, watch } from 'vue';
 import { type Mod } from '../utils/interfaces';
+import InfoTooltip from './InfoTooltip.vue';
 
 import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
@@ -127,12 +128,14 @@ onMounted(() => selectAll());
 
 <template>
   <div class="form-input-container mods-container">
-    <label class="form-input-label">{{ name }}</label>
+    <label class="form-input-label">
+      {{ name }}
+      <InfoTooltip v-if="tooltip" :content="tooltip" />
+    </label>
     <div class="mods-wrap">
 
       <!-- Mod list -->
       <select
-        :title="tooltip"
         class="mods-select"
         :id="selectId"
         size="8"

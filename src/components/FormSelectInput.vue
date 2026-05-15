@@ -3,6 +3,7 @@ import {
     SelectRoot, SelectTrigger, SelectValue, SelectPortal,
     SelectContent, SelectViewport, SelectItem, SelectItemText,
 } from 'reka-ui';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -16,9 +17,12 @@ const model = defineModel<string>({ required: true });
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <SelectRoot :disabled="props.readonly" v-model="model">
-            <SelectTrigger class="select-input select-trigger" :title="tooltip">
+            <SelectTrigger class="select-input select-trigger">
                 <SelectValue />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </SelectTrigger>

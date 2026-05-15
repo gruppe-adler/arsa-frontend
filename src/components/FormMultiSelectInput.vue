@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import { v4 as uuidv4 } from 'uuid';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -16,8 +17,11 @@ const selectId = uuidv4();
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
-        <select :title="tooltip" :id="selectId" size="5" :disabled="props.readonly" v-model="model" multiple>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
+        <select :id="selectId" size="5" :disabled="props.readonly" v-model="model" multiple>
             <option v-for="option in options" :value="option">
                 {{ option }}
             </option>

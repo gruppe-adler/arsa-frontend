@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import { watch } from 'vue';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -42,8 +43,11 @@ watch(
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
-        <input :title="tooltip" class="form-custom-input" type="number" :min="minVal" :max="maxVal" step="1" :disabled="props.readonly" :style="style" v-model="model">
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
+        <input class="form-custom-input" type="number" :min="minVal" :max="maxVal" step="1" :disabled="props.readonly" :style="style" v-model="model">
     </div>
 </template>
 

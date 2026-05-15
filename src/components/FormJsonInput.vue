@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import { computed, ref } from "vue";
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -41,8 +42,11 @@ const style = computed<string>(() => {
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
-        <textarea :title="tooltip" class="json-input" rows="5" :style="style" :disabled="props.readonly" v-model="missionHeader" />
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
+        <textarea class="json-input" rows="5" :style="style" :disabled="props.readonly" v-model="missionHeader" />
     </div>
 </template>
 

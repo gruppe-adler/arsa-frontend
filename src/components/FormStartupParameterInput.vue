@@ -2,6 +2,7 @@
 import { computed, watch } from "vue";
 import { SwitchRoot, SwitchThumb, SelectRoot, SelectTrigger, SelectValue, SelectPortal, SelectContent, SelectViewport, SelectItem, SelectItemText } from 'reka-ui';
 import { StartupParameter } from "../utils/interfaces";
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({ readonly: Boolean });
 
@@ -37,7 +38,10 @@ function setEnabled(val: boolean) {
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ model.parameter }}</label>
+        <label class="form-input-label">
+            {{ model.parameter }}
+            <InfoTooltip v-if="model.tooltip" :content="model.tooltip" side="right" align="start" />
+        </label>
         <div class="form-custom-input">
             <SwitchRoot
                 class="switch sp-switch"
@@ -50,14 +54,14 @@ function setEnabled(val: boolean) {
                 </SwitchThumb>
             </SwitchRoot>
 
-            <input class="startup-parameter-input" :title="model.tooltip" type="text" :style="style"
+            <input class="startup-parameter-input" type="text" :style="style"
                 :disabled="disabled" v-model.trim="model.value" v-if="model.type == 'string'" />
-            <input class="startup-parameter-input" :title="model.tooltip" type="number" :min="model.minVal"
+            <input class="startup-parameter-input" type="number" :min="model.minVal"
                 :max="model.maxVal" step="1" :style="style" :disabled="disabled" v-model.trim="model.value"
                 v-if="model.type == 'number'" />
 
             <SelectRoot v-if="model.type == 'select'" :disabled="disabled" v-model="(model.value as string)">
-                <SelectTrigger class="select-input select-trigger startup-parameter-input" :title="model.tooltip" :style="style">
+                <SelectTrigger class="select-input select-trigger startup-parameter-input" :style="style">
                     <SelectValue />
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </SelectTrigger>

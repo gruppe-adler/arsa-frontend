@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SwitchRoot, SwitchThumb } from 'reka-ui';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -11,11 +12,13 @@ const model = defineModel<boolean>({ required: true });
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <SwitchRoot
             class="switch"
             :class="{ 'switch-disabled': props.readonly }"
-            :title="tooltip"
             :disabled="props.readonly"
             :model-value="model"
             @update:model-value="model = $event"

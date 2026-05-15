@@ -3,6 +3,7 @@
 import { watch } from "vue";
 import { isIPv4 } from 'is-ip';
 import { useServersStore } from '../stores/servers';
+import InfoTooltip from './InfoTooltip.vue';
 
 const serversStore = useServersStore();
 
@@ -48,9 +49,12 @@ async function getPublicIp(): Promise<void> {
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <div class="form-custom-input">
-            <input :title="tooltip" class="ip-address-input" type="text" :disabled="props.readonly" :style="style"
+            <input class="ip-address-input" type="text" :disabled="props.readonly" :style="style"
                 v-model="model">
             <button class="form-input-button" type="button" @click="getPublicIp"
                 :disabled="props.readonly">Auto</button>

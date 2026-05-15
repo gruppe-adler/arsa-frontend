@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch } from "vue";
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -40,9 +41,12 @@ watch(
 
 <template>
     <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <div v-if="props.pasteValue !== undefined" class="text-input-row">
-            <input :title="tooltip" type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
+            <input type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
                 :disabled="props.readonly" v-model.trim="model" />
             <button
                 v-if="!props.readonly"
@@ -55,7 +59,7 @@ watch(
                 Use identity
             </button>
         </div>
-        <input v-else :title="tooltip" type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
+        <input v-else type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
             :disabled="props.readonly" v-model.trim="model" />
     </div>
 </template>
