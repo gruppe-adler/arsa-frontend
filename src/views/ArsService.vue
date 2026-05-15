@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useServersStore } from '../stores/servers';
+import { useLogsStore } from '../stores/logs';
 import { ArsStatus } from '../utils/interfaces';
 import HostServerLog from '../components/HostServerLog.vue';
 
 const serversStore = useServersStore();
+const logsStore = useLogsStore();
 
 async function updateArsStatus() {
     const result = await serversStore.getArsStatus();
@@ -80,7 +82,13 @@ updateArsStatus();
       </div>
     </div>
 
-    <h2 class="section-title">Host server log</h2>
+    <div class="log-header">
+      <h2 class="section-title">Host server log</h2>
+      <button class="btn btn-sm" @click="logsStore.clear">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Clear
+      </button>
+    </div>
     <HostServerLog />
   </main>
 </template>
@@ -154,6 +162,17 @@ main {
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 64px 0 16px;
+}
+.log-header .section-title {
+  margin: 0;
+  flex: 1;
 }
 
 @media (max-width: 480px) {

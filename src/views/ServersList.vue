@@ -2,11 +2,13 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
+import { useLogsStore } from '../stores/logs';
 import ServerItem from '../components/ServerItem.vue';
 import { Server } from '../utils/interfaces';
 import HostServerLog from '../components/HostServerLog.vue';
 
 const serversStore = useServersStore();
+const logsStore = useLogsStore();
 const router = useRouter();
 
 serversStore.getPublicIp().then(() => {});
@@ -57,7 +59,13 @@ const sortedServers = computed(() => {
       <p class="empty-label">No servers yet. Add one to get started.</p>
     </div>
 
-    <h2 class="section-title">Host server log</h2>
+    <div class="log-header">
+      <h2 class="section-title">Host server log</h2>
+      <button class="btn btn-sm" @click="logsStore.clear">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Clear
+      </button>
+    </div>
     <HostServerLog />
   </main>
 </template>
@@ -95,6 +103,17 @@ main {
   display: flex; align-items: center; justify-content: center;
 }
 .empty-label { color: var(--ink-3); font-size: 14px; margin: 0; }
+
+.log-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 64px 0 16px;
+}
+.log-header .section-title {
+  margin: 0;
+  flex: 1;
+}
 
 @media (max-width: 480px) {
   .page-header h1 { font-size: 22px; }

@@ -84,36 +84,93 @@ async function copyUuid(key: string, uuid: string) {
     clearTimeout(copyTimers[key]);
     copyTimers[key] = setTimeout(() => { copyStates.value[key] = false; }, 1400);
 }
+
+const logCopied = ref(false);
+let logCopyTimer: ReturnType<typeof setTimeout>;
+
+async function copyAllLogs() {
+    try {
+        await navigator.clipboard.writeText(logsStore.logs.join('\n'));
+        logCopied.value = true;
+        clearTimeout(logCopyTimer);
+        logCopyTimer = setTimeout(() => { logCopied.value = false; }, 1400);
+    } catch {}
+}
 </script>
 
 <template>
-  <div class="log-block" v-if="parsedLogs.length > 0">
-    <div class="log-row" v-for="(entry, i) in parsedLogs" :key="i">
-      <span class="log-time">{{ entry.timestamp }}</span>
-      <span class="log-msg">
-        <template v-for="(part, j) in entry.parts" :key="j">
-          <button
-            v-if="part.kind === 'chip'"
-            class="id-chip"
-            :class="{ copied: copyStates[`${i}-${j}`] }"
-            :title="copyStates[`${i}-${j}`] ? 'Copied!' : 'Click to copy UUID'"
-            @click="copyUuid(`${i}-${j}`, part.uuid)"
-          >
-            <span class="id-label">{{ part.serverName }}</span>
-            <svg v-if="!copyStates[`${i}-${j}`]" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
-          </button>
-          <template v-else>{{ part.text }}</template>
-        </template>
-      </span>
+  <div class="log-wrapper">
+    <button
+      v-if="parsedLogs.length > 0"
+      class="copy-log-btn"
+      :class="{ copied: logCopied }"
+      :title="logCopied ? 'Copied!' : 'Copy all logs to clipboard'"
+      @click="copyAllLogs"
+    >
+      <svg v-if="!logCopied" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+    </button>
+    <div class="log-block" v-if="parsedLogs.length > 0">
+      <div class="log-row" v-for="(entry, i) in parsedLogs" :key="i">
+        <span class="log-time">{{ entry.timestamp }}</span>
+        <span class="log-msg">
+          <template v-for="(part, j) in entry.parts" :key="j">
+            <button
+              v-if="part.kind === 'chip'"
+              class="id-chip"
+              :class="{ copied: copyStates[`${i}-${j}`] }"
+              :title="copyStates[`${i}-${j}`] ? 'Copied!' : 'Click to copy UUID'"
+              @click="copyUuid(`${i}-${j}`, part.uuid)"
+            >
+              <span class="id-label">{{ part.serverName }}</span>
+              <svg v-if="!copyStates[`${i}-${j}`]" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+            </button>
+            <template v-else>{{ part.text }}</template>
+          </template>
+        </span>
+      </div>
     </div>
-  </div>
-  <div class="log-block empty-log" v-else>
-    <span class="log-empty">No log entries yet.</span>
+    <div class="log-block empty-log" v-else>
+      <span class="log-empty">No log entries yet.</span>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.log-wrapper {
+  position: relative;
+}
+
+.copy-log-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  appearance: none;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: background 80ms ease, border-color 80ms ease, color 80ms ease, transform 80ms ease;
+  padding: 0;
+}
+.copy-log-btn:hover {
+  background: var(--bg-soft);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.copy-log-btn.copied {
+  color: var(--green);
+  border-color: var(--green);
+  transform: scale(0.95);
+}
+
 .empty-log { color: var(--ink-4); }
 .log-empty { font-size: 12.5px; }
 </style>

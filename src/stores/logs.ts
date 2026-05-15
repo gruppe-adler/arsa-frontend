@@ -11,9 +11,12 @@ export const useLogsStore = defineStore('logs', {
         }
     },
     actions: {
-        async add(entry: string) { 
+        async add(entry: string) {
             const now = new Date();
             this.logs.push(`[${now.toISOString()}]: ${entry}`);
+        },
+        clear() {
+            this.logs = [];
         },
     },
 })
