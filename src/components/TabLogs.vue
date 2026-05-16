@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
 import { useServersStore } from '../stores/servers';
 import { ResultLogs, Log } from '../utils/interfaces';
 
@@ -8,6 +9,33 @@ const props = defineProps<{ serverId: string }>();
 const serversStore = useServersStore();
 const loading = ref(true);
 const serverLogs = ref<ResultLogs>({ success: false, logs: [], containsCrashReportsLog: false });
+
+function getRelativeTime(timestamp: string): string {
+    if (!timestamp) return timestamp;
+    try {
+        // Parse timestamps like "2026-05-13_08-00-00"
+        const [datePart, timePart] = timestamp.split('_');
+        if (!datePart || !timePart) return timestamp;
+
+        const [year, month, day] = datePart.split('-');
+        const [hour, min, sec] = timePart.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(min), parseInt(sec));
+
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+
+        if (diffSec < 60) return `${diffSec}s ago`;
+        if (diffMin < 60) return `${diffMin}m ago`;
+        if (diffHour < 24) return `${diffHour}h ago`;
+        return `${diffDay}d ago`;
+    } catch {
+        return timestamp;
+    }
+}
 
 async function load() {
     loading.value = true;
@@ -19,7 +47,7 @@ async function load() {
 watch(() => props.serverId, load, { immediate: true });
 
 const sorted = computed(() =>
-    ([...serverLogs.value.logs] as Log[]).sort((a, b) => a.dir < b.dir ? -1 : 1)
+    ([...serverLogs.value.logs] as Log[]).sort((a, b) => a.dir > b.dir ? -1 : 1)
 );
 
 function onDelete(logName: string) {
@@ -39,7 +67,16 @@ function onDelete(logName: string) {
         <div></div>
       </div>
       <div class="log-row" v-for="log in sorted" :key="log.dir">
-        <span class="mono log-dir">{{ log.dir }}</span>
+        <TooltipRoot :delay-duration="0">
+          <TooltipTrigger as-child>
+            <span class="mono log-dir">{{ getRelativeTime(log.dir) }}</span>
+          </TooltipTrigger>
+          <TooltipPortal>
+            <TooltipContent class="log-time-tooltip" side="right" :side-offset="8">
+              {{ log.dir }}
+            </TooltipContent>
+          </TooltipPortal>
+        </TooltipRoot>
         <div class="log-links">
           <RouterLink class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/console.log`" v-if="log.containsConsoleLog">console.log</RouterLink>
           <RouterLink class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/error.log`"   v-if="log.containsErrorLog">error.log</RouterLink>
@@ -101,5 +138,21 @@ function onDelete(logName: string) {
     padding: 12px 16px;
   }
   .log-actions { display: flex; justify-content: flex-end; }
+}
+</style>
+
+<style>
+/* Global styles for log time tooltip - cannot be scoped */
+.log-time-tooltip {
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bg) !important;
+  background: var(--ink) !important;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 99999 !important;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  white-space: nowrap;
 }
 </style>

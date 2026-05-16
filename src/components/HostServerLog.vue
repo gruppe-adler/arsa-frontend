@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
 import { useLogsStore } from '../stores/logs';
 import { useServersStore } from '../stores/servers';
 import { ArsStatus } from '../utils/interfaces';
@@ -15,6 +16,8 @@ type Part = TextPart | ChipPart
 
 interface ParsedEntry {
     timestamp: string;
+    timestampIso: string;
+    relativeTime: string;
     parts: Part[];
 }
 
@@ -45,6 +48,8 @@ function parseEntry(raw: string): ParsedEntry {
         if (msg.type === 'isRunningUpdate') {
             return {
                 timestamp: formatTimestamp(timestamp),
+                timestampIso: timestamp,
+                relativeTime: getRelativeTime(timestamp),
                 parts: [
                     { kind: 'chip', uuid: msg.uuid, serverName: resolveServerName(msg.uuid) },
                     { kind: 'text', text: msg.isRunning ? ' started' : ' stopped' },
@@ -55,22 +60,54 @@ function parseEntry(raw: string): ParsedEntry {
         if (msg.type === 'arsStatusUpdate') {
             return {
                 timestamp: formatTimestamp(timestamp),
+                timestampIso: timestamp,
+                relativeTime: getRelativeTime(timestamp),
                 parts: [{ kind: 'text', text: `ARS status: ${ArsStatus[msg.arsStatus] ?? msg.arsStatus}` }],
             };
         }
 
         if (msg.type === 'message') {
-            return { timestamp: formatTimestamp(timestamp), parts: textToParts(msg.message) };
+            return {
+                timestamp: formatTimestamp(timestamp),
+                timestampIso: timestamp,
+                relativeTime: getRelativeTime(timestamp),
+                parts: textToParts(msg.message)
+            };
         }
     } catch {}
 
-    return { timestamp: formatTimestamp(timestamp), parts: textToParts(payload) };
+    return {
+        timestamp: formatTimestamp(timestamp),
+        timestampIso: timestamp,
+        relativeTime: getRelativeTime(timestamp),
+        parts: textToParts(payload)
+    };
 }
 
 function formatTimestamp(iso: string): string {
     const t = iso.split('T')[1];
     if (!t) return iso;
     return t.replace('Z', '');
+}
+
+function getRelativeTime(iso: string): string {
+    if (!iso) return '';
+    try {
+        const date = new Date(iso);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffSec = Math.floor(diffMs / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+
+        if (diffSec < 60) return `${diffSec}s ago`;
+        if (diffMin < 60) return `${diffMin}m ago`;
+        if (diffHour < 24) return `${diffHour}h ago`;
+        return `${diffDay}d ago`;
+    } catch {
+        return iso;
+    }
 }
 
 const parsedLogs = computed(() => logsStore.logs.map(parseEntry).reverse());
@@ -112,7 +149,16 @@ async function copyAllLogs() {
     </button>
     <div class="log-block" v-if="parsedLogs.length > 0">
       <div class="log-row" v-for="(entry, i) in parsedLogs" :key="i">
-        <span class="log-time">{{ entry.timestamp }}</span>
+        <TooltipRoot :delay-duration="0">
+          <TooltipTrigger as-child>
+            <span class="log-time">{{ entry.relativeTime || entry.timestamp }}</span>
+          </TooltipTrigger>
+          <TooltipPortal>
+            <TooltipContent class="log-time-tooltip" side="right" :side-offset="8">
+              {{ entry.timestamp }}
+            </TooltipContent>
+          </TooltipPortal>
+        </TooltipRoot>
         <span class="log-msg">
           <template v-for="(part, j) in entry.parts" :key="j">
             <button
@@ -173,4 +219,20 @@ async function copyAllLogs() {
 
 .empty-log { color: var(--ink-4); }
 .log-empty { font-size: 12.5px; }
+</style>
+
+<style>
+/* Global styles for log time tooltip - cannot be scoped */
+.log-time-tooltip {
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bg) !important;
+  background: var(--ink) !important;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 99999 !important;
+  font-family: "Geist Mono", ui-monospace, monospace;
+  white-space: nowrap;
+}
 </style>
