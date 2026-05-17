@@ -10,7 +10,7 @@ import FormCheckboxInput from './FormCheckboxInput.vue';
 import FormJsonInput from './FormJsonInput.vue';
 import FormModsInput from './FormModsInput.vue';
 import FormStartupParameterInput from './FormStartupParameterInput.vue';
-import { Server } from '../api/model';
+import { Branch, Server } from '../api/model';
 import FormAdminInput from './FormAdminInput.vue';
 
 const props = defineProps({ readonly: Boolean });
@@ -34,6 +34,17 @@ function violDecr() {
         <FormTextInput :name="'name'" :tooltip="'max. 100'" @violIncr="violIncr" @violDecr="violDecr"
             :placeholder="'Server\'s name'" :length="100" :readonly="props.readonly" v-model="server.name">
         </FormTextInput>
+        <div class="form-input-container">
+            <label class="form-input-label">Branch</label>
+            <div class="modify-group" style="width: 100%;">
+                <select v-model="server.branch" :disabled="props.readonly">
+                    <option v-for="branch in Branch" :value="server.branch">
+                        {{ branch }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
         <h3>Startup Parameters</h3>
         <ul>
             <FormStartupParameterInput v-for="(_item, idx) in server.startupParameters"

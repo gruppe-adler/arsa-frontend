@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useServersStore } from '../stores/servers';
 import HostServerLog from '../components/HostServerLog.vue';
 import { ArsStatus } from '../api/model';
+import Dialog from '../components/Dialog.vue';
 
 const serversStore = useServersStore();
 
@@ -28,13 +29,14 @@ updateArsStatus();
         <button class="form-input-button" type="button" @click="updateArsStatus()">Update ARS Status</button>
         <span class="result">{{ arsStatus }}</span>
     </div>
+    <div class="ars-service-items">
+        <Dialog trigger-label="Pull new image" title="title" description="fsa" yes-text="Pull" no-text="Abort"
+            @handle-action="recreateArsDockerImage()">
+        </Dialog>
+    </div>
     <div>
-        <button
-            class="form-input-button"
-            type="button"
-            @click="recreateArsDockerImage()"
-            :disabled="serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown"
-        >
+        <button class="form-input-button" type="button" @click="recreateArsDockerImage()"
+            :disabled="serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown">
             Recreate ARS Docker Image
         </button>
         <span class="warning">Don't use this button unless you know what you're doing.</span>
@@ -46,9 +48,11 @@ updateArsStatus();
 .ars-service-items {
     margin-bottom: 10px;
 }
+
 .result {
     margin-left: 10px;
 }
+
 .warning {
     margin-left: 10px;
     color: red;

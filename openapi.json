@@ -92,9 +92,18 @@
                                         "required": [
                                             "name",
                                             "isRunning",
+                                            "branch",
                                             "config"
                                         ],
                                         "properties": {
+                                            "branch": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Branch"
+                                                    }
+                                                ],
+                                                "default": "Branch::Stable"
+                                            },
                                             "config": {
                                                 "$ref": "#/components/schemas/ServerConfig"
                                             },
@@ -109,6 +118,7 @@
                                 ]
                             },
                             "example": {
+                                "branch": "stable",
                                 "config": {
                                     "a2s": {
                                         "address": "0.0.0.0",
@@ -227,9 +237,18 @@
                                         "required": [
                                             "name",
                                             "isRunning",
+                                            "branch",
                                             "config"
                                         ],
                                         "properties": {
+                                            "branch": {
+                                                "oneOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/Branch"
+                                                    }
+                                                ],
+                                                "default": "Branch::Stable"
+                                            },
                                             "config": {
                                                 "$ref": "#/components/schemas/ServerConfig"
                                             },
@@ -244,6 +263,7 @@
                                 ]
                             },
                             "example": {
+                                "branch": "stable",
                                 "config": {
                                     "a2s": {
                                         "address": "0.0.0.0",
@@ -1221,8 +1241,14 @@
                     { "$ref": "#/components/schemas/StartupParameterWrapper" },
                     {
                         "type": "object",
-                        "required": ["name", "isRunning", "config"],
+                        "required": ["name", "isRunning", "branch", "config"],
                         "properties": {
+                            "branch": {
+                                "oneOf": [
+                                    { "$ref": "#/components/schemas/Branch" }
+                                ],
+                                "default": "Branch::Stable"
+                            },
                             "config": {
                                 "$ref": "#/components/schemas/ServerConfig"
                             },

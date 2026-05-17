@@ -17,8 +17,9 @@ import {
     getPublicIp as apiGetPublicIp,
     getStatus as apiGetStatus,
     putServer,
+    getPullImage,
 } from '../api/backend';
-import type { PostServerBody, ResultLogs, ResultSize, DockerStats, PlayerIdentityId, Server, ArsStatus, LogType, FileContentResponse, PutServerBody } from '../api/model';
+import { type PostServerBody, type ResultLogs, type ResultSize, type DockerStats, type PlayerIdentityId, type Server, type ArsStatus, type LogType, type FileContentResponse, type PutServerBody, Branch } from '../api/model';
 
 import { useLogsStore } from '../stores/logs';
 
@@ -184,10 +185,12 @@ export async function getArsStatus(): Promise<ArsStatus> {
 }
 
 export async function recreateArsDockerImage(): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiBaseUrl}/api/v1/pull-image/master`, {
-        method: 'GET'
-    });
-    const logsStore = useLogsStore();
-    logsStore.add(`ARS docker image recreation started`);
-    return jsonResponse.status === 200;
+    return (await getPullImage(Branch.stable)).data.success;
+
+    // const jsonResponse = await fetch(`${apiBaseUrl}/api/v1/pull-image/master`, {
+    //     method: 'GET'
+    // });
+    // const logsStore = useLogsStore();
+    // logsStore.add(`ARS docker image recreation started`);
+    // return jsonResponse.status === 200;
 }

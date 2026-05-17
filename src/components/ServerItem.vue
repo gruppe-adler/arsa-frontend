@@ -61,6 +61,7 @@ function onClickStats() {
             <RouterLink :to="`/edit-server/${model!.uuid}`" v-if="!model!.isRunning">{{ model!.name }}</RouterLink>
             <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
             <span> ({{ model!.uuid }})</span>
+            <span> [Branch: {{ model!.branch }}] </span>
             <button class="column-right" type="button" @click="onClickDelete"
                 :disabled="model!.isRunning">Delete</button>
             <button class="column-right" type="button" @click="onClickClone">Clone</button>

@@ -4,10 +4,12 @@
  * arsa-backend-rs
  * OpenAPI spec version: 0.1.0
  */
+import type { Branch } from './branch';
 import type { ServerConfig } from './serverConfig';
 import type { StartupParameterWrapper } from './startupParameterWrapper';
 
 export type PostServerBody = StartupParameterWrapper & {
+    branch: Branch;
     config: ServerConfig;
     isRunning: boolean;
     name: string;

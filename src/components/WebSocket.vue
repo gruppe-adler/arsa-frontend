@@ -3,7 +3,7 @@ import { useWebSocket } from '@vueuse/core';
 import { watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
-import { ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import { ArsStatusUpdate, CreateImageProgress, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
 import { ArsStatus } from '../api/model';
 
 const serversStore = useServersStore();
@@ -29,15 +29,21 @@ const ws = useWebSocket(`${wsProtocol}://${api}/ws`, {
 
 watch(ws.data, value => {
     if (value !== 'pong') {
-        logsStore.add(value);
         const update: ServerStatusUpdate = JSON.parse(value);
+        if (update.type !== 'createImageProgress') {
+            logsStore.add(value);
+        }
+        console.log(update.type);
         if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);
         }
-        if (update.type === 'arsStatusUpdate') {
+        else if (update.type === 'arsStatusUpdate') {
             const arsStatusUpdate: ArsStatusUpdate = update as ArsStatusUpdate;
             serversStore.arsStatus = arsStatusUpdate.arsStatus;
+        }
+        else if (update.type === 'createImageProgress') {
+            logsStore.addProgress(update as CreateImageProgress);
         }
     }
 });
