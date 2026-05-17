@@ -7,7 +7,7 @@
         "version": "0.1.0"
     },
     "paths": {
-        "/api/v1": {
+        "/api/v2": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_servers",
@@ -28,7 +28,7 @@
                 }
             }
         },
-        "/api/v1/public-ip": {
+        "/api/v2/public-ip": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_public_ip",
@@ -46,7 +46,7 @@
                 }
             }
         },
-        "/api/v1/pull-image/{branch}": {
+        "/api/v2/pull-image/{branch}": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_pull_image",
@@ -74,7 +74,7 @@
                 }
             }
         },
-        "/api/v1/server": {
+        "/api/v2/server": {
             "put": {
                 "tags": ["arsa"],
                 "operationId": "put_server",
@@ -366,7 +366,7 @@
                 }
             }
         },
-        "/api/v1/server/known-players": {
+        "/api/v2/server/known-players": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_player_log",
@@ -397,7 +397,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}": {
+        "/api/v2/server/{id}": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_server",
@@ -471,7 +471,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/crash-reports-log": {
+        "/api/v2/server/{id}/crash-reports-log": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_crash_log",
@@ -509,7 +509,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/is-running": {
+        "/api/v2/server/{id}/is-running": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "is_server_running",
@@ -547,7 +547,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/logs": {
+        "/api/v2/server/{id}/logs": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_logs",
@@ -585,7 +585,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/logs/{log}": {
+        "/api/v2/server/{id}/logs/{log}": {
             "delete": {
                 "tags": ["arsa"],
                 "operationId": "delete_log",
@@ -645,7 +645,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/logs/{log}/{log_type}": {
+        "/api/v2/server/{id}/logs/{log}/{log_type}": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_log_file",
@@ -727,7 +727,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/size": {
+        "/api/v2/server/{id}/size": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_size_method",
@@ -755,7 +755,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/start": {
+        "/api/v2/server/{id}/start": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "start_server",
@@ -793,7 +793,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/stats": {
+        "/api/v2/server/{id}/stats": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_stats",
@@ -831,7 +831,7 @@
                 }
             }
         },
-        "/api/v1/server/{id}/stop": {
+        "/api/v2/server/{id}/stop": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "stop_server",
@@ -869,7 +869,7 @@
                 }
             }
         },
-        "/api/v1/status": {
+        "/api/v2/status": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_status",
