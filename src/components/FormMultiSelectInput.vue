@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
@@ -11,7 +10,6 @@ const props = defineProps({
 const model = defineModel<string[]>({ required: true });
 
 const selectId = uuidv4();
-
 </script>
 
 <template>
@@ -25,5 +23,4 @@ const selectId = uuidv4();
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

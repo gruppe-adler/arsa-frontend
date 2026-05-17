@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import Menu from './components/Menu.vue'
+import Menu from './components/Menu.vue';
 </script>
 
 <template>
-  <div><Menu/></div>
-  <div><RouterView/></div>
+    <div><Menu /></div>
+    <div><RouterView /></div>
 </template>
 
 <style scoped>
-  Menu {
+Menu {
     grid-column: 1;
     grid-row: 1;
-  }
+}
 
-  RouterView {
+RouterView {
     grid-column: 1;
     grid-row: 2;
-  }
+}
 </style>

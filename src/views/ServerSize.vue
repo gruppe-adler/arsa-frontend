@@ -19,7 +19,7 @@ const size = ref<ResultSize>({
     logsSize: 0,
     profileSize: 0,
     mods: [],
-    logs: [],
+    logs: []
 });
 
 async function getSize() {

@@ -39,7 +39,6 @@ function onClickSize() {
 function onClickStats() {
     router.push(`/server-stats/${model.value!.uuid}`);
 }
-
 </script>
 
 <template>
@@ -47,14 +46,24 @@ function onClickStats() {
         <p>
             <span class="column-left" v-if="model!.isRunning">Online</span>
             <span class="column-left" v-else>Offline</span>
-            <button class="column-left" style="background-color: rgba(255, 0, 0, 0.5)" type="button"
-                @click="serversStore.stop(model!.uuid ?? '')" :disabled="serversStore.arsStatus !== ArsStatus.Available"
-                v-if="model!.isRunning">
+            <button
+                class="column-left"
+                style="background-color: rgba(255, 0, 0, 0.5)"
+                type="button"
+                @click="serversStore.stop(model!.uuid ?? '')"
+                :disabled="serversStore.arsStatus !== ArsStatus.Available"
+                v-if="model!.isRunning"
+            >
                 Stop
             </button>
-            <button class="column-left" style="background-color: rgba(0, 255, 0, 0.5)" type="button"
+            <button
+                class="column-left"
+                style="background-color: rgba(0, 255, 0, 0.5)"
+                type="button"
                 @click="serversStore.start(model!.uuid ?? '')"
-                :disabled="serversStore.arsStatus !== ArsStatus.Available" v-else>
+                :disabled="serversStore.arsStatus !== ArsStatus.Available"
+                v-else
+            >
                 Start
             </button>
             <span> [{{ model!.config?.bindPort ?? '' }}] </span>
@@ -62,13 +71,11 @@ function onClickStats() {
             <RouterLink :to="`/view-server/${model!.uuid}`" v-else>{{ model!.name }}</RouterLink>
             <span> ({{ model!.uuid }})</span>
             <span> [Branch: {{ model!.branch }}] </span>
-            <button class="column-right" type="button" @click="onClickDelete"
-                :disabled="model!.isRunning">Delete</button>
+            <button class="column-right" type="button" @click="onClickDelete" :disabled="model!.isRunning">Delete</button>
             <button class="column-right" type="button" @click="onClickClone">Clone</button>
             <button class="column-right" type="button" @click="onClickLogs">Logs</button>
             <button class="column-right" type="button" @click="onClickSize">Size</button>
-            <button class="column-right" type="button" @click="onClickStats"
-                :disabled="!model!.isRunning">Stats</button>
+            <button class="column-right" type="button" @click="onClickStats" :disabled="!model!.isRunning">Stats</button>
         </p>
     </li>
 </template>

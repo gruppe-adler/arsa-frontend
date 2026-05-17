@@ -6,7 +6,7 @@ import { useServersStore } from '../stores/servers';
 import { computedAsync } from '@vueuse/core';
 
 const props = defineProps({
-    readonly: Boolean,
+    readonly: Boolean
 });
 const model = defineModel<string[] | undefined>({ required: true });
 
@@ -27,8 +27,8 @@ const serversStore = useServersStore();
 // );
 
 const knownPlayers = computedAsync(() => {
-    return serversStore.getKnownPlayers() ?? []
-})
+    return serversStore.getKnownPlayers() ?? [];
+});
 
 function addItem() {
     if (!model.value || model.value!.includes(selected.value ?? '')) {
@@ -52,22 +52,36 @@ onMounted(() => {
 </script>
 
 <template>
-    <FormMultiSelectModInput :name="'admins'" :tooltip="'default []'"
+    <FormMultiSelectModInput
+        :name="'admins'"
+        :tooltip="'default []'"
         :regEx="['^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '^[0-9]{17}$']"
-        :readonly="props.readonly" v-model="model"></FormMultiSelectModInput>
+        :readonly="props.readonly"
+        v-model="model"
+    ></FormMultiSelectModInput>
     <div class="form-input-container">
         <label class="form-input-label">Known players</label>
-        <div class="modify-group" style="width: 100%;">
+        <div class="modify-group" style="width: 100%">
             <select v-model="selected" :disabled="props.readonly">
                 <option value="">Please select one</option>
-                <option v-for="player in knownPlayers" :value="player.identityId">
-                    {{ player.name }} ({{ player.identityId }})
-                </option>
+                <option v-for="player in knownPlayers" :value="player.identityId">{{ player.name }} ({{ player.identityId }})</option>
             </select>
-            <button class="form-input-button" type="button" @click="addItem()"
-                :disabled="selected === '' || model?.includes(selected ?? '') === true">Add</button>
-            <button class="form-input-button" type="button" @click="removeItem()"
-                :disabled="selected === '' || !model?.includes(selected ?? '')">Delete</button>
+            <button
+                class="form-input-button"
+                type="button"
+                @click="addItem()"
+                :disabled="selected === '' || model?.includes(selected ?? '') === true"
+            >
+                Add
+            </button>
+            <button
+                class="form-input-button"
+                type="button"
+                @click="removeItem()"
+                :disabled="selected === '' || !model?.includes(selected ?? '')"
+            >
+                Delete
+            </button>
         </div>
     </div>
 </template>

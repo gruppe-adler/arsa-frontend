@@ -37,12 +37,10 @@ watch(ws.data, value => {
         if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);
-        }
-        else if (update.type === 'arsStatusUpdate') {
+        } else if (update.type === 'arsStatusUpdate') {
             const arsStatusUpdate: ArsStatusUpdate = update as ArsStatusUpdate;
             serversStore.arsStatus = arsStatusUpdate.arsStatus;
-        }
-        else if (update.type === 'createImageProgress') {
+        } else if (update.type === 'createImageProgress') {
             logsStore.addProgress(update as CreateImageProgress);
         }
     }

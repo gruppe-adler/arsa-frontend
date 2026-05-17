@@ -1,6 +1,5 @@
 <script setup lang="ts">
-
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -9,7 +8,7 @@ const props = defineProps({
     placeholder: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits(['violIncr', 'violDecr']);
 
 const model = defineModel<object>({ required: true });
 
@@ -25,9 +24,8 @@ const style = computed<string>(() => {
             violation = false;
             emit('violDecr');
         }
-    }
-    catch (e) {
-        style = "background: rgba(255,0,0,0.5);";
+    } catch (e) {
+        style = 'background: rgba(255,0,0,0.5);';
         if (!violation) {
             violation = true;
             emit('violIncr');
@@ -36,7 +34,6 @@ const style = computed<string>(() => {
 
     return style;
 });
-
 </script>
 
 <template>
@@ -47,8 +44,8 @@ const style = computed<string>(() => {
 </template>
 
 <style scoped>
-    .json-input {
-        resize: none;
-        overflow-y: scroll;
-    }
+.json-input {
+    resize: none;
+    overflow-y: scroll;
+}
 </style>

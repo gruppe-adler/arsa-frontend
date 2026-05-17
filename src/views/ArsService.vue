@@ -30,13 +30,23 @@ updateArsStatus();
         <span class="result">{{ arsStatus }}</span>
     </div>
     <div class="ars-service-items">
-        <Dialog trigger-label="Pull new image" title="title" description="fsa" yes-text="Pull" no-text="Abort"
-            @handle-action="recreateArsDockerImage()">
+        <Dialog
+            trigger-label="Pull new image"
+            title="title"
+            description="fsa"
+            yes-text="Pull"
+            no-text="Abort"
+            @handle-action="recreateArsDockerImage()"
+        >
         </Dialog>
     </div>
     <div>
-        <button class="form-input-button" type="button" @click="recreateArsDockerImage()"
-            :disabled="serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown">
+        <button
+            class="form-input-button"
+            type="button"
+            @click="recreateArsDockerImage()"
+            :disabled="serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown"
+        >
             Recreate ARS Docker Image
         </button>
         <span class="warning">Don't use this button unless you know what you're doing.</span>

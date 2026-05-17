@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { v4 as uuidv4 } from 'uuid';
 import { onMounted } from 'vue';
 
@@ -18,7 +17,6 @@ onMounted(() => {
     const select: HTMLSelectElement = document.getElementById(selectId) as HTMLSelectElement;
     select.selectedIndex = props.selectedIndex!;
 });
-
 </script>
 
 <template>
@@ -32,5 +30,4 @@ onMounted(() => {
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

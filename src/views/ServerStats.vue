@@ -74,16 +74,16 @@ onBeforeUnmount(() => {
         <p>CPU usage: {{ (stats?.cpuPercentage * 100).toFixed(2) }}%</p>
         <p>Name: {{ stats?.name }}</p>
         <p>ID: {{ stats?.id }}</p>
-        <p>Memory usage: {{ prettyBytes(stats?.memUsage) }} / {{ prettyBytes(stats?.memLimit) }} ({{ ((stats?.memUsage /
-            stats?.memLimit) * 100).toFixed(2) }}%)
+        <p>
+            Memory usage: {{ prettyBytes(stats?.memUsage) }} / {{ prettyBytes(stats?.memLimit) }} ({{
+                ((stats?.memUsage / stats?.memLimit) * 100).toFixed(2)
+            }}%)
         </p>
-        <p>Network IO: {{ prettyBytes(stats?.networkRxBytes) }} (Received) / {{ prettyBytes(stats?.networkTxBytes) }}
-            (Transmitted)</p>
+        <p>Network IO: {{ prettyBytes(stats?.networkRxBytes) }} (Received) / {{ prettyBytes(stats?.networkTxBytes) }} (Transmitted)</p>
         <p>PID count: {{ stats?.pidCount }}</p>
         <br />
         <button type="button" @click="updateStats()">Update</button>
-        <button class="form-input-button" type="button" @click="stopAutoUpdate()" v-if="autoUpdateRunning">Stop
-            Auto-Update</button>
+        <button class="form-input-button" type="button" @click="stopAutoUpdate()" v-if="autoUpdateRunning">Stop Auto-Update</button>
         <button class="form-input-button" type="button" @click="startAutoUpdate()" v-else>Start Auto-Update</button>
     </div>
 </template>
