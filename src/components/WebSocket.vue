@@ -28,8 +28,8 @@ const ws = useWebSocket(`${wsProtocol}://${api}/ws`, {
 
 watch(ws.data, value => {
     if (value !== 'pong') {
-        logsStore.add(value);
         const update: ServerStatusUpdate = JSON.parse(value);
+        logsStore.addServerStatusUpdate(update);
         if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);

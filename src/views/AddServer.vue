@@ -2,11 +2,11 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
-import { Server } from '../utils/interfaces';
 import { defaultServer } from '../utils/defaults';
 import ConfigForm from '../components/ConfigForm.vue';
 import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
 import FormTabs from '../components/FormTabs.vue';
+import { Server } from '../api/model';
 
 const router = useRouter();
 const serversStore = useServersStore();
@@ -17,11 +17,11 @@ const activeTab = ref<string>('settings');
 
 const tabs = [
     { key: 'settings', label: 'Settings' },
-    { key: 'mods',     label: 'Mods' },
-    { key: 'players',  label: 'Players', disabled: true },
-    { key: 'stats',    label: 'Stats',   disabled: true },
-    { key: 'size',     label: 'Size',    disabled: true },
-    { key: 'logs',     label: 'Logs',    disabled: true },
+    { key: 'mods', label: 'Mods' },
+    { key: 'players', label: 'Players', disabled: true },
+    { key: 'stats', label: 'Stats', disabled: true },
+    { key: 'size', label: 'Size', disabled: true },
+    { key: 'logs', label: 'Logs', disabled: true }
 ];
 
 function addServer() {
@@ -32,63 +32,76 @@ function addServer() {
 </script>
 
 <template>
-  <main class="form-container">
-    <div class="page-header">
-      <div>
-        <h1>Add server</h1>
-        <p>Configure a new Arma Reforger server instance. Import an existing config file to prefill the form.</p>
-      </div>
-      <div class="header-actions">
-        <ConfigUploadDownload v-model:server="server" />
-      </div>
-    </div>
+    <main class="form-container">
+        <div class="page-header">
+            <div>
+                <h1>Add server</h1>
+                <p>Configure a new Arma Reforger server instance. Import an existing config file to prefill the form.</p>
+            </div>
+            <div class="header-actions">
+                <ConfigUploadDownload v-model:server="server" />
+            </div>
+        </div>
 
-    <FormTabs :tabs="tabs" v-model="activeTab" />
-    <ConfigForm
-      v-model:input-violation-counter="inputViolationCounter"
-      v-model:server="server"
-      :tab="activeTab as 'settings' | 'mods'"
-    />
+        <FormTabs :tabs="tabs" v-model="activeTab" />
+        <ConfigForm
+            v-model:input-violation-counter="inputViolationCounter"
+            v-model:server="server"
+            :tab="activeTab as 'settings' | 'mods'"
+        />
 
-    <div class="form-toolbar">
-      <div class="form-toolbar-status">
-        <span v-if="disabled" class="dot red"></span>
-        <span v-else class="dot green"></span>
-        <span v-if="disabled">Fix {{ inputViolationCounter }} violation{{ inputViolationCounter > 1 ? 's' : '' }} before saving</span>
-        <span v-else>Ready to add</span>
-      </div>
-      <div class="row">
-        <button class="btn btn-ghost" type="button" @click="router.push('/servers-list')">Cancel</button>
-        <button class="btn btn-primary" type="button" :disabled @click="addServer">Add server</button>
-      </div>
-    </div>
-  </main>
+        <div class="form-toolbar">
+            <div class="form-toolbar-status">
+                <span v-if="disabled" class="dot red"></span>
+                <span v-else class="dot green"></span>
+                <span v-if="disabled"
+                    >Fix {{ inputViolationCounter }} violation{{ inputViolationCounter > 1 ? 's' : '' }} before saving</span
+                >
+                <span v-else>Ready to add</span>
+            </div>
+            <div class="row">
+                <button class="btn btn-ghost" type="button" @click="router.push('/servers-list')">Cancel</button>
+                <button class="btn btn-primary" type="button" :disabled @click="addServer">Add server</button>
+            </div>
+        </div>
+    </main>
 </template>
 
 <style scoped>
 main {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 48px var(--gutter) 96px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px var(--gutter) 96px;
 }
 .page-header {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px 32px;
-  margin-bottom: 36px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    margin-bottom: 36px;
 }
 .page-header h1 {
-  font-size: 28px; font-weight: 600;
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
 }
 .page-header p {
-  margin: 0; color: var(--ink-3); font-size: 14px; max-width: 56ch;
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 14px;
+    max-width: 56ch;
 }
 .header-actions {
-  display: flex; align-items: center; gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 @media (max-width: 480px) {
-  .page-header h1 { font-size: 22px; }
+    .page-header h1 {
+        font-size: 22px;
+    }
 }
 </style>
