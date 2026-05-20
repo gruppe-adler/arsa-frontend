@@ -19,7 +19,18 @@ import {
     getSize,
     getCrashReportsLog
 } from '../utils/api';
-import { ArsStatus, DockerStats, FileContentResponse, LogType, PlayerIdentityId, ResultLogs, ResultSize, Server } from '../api/model';
+import {
+    ArsStatus,
+    Branch,
+    DockerStats,
+    FileContentResponse,
+    LogType,
+    PlayerIdentityId,
+    ResultLogs,
+    ResultSize,
+    Server
+} from '../api/model';
+import { getImageVersion } from '../api/backend';
 
 interface State {
     servers: Server[];
@@ -111,6 +122,13 @@ export const useServersStore = defineStore('servers', {
         async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {
             const server = this.servers.find(i => i.uuid === uuid);
             if (server) server.isRunning = isRunning;
+        },
+        async getImageVersion(branch: Branch): Promise<string | null> {
+            const result = await getImageVersion(branch);
+            if (result.status === 200) {
+                return result.data.version;
+            }
+            return null;
         }
     }
 });

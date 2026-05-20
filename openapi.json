@@ -28,6 +28,34 @@
                 }
             }
         },
+        "/api/v2/image-version/{branch}": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_image_version",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch to pull",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/Branch" },
+                        "example": "stable"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageVersionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/public-ip": {
             "get": {
                 "tags": ["arsa"],
@@ -1070,6 +1098,11 @@
                 "type": "object",
                 "required": ["ipv4"],
                 "properties": { "ipv4": { "type": "string" } }
+            },
+            "ImageVersionResponse": {
+                "type": "object",
+                "required": ["version"],
+                "properties": { "version": { "type": "string" } }
             },
             "JoinQueue": {
                 "type": "object",

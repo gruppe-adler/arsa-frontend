@@ -13,6 +13,7 @@ export * from './errorResponse';
 export * from './fileContentResponse';
 export * from './game';
 export * from './gameProperties';
+export * from './imageVersionResponse';
 export * from './iPv4Response';
 export * from './joinQueue';
 export * from './log';

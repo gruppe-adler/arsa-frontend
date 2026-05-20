@@ -11,6 +11,7 @@ import type {
     ErrorResponse,
     FileContentResponse,
     IPv4Response,
+    ImageVersionResponse,
     LogType,
     PlayerIdentityId,
     PostServerBody,
@@ -46,6 +47,32 @@ export const getServers = async (options?: RequestInit): Promise<getServersRespo
 
     const data: getServersResponse['data'] = body ? JSON.parse(body) : {};
     return { data, status: res.status, headers: res.headers } as getServersResponse;
+};
+
+export type getImageVersionResponse200 = {
+    data: ImageVersionResponse;
+    status: 200;
+};
+
+export type getImageVersionResponseSuccess = getImageVersionResponse200 & {
+    headers: Headers;
+};
+export type getImageVersionResponse = getImageVersionResponseSuccess;
+
+export const getGetImageVersionUrl = (branch: Branch) => {
+    return `http://localhost:3000/api/v2/image-version/${branch}`;
+};
+
+export const getImageVersion = async (branch: Branch, options?: RequestInit): Promise<getImageVersionResponse> => {
+    const res = await fetch(getGetImageVersionUrl(branch), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getImageVersionResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getImageVersionResponse;
 };
 
 export type getPublicIpResponse200 = {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
 import HostServerLog from '../components/HostServerLog.vue';
-import { ArsStatus } from '../api/model';
+import { ArsStatus, Branch } from '../api/model';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -31,6 +31,23 @@ const statusDot = computed(() => {
         default:
             return '';
     }
+});
+
+async function getBranchVersions() {
+    const entries = await Promise.all(
+        Object.values(Branch).map(async branch => {
+            const version = await serversStore.getImageVersion(branch);
+            return [branch, version] as [Branch, string];
+        })
+    );
+
+    return new Map<Branch, string>(entries);
+}
+
+const branchVersions = ref(new Map<Branch, string>());
+
+onMounted(async () => {
+    branchVersions.value = await getBranchVersions();
 });
 
 const recreateDisabled = computed(() => serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown);
@@ -86,9 +103,11 @@ updateArsStatus();
                     </svg>
                     <span>Destructive — do not run unless you know what you're doing.</span>
                 </div>
-                <div class="card-foot">
-                    <span class="card-foot-note">Rebuilds the entire ARS container</span>
-                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="recreateArsDockerImage">Recreate image</button>
+                <div v-for="[branch, version] in branchVersions" class="card-foot">
+                    <span class="card-foot-note">Branch: {{ branch }} Version: {{ version ?? 'n/a' }}</span>
+                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="recreateArsDockerImage">
+                        Pull latest image ({{ branch }})
+                    </button>
                 </div>
             </div>
         </div>
