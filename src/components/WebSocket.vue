@@ -3,7 +3,7 @@ import { useWebSocket } from '@vueuse/core';
 import { watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
-import { ArsStatusUpdate, IsRunningUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import { ArsStatusUpdate, IsRunningUpdate, PlayerCountUpdate, ServerStatusUpdate } from '../utils/interfaces';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -28,15 +28,18 @@ const ws = useWebSocket(`${wsProtocol}://${api}/ws`, {
 
 watch(ws.data, value => {
     if (value !== 'pong') {
+        console.log(value);
         const update: ServerStatusUpdate = JSON.parse(value);
         logsStore.addServerStatusUpdate(update);
         if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);
-        }
-        if (update.type === 'arsStatusUpdate') {
+        } else if (update.type === 'arsStatusUpdate') {
             const arsStatusUpdate: ArsStatusUpdate = update as ArsStatusUpdate;
             serversStore.arsStatus = arsStatusUpdate.arsStatus;
+        } else if (update.type === 'playerCountUpdate') {
+            const playerCountUpdate: PlayerCountUpdate = update as PlayerCountUpdate;
+            serversStore.playerCountUpdate(playerCountUpdate.uuid, playerCountUpdate.playerCount);
         }
     }
 });
