@@ -19,7 +19,7 @@ function getRelativeTime(timestamp: string): string {
 
         const [year, month, day] = datePart.split('-');
         const [hour, min, sec] = timePart.split('-');
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(min), parseInt(sec));
+        const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(min), parseInt(sec)));
 
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
