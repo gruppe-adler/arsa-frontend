@@ -121,6 +121,7 @@
                                             "name",
                                             "isRunning",
                                             "branch",
+                                            "playerCount",
                                             "config"
                                         ],
                                         "properties": {
@@ -137,6 +138,11 @@
                                             },
                                             "isRunning": { "type": "boolean" },
                                             "name": { "type": "string" },
+                                            "playerCount": {
+                                                "type": "integer",
+                                                "format": "int32",
+                                                "minimum": 0
+                                            },
                                             "uuid": {
                                                 "type": "string",
                                                 "format": "uuid"
@@ -266,6 +272,7 @@
                                             "name",
                                             "isRunning",
                                             "branch",
+                                            "playerCount",
                                             "config"
                                         ],
                                         "properties": {
@@ -282,6 +289,11 @@
                                             },
                                             "isRunning": { "type": "boolean" },
                                             "name": { "type": "string" },
+                                            "playerCount": {
+                                                "type": "integer",
+                                                "format": "int32",
+                                                "minimum": 0
+                                            },
                                             "uuid": {
                                                 "type": "string",
                                                 "format": "uuid"
@@ -1274,7 +1286,13 @@
                     { "$ref": "#/components/schemas/StartupParameterWrapper" },
                     {
                         "type": "object",
-                        "required": ["name", "isRunning", "branch", "config"],
+                        "required": [
+                            "name",
+                            "isRunning",
+                            "branch",
+                            "playerCount",
+                            "config"
+                        ],
                         "properties": {
                             "branch": {
                                 "oneOf": [
@@ -1287,6 +1305,11 @@
                             },
                             "isRunning": { "type": "boolean" },
                             "name": { "type": "string" },
+                            "playerCount": {
+                                "type": "integer",
+                                "format": "int32",
+                                "minimum": 0
+                            },
                             "uuid": { "type": "string", "format": "uuid" }
                         }
                     }

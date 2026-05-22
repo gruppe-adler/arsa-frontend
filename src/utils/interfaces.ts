@@ -1,7 +1,7 @@
 import { ArsStatus } from '../api/model';
 
 export interface ServerStatusUpdate {
-    type: 'isRunningUpdate' | 'arsStatusUpdate' | 'message' | 'createImageProgress' | 'error';
+    type: 'isRunningUpdate' | 'arsStatusUpdate' | 'message' | 'createImageProgress' | 'error' | 'playerCountUpdate';
 }
 
 export interface IsRunningUpdate extends ServerStatusUpdate {
@@ -23,6 +23,12 @@ export interface Message extends ServerStatusUpdate {
 export interface CreateImageProgress extends ServerStatusUpdate {
     type: 'createImageProgress';
     info: CreateImageInfo;
+}
+
+export interface PlayerCountUpdate extends ServerStatusUpdate {
+    type: 'playerCountUpdate';
+    uuid: string;
+    playerCount: number;
 }
 
 export interface CreateImageInfo {

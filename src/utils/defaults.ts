@@ -168,5 +168,6 @@ export const defaultServer: Server = {
     name: "my server's name",
     isRunning: false,
     config: defaultConfig,
-    startupParameters: StartupParameters
+    startupParameters: StartupParameters,
+    playerCount: 0
 };

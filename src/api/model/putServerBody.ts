@@ -13,5 +13,7 @@ export type PutServerBody = StartupParameterWrapper & {
     config: ServerConfig;
     isRunning: boolean;
     name: string;
+    /** @minimum 0 */
+    playerCount: number;
     uuid?: string;
 };

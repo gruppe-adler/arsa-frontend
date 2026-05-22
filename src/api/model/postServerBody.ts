@@ -13,5 +13,7 @@ export type PostServerBody = StartupParameterWrapper & {
     config: ServerConfig;
     isRunning: boolean;
     name: string;
+    /** @minimum 0 */
+    playerCount: number;
     uuid?: string;
 };

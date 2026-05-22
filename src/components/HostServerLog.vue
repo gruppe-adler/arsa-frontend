@@ -63,6 +63,8 @@ function parseEntry(hostLog: HostLog): ParsedEntry {
     } else if (hostLog.log.type === 'message') {
         const message = hostLog.log as Message;
         parts = textToParts(message.message);
+    } else if (hostLog.log.type === 'playerCountUpdate') {
+        parts = [{ kind: 'text', text: `Player count update received` }];
     }
 
     return {

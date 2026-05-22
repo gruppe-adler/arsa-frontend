@@ -123,6 +123,10 @@ export const useServersStore = defineStore('servers', {
             const server = this.servers.find(i => i.uuid === uuid);
             if (server) server.isRunning = isRunning;
         },
+        async playerCountUpdate(uuid: string, playerCount: number): Promise<void> {
+            const server = this.servers.find(i => i.uuid === uuid);
+            if (server) server.playerCount = playerCount;
+        },
         async getImageVersion(branch: Branch): Promise<string | null> {
             const result = await getImageVersion(branch);
             if (result.status === 200) {

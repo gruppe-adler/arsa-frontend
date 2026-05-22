@@ -70,7 +70,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 
         <!-- meta -->
         <div class="server-meta">
-            <a class="server-name" @click="onClickName">{{ model!.name }}</a>
+            <a class="server-name" @click="onClickName">{{ model!.name }} (Players: {{ model!.playerCount }}) [{{ model!.branch }}]</a>
             <div class="server-info">
                 <span class="port-tag">:{{ model!.config.bindPort }}</span>
                 <button
