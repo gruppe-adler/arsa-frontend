@@ -215,6 +215,7 @@ ul { padding-inline-start: 0; }
   font-size: 12.5px;
   line-height: 1.7;
   color: var(--ink-2);
+  overflow-wrap: break-word;
 }
 .log-row { display: flex; gap: 16px; }
 .log-time { color: var(--ink-4); flex-shrink: 0; }
