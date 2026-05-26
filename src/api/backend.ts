@@ -15,6 +15,7 @@ import type {
     LogType,
     PlayerIdentityId,
     PostServerBody,
+    PullLog,
     PutServerBody,
     ResultLogs,
     ResultSize,
@@ -112,7 +113,7 @@ export type getPullImageResponseSuccess = getPullImageResponse200 & {
 export type getPullImageResponse = getPullImageResponseSuccess;
 
 export const getGetPullImageUrl = (branch: Branch) => {
-    return `http://localhost:3000/api/v2/pull-image/${branch}`;
+    return `http://localhost:3000/api/v2/pull/image/${branch}`;
 };
 
 export const getPullImage = async (branch: Branch, options?: RequestInit): Promise<getPullImageResponse> => {
@@ -125,6 +126,32 @@ export const getPullImage = async (branch: Branch, options?: RequestInit): Promi
 
     const data: getPullImageResponse['data'] = body ? JSON.parse(body) : {};
     return { data, status: res.status, headers: res.headers } as getPullImageResponse;
+};
+
+export type getPullLogsResponse200 = {
+    data: PullLog[];
+    status: 200;
+};
+
+export type getPullLogsResponseSuccess = getPullLogsResponse200 & {
+    headers: Headers;
+};
+export type getPullLogsResponse = getPullLogsResponseSuccess;
+
+export const getGetPullLogsUrl = () => {
+    return `http://localhost:3000/api/v2/pull/logs`;
+};
+
+export const getPullLogs = async (options?: RequestInit): Promise<getPullLogsResponse> => {
+    const res = await fetch(getGetPullLogsUrl(), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getPullLogsResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getPullLogsResponse;
 };
 
 export type putServerResponse200 = {

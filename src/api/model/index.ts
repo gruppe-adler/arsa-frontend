@@ -23,6 +23,7 @@ export * from './operating';
 export * from './platform';
 export * from './playerIdentityId';
 export * from './postServerBody';
+export * from './pullLog';
 export * from './putServerBody';
 export * from './rcon';
 export * from './resultLogs';

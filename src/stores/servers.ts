@@ -13,7 +13,6 @@ import {
     deleteLog,
     getPublicIp,
     getArsStatus,
-    recreateArsDockerImage,
     getKnownPlayers,
     getStats,
     getSize,
@@ -30,7 +29,7 @@ import {
     ResultSize,
     Server
 } from '../api/model';
-import { getImageVersion } from '../api/backend';
+import { getImageVersion, getPullImage } from '../api/backend';
 
 interface State {
     servers: Server[];
@@ -115,9 +114,9 @@ export const useServersStore = defineStore('servers', {
             }
             return this.arsStatus;
         },
-        async recreateArsDockerImage(): Promise<boolean> {
-            const result = await recreateArsDockerImage();
-            return result;
+        async pullImage(branch: Branch): Promise<boolean> {
+            const result = await getPullImage(branch);
+            return result.status === 200;
         },
         async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {
             const server = this.servers.find(i => i.uuid === uuid);

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
 import HostServerLog from '../components/HostServerLog.vue';
 import { ArsStatus, Branch } from '../api/model';
+import ImagePullLog from '../components/ImagePullLog.vue';
+import Dialog from '../components/Dialog.vue';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -13,8 +15,8 @@ async function updateArsStatus() {
     serversStore.arsStatus = result;
 }
 
-async function recreateArsDockerImage() {
-    await serversStore.recreateArsDockerImage();
+async function pullImage(branch: Branch) {
+    await serversStore.pullImage(branch);
 }
 
 const arsStatus = computed<string>(() => ArsStatus[serversStore.arsStatus]);
@@ -105,13 +107,22 @@ updateArsStatus();
                 </div>
                 <div v-for="[branch, version] in branchVersions" class="card-foot">
                     <span class="card-foot-note">Branch: {{ branch }} Version: {{ version ?? 'n/a' }}</span>
-                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="recreateArsDockerImage">
+                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="pullImage(branch)">
                         Pull latest image ({{ branch }})
                     </button>
+                    <Dialog
+                        :disabled="recreateDisabled"
+                        :trigger-label="`Pull latest image (${branch})`"
+                        :title-label="`Pull latest image (${branch})`"
+                        :description="`Rebuild the ARS container image (Branch: ${branch}) from scratch. Any running servers will be stopped. This operation may take several minutes.`"
+                        :cancel-label="'Cancel'"
+                        :handle-label="'Start pull'"
+                        :handle-function="() => pullImage(branch)"
+                    ></Dialog>
                 </div>
             </div>
         </div>
-
+        <ImagePullLog></ImagePullLog>
         <div class="log-header">
             <h2 class="section-title">Host server log</h2>
             <button class="btn btn-sm" @click="logsStore.clear">

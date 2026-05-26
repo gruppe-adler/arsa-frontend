@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
 import { HostLog, useLogsStore } from '../stores/logs';
 import { useServersStore } from '../stores/servers';
-import { ArsStatus, Log } from '../api/model';
 import { ArsStatusUpdate, IsRunningUpdate, Message } from '../utils/interfaces';
 
 const logsStore = useLogsStore();

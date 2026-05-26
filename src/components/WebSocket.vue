@@ -3,7 +3,14 @@ import { useWebSocket } from '@vueuse/core';
 import { watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
-import { ArsStatusUpdate, IsRunningUpdate, PlayerCountUpdate, ServerStatusUpdate } from '../utils/interfaces';
+import {
+    ArsStatusUpdate,
+    CreateImageFinished,
+    CreateImageProgress,
+    IsRunningUpdate,
+    PlayerCountUpdate,
+    ServerStatusUpdate
+} from '../utils/interfaces';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -28,9 +35,11 @@ const ws = useWebSocket(`${wsProtocol}://${api}/ws`, {
 
 watch(ws.data, value => {
     if (value !== 'pong') {
-        console.log(value);
+        // console.log(value);
         const update: ServerStatusUpdate = JSON.parse(value);
-        logsStore.addServerStatusUpdate(update);
+        if (update.type !== 'createImageProgress') {
+            logsStore.addServerStatusUpdate(update);
+        }
         if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);
@@ -40,6 +49,12 @@ watch(ws.data, value => {
         } else if (update.type === 'playerCountUpdate') {
             const playerCountUpdate: PlayerCountUpdate = update as PlayerCountUpdate;
             serversStore.playerCountUpdate(playerCountUpdate.uuid, playerCountUpdate.playerCount);
+        } else if (update.type === 'createImageProgress') {
+            const createImageProgress: CreateImageProgress = update as CreateImageProgress;
+            logsStore.updatePullLog(createImageProgress.info);
+        } else if (update.type === 'createImageFinished') {
+            const createImageFinished: CreateImageFinished = update as CreateImageFinished;
+            logsStore.clearPullLog(createImageFinished.pullId);
         }
     }
 });

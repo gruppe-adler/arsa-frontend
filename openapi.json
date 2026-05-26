@@ -74,7 +74,7 @@
                 }
             }
         },
-        "/api/v2/pull-image/{branch}": {
+        "/api/v2/pull/image/{branch}": {
             "get": {
                 "tags": ["arsa"],
                 "operationId": "get_pull_image",
@@ -95,6 +95,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/pull/logs": {
+            "get": {
+                "tags": ["arsa"],
+                "operationId": "get_pull_logs",
+                "responses": {
+                    "200": {
+                        "description": "Pull logs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PullLog"
+                                    }
                                 }
                             }
                         }
@@ -1203,6 +1224,32 @@
                 "properties": {
                     "identityId": { "type": "string" },
                     "name": { "type": "string" }
+                }
+            },
+            "PullLog": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "errorDetailCode",
+                    "errorDetailMessage",
+                    "status",
+                    "progressDetailCurrent",
+                    "progressDetailTotal"
+                ],
+                "properties": {
+                    "errorDetailCode": { "type": "integer", "format": "int64" },
+                    "errorDetailMessage": { "type": "string" },
+                    "id": { "type": "string" },
+                    "progressDetailCurrent": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "progressDetailTotal": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "pullId": { "type": "string", "format": "uuid" },
+                    "status": { "type": "string" }
                 }
             },
             "Rcon": {
