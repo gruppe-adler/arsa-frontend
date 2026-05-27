@@ -35,12 +35,11 @@ import {
 
 import { useLogsStore } from '../stores/logs';
 
-const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
-const protocol = import.meta.env.VITE_API_PROTOCOL || 'http';
-
 // TODO:
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const apiBaseUrl = `${protocol}://${baseUrl}`;
+// const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
+// const protocol = import.meta.env.VITE_API_PROTOCOL || 'http';
+
+// const apiBaseUrl = `${protocol}://${baseUrl}`;
 
 export async function getServers(): Promise<Server[]> {
     const response = await apiGetServers();

@@ -34,7 +34,16 @@ const props = defineProps({
                 </AlertDialogDescription>
                 <div :style="{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }">
                     <AlertDialogCancel class="btn btn-primary"> {{ props.cancelLabel }} </AlertDialogCancel>
-                    <AlertDialogAction class="btn btn-danger" @click="props.handleFunction"> {{ props.handleLabel }} </AlertDialogAction>
+                    <AlertDialogAction
+                        class="btn btn-danger"
+                        @click="
+                            () => {
+                                props.handleFunction;
+                            }
+                        "
+                    >
+                        {{ props.handleLabel }}
+                    </AlertDialogAction>
                 </div>
             </AlertDialogContent>
         </AlertDialogPortal>

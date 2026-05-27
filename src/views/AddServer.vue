@@ -7,7 +7,7 @@ import ConfigForm from '../components/ConfigForm.vue';
 import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
 import FormTabs from '../components/FormTabs.vue';
 import { Server } from '../api/model';
-import { SettingOrModTab } from './ViewServer.vue';
+import { SettingOrModTab } from '../utils/type.ts';
 
 const router = useRouter();
 const serversStore = useServersStore();

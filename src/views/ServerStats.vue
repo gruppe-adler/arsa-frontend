@@ -82,7 +82,7 @@ const rows = [
         <div class="data-table">
             <div v-for="row in rows" :key="row.key" class="table-row">
                 <span class="stat-label">{{ row.label }}</span>
-                <span class="mono stat-value">{{ stats?.[row.key] ?? '—' }}</span>
+                <!-- <span class="mono stat-value">{{ stats?.[row.key] ?? '—' }}</span> -->
             </div>
         </div>
     </main>
