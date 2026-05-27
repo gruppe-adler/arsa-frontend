@@ -9,7 +9,7 @@ const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
-    options: Array<String>,
+    options: Array<string>,
     selectedIndex: Number,
 });
 const model = defineModel<string>({ required: true });
@@ -21,13 +21,13 @@ const model = defineModel<string>({ required: true });
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
-        <SelectRoot :disabled="props.readonly" v-model="model">
+        <SelectRoot v-model="model" :disabled="props.readonly">
             <SelectTrigger class="select-input select-trigger">
                 <SelectValue />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </SelectTrigger>
             <SelectPortal>
-                <SelectContent class="select-content" position="popper" :side-offset="4">
+                <SelectContent class="select-content" position="popper" :sideOffset="4">
                     <SelectViewport>
                         <SelectItem
                             v-for="opt in options"

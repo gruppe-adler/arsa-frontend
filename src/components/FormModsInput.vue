@@ -94,7 +94,7 @@ function importModset() {
     let modset: Mod[] = [];
     try {
         modset = JSON.parse('[' + text + ']');
-    } catch (error) {
+    } catch {
         alert('Not valid JSON. See browser console for details.');
         return;
     }
@@ -154,32 +154,32 @@ onMounted(() => selectAll());
         </label>
         <div class="mods-wrap">
             <!-- Mod list -->
-            <select class="mods-select" :id="selectId" size="8" :disabled="props.readonly" @focusout="focusout" multiple>
-                <option v-for="mod in localMods" :value="mod">{{ mod2string(mod) }}</option>
+            <select :id="selectId" class="mods-select" size="8" :disabled="props.readonly" multiple @focusout="focusout">
+                <option v-for="mod in localMods" :key="mod.modId" :value="mod">{{ mod2string(mod) }}</option>
             </select>
 
             <!-- Add mod fields -->
-            <div class="add-mod-fields" v-if="!props.readonly">
+            <div v-if="!props.readonly" class="add-mod-fields">
                 <div class="add-mod-row">
                     <label class="add-mod-label">modId</label>
-                    <input class="input" :id="modIdInputId" type="text" />
+                    <input :id="modIdInputId" class="input" type="text" />
                 </div>
                 <div class="add-mod-row">
                     <label class="add-mod-label">name</label>
-                    <input class="input" :id="nameInputId" type="text" />
+                    <input :id="nameInputId" class="input" type="text" />
                 </div>
                 <div class="add-mod-row">
                     <label class="add-mod-label">version <span class="optional">(optional)</span></label>
-                    <input class="input" :id="versionInputId" type="text" />
+                    <input :id="versionInputId" class="input" type="text" />
                 </div>
                 <div class="add-mod-row">
                     <label class="add-mod-label">required <span class="optional">(optional)</span></label>
-                    <input class="checkbox" :id="requiredInputId" type="checkbox" checked />
+                    <input :id="requiredInputId" class="checkbox" type="checkbox" checked />
                 </div>
             </div>
 
             <!-- Action clusters -->
-            <div class="mods-actions" v-if="!props.readonly">
+            <div v-if="!props.readonly" class="mods-actions">
                 <!-- Add / Delete -->
                 <div class="btn-group">
                     <button class="btn" type="button" @click="addMod">
@@ -236,7 +236,7 @@ onMounted(() => selectAll());
             </div>
 
             <!-- Import panel -->
-            <div class="modset-panel" v-if="showImportPanel">
+            <div v-if="showImportPanel" class="modset-panel">
                 <div class="modset-panel-head">
                     <span class="modset-panel-title">Import modeset</span>
                     <button class="btn btn-ghost" type="button" @click="showImportPanel = false">
@@ -246,7 +246,7 @@ onMounted(() => selectAll());
                     </button>
                 </div>
                 <p class="modset-panel-desc">Paste a modset JSON array (without outer brackets) from Arma Reforger.</p>
-                <textarea class="modset-textarea" v-model="importText" placeholder='{ "modId": "...", "name": "..." },' />
+                <textarea v-model="importText" class="modset-textarea" placeholder='{ "modId": "...", "name": "..." },' />
                 <div class="modset-panel-foot">
                     <button class="btn btn-ghost" type="button" @click="showImportPanel = false">Cancel</button>
                     <button class="btn btn-primary" type="button" @click="importModset">Apply</button>
@@ -254,7 +254,7 @@ onMounted(() => selectAll());
             </div>
 
             <!-- Export panel -->
-            <div class="modset-panel" v-if="showExportPanel">
+            <div v-if="showExportPanel" class="modset-panel">
                 <div class="modset-panel-head">
                     <span class="modset-panel-title">Export modeset</span>
                     <button class="btn btn-ghost" type="button" @click="showExportPanel = false">

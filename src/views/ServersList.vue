@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
@@ -11,11 +11,8 @@ const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const router = useRouter();
 
-serversStore.getPublicIp().then(() => {});
-updateServerList();
-
-function updateServerList() {
-    serversStore.getAll().then(() => {});
+async function updateServerList() {
+    await serversStore.getAll();
 }
 
 function onServerDeleted() {
@@ -28,6 +25,11 @@ function onServerCloned() {
 const sortedServers = computed(() => {
     const cloned = Object.assign([], serversStore.servers) as Server[];
     return cloned.sort((a, b) => (a.name < b.name ? -1 : 1));
+});
+
+onMounted(async () => {
+    await serversStore.getPublicIp();
+    await updateServerList();
 });
 </script>
 
@@ -54,16 +56,16 @@ const sortedServers = computed(() => {
             </div>
         </div>
 
-        <div class="servers" v-if="sortedServers.length > 0">
+        <div v-if="sortedServers.length > 0" class="servers">
             <ServerItem
                 v-for="(_item, idx) in sortedServers"
                 :key="sortedServers[idx].uuid"
                 v-model="sortedServers[idx]"
-                @server-deleted="onServerDeleted"
-                @server-cloned="onServerCloned"
+                @serverDeleted="onServerDeleted"
+                @serverCloned="onServerCloned"
             />
         </div>
-        <div class="servers empty-servers" v-else>
+        <div v-else class="servers empty-servers">
             <p class="empty-label">No servers yet. Add one to get started.</p>
         </div>
 

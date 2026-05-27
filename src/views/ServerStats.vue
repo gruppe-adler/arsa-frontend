@@ -55,7 +55,7 @@ const rows = [
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="page-main" v-else>
+    <main v-else class="page-main">
         <div class="breadcrumb">
             <a @click="router.back()">Server</a>
             <span class="sep">/</span>
@@ -74,13 +74,13 @@ const rows = [
                     </svg>
                     Refresh
                 </button>
-                <button class="btn btn-stop" v-if="autoUpdateRunning" @click="stopAutoUpdate">Stop auto-update</button>
-                <button class="btn btn-start" v-else @click="startAutoUpdate">Auto-update</button>
+                <button v-if="autoUpdateRunning" class="btn btn-stop" @click="stopAutoUpdate">Stop auto-update</button>
+                <button v-else class="btn btn-start" @click="startAutoUpdate">Auto-update</button>
             </div>
         </div>
 
         <div class="data-table">
-            <div class="table-row" v-for="row in rows" :key="row.key">
+            <div v-for="row in rows" :key="row.key" class="table-row">
                 <span class="stat-label">{{ row.label }}</span>
                 <span class="mono stat-value">{{ stats?.[row.key] ?? '—' }}</span>
             </div>

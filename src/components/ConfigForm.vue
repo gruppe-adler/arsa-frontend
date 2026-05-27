@@ -42,7 +42,7 @@ const settingsSubTabs = [
     <div class="config-sections">
         <!-- ── Settings tab ── -->
         <template v-if="props.tab === 'settings'">
-            <FormTabs :tabs="settingsSubTabs" v-model="settingsSubTab" list-class="sub-tabs" />
+            <FormTabs v-model="settingsSubTab" :tabs="settingsSubTabs" listClass="sub-tabs" />
 
             <!-- ── Server sub-tab ── -->
             <template v-if="settingsSubTab === 'server'">
@@ -54,13 +54,13 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormTextInput
+                            v-model="server.name"
                             :name="'name'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :placeholder="'Server\'s name'"
                             :length="100"
                             :readonly="props.readonly"
-                            v-model="server.name"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                     </div>
                 </div>
@@ -76,9 +76,9 @@ const settingsSubTabs = [
                             v-for="(_item, idx) in server.startupParameters"
                             :key="idx"
                             v-model="server.startupParameters[idx]"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
                         />
                     </div>
                 </div>
@@ -91,40 +91,40 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormIpAddressInput
+                            v-model="server.config.bindAddress"
                             :name="'bindAddress'"
                             :tooltip="'Local IP address the server binds to. Use 0.0.0.0 to listen on all interfaces, or a specific IP for one interface. Default: 0.0.0.0'"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
-                            v-model="server.config.bindAddress"
                         />
                         <FormNumberInput
+                            v-model="server.config.bindPort"
                             :name="'bindPort'"
                             :tooltip="'Local UDP port the server binds to. Must be open in firewall and forwarded if behind NAT. Range: 1-65535, Default: 2001'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            v-model="server.config.bindPort"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormIpAddressInput
+                            v-model="server.config.publicAddress"
                             :name="'publicAddress'"
                             :tooltip="'Public IP address advertised to server browser and players. Leave empty for automatic detection. Required if behind NAT/firewall. Default: auto-detect'"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
-                            v-model="server.config.publicAddress"
                         />
                         <FormNumberInput
+                            v-model="server.config.publicPort"
                             :name="'publicPort'"
                             :tooltip="'Public UDP port advertised to server browser and players. Should match bindPort or forwarded port if using NAT. Range: 1-65535, Default: 2001'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            v-model="server.config.publicPort"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                     </div>
                 </div>
@@ -137,22 +137,22 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormIpAddressInput
+                            v-model="server.config.a2s.address"
                             :name="'address'"
                             :tooltip="'IP address for Steam A2S query protocol. Used by server browsers to fetch server info. Use 0.0.0.0 for all interfaces. Required.'"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
-                            v-model="server.config.a2s.address"
                         />
                         <FormNumberInput
+                            v-model="server.config.a2s.port"
                             :name="'port'"
                             :tooltip="'UDP port for Steam A2S query protocol. Must be accessible from internet for server listing. Range: 1-65535, Default: 17777'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            v-model="server.config.a2s.port"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                     </div>
                 </div>
@@ -165,62 +165,62 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormIpAddressInput
+                            v-model="server.config.rcon.address"
                             :name="'address'"
                             :tooltip="'IP address for RCON (Remote Console) access. Use 127.0.0.1 for localhost only, or 0.0.0.0 for external access. Required.'"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
-                            v-model="server.config.rcon.address"
                         />
                         <FormNumberInput
+                            v-model="server.config.rcon.port"
                             :name="'port'"
                             :tooltip="'TCP port for RCON connections. Used by admin tools to remotely control the server. Range: 1-65535, Default: 19999'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.port"
-                        />
-                        <FormPasswordInput
-                            :name="'password'"
-                            :tooltip="'RCON password for authentication. No spaces allowed, minimum 3 characters. Keep secure as it grants server control. Required.'"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
+                        />
+                        <FormPasswordInput
+                            v-model="server.config.rcon.password"
+                            :name="'password'"
+                            :tooltip="'RCON password for authentication. No spaces allowed, minimum 3 characters. Keep secure as it grants server control. Required.'"
                             :policyWhitespace="true"
                             :policyMinimum="3"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.password"
-                        />
-                        <FormNumberInput
-                            :name="'maxClients'"
-                            :tooltip="'Maximum simultaneous RCON connections allowed. Limits how many admins can connect at once. Range: 1-16, Default: 16'"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.rcon.maxClients"
+                            :name="'maxClients'"
+                            :tooltip="'Maximum simultaneous RCON connections allowed. Limits how many admins can connect at once. Range: 1-16, Default: 16'"
                             :minVal="1"
                             :maxVal="16"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.maxClients"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormSelectInput
+                            v-model="server.config.rcon.permission"
                             :name="'permission'"
                             :tooltip="'RCON permission level. Monitor: read-only access to view server state. Admin: full control including kick, ban, and config changes.'"
                             :options="['monitor', 'admin']"
                             :selectedIndex="0"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.permission"
                         />
                         <FormMultiSelectModInput
+                            v-model="server.config.rcon.blacklist"
                             :name="'blacklist'"
                             :tooltip="'List of IPs or identity IDs blocked from RCON access. Use to ban specific admins or addresses. Default: []'"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.blacklist"
                         />
                         <FormMultiSelectModInput
+                            v-model="server.config.rcon.whitelist"
                             :name="'whitelist'"
                             :tooltip="'List of IPs or identity IDs allowed RCON access. When set, only these can connect. Overrides blacklist. Default: []'"
                             :readonly="props.readonly"
-                            v-model="server.config.rcon.whitelist"
                         />
                     </div>
                 </div> </template
@@ -236,78 +236,78 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormTextInput
+                            v-model="server.config.game.name"
                             :name="'name'"
                             :tooltip="'Server name displayed in the in-game server browser. This is what players see when searching for servers. Max 100 characters.'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :placeholder="'Server\'s name'"
                             :length="100"
                             :readonly="props.readonly"
                             :pasteValue="server.name"
-                            v-model="server.config.game.name"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormPasswordInput
+                            v-model="server.config.game.password"
                             :name="'password'"
                             :tooltip="'Server password required for players to join. Leave empty for public server. Players must enter this to connect.'"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :readonly="props.readonly"
-                            v-model="server.config.game.password"
                         />
                         <FormPasswordInput
+                            v-model="server.config.game.passwordAdmin"
                             :name="'passwordAdmin'"
                             :tooltip="'Admin password for in-game admin login. No spaces allowed. Grants access to admin commands and functions. Leave empty to disable.'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :policyWhitespace="true"
                             :readonly="props.readonly"
-                            v-model="server.config.game.passwordAdmin"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormMultiSelectModInput
+                            v-model="server.config.game.admins"
                             :name="'admins'"
                             :tooltip="'List of admin identities (BI UID format: 8-4-4-4-12 hex, or Steam ID: 17 digits). These players have permanent admin rights without password.'"
                             :regEx="['^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '^[0-9]{17}$']"
                             :readonly="props.readonly"
-                            v-model="server.config.game.admins"
                         />
                         <FormTextInput
+                            v-model="server.config.game.scenarioId"
                             :name="'scenarioId'"
                             :tooltip="'Mission scenario to load. Format: {GUID}Path/To/Mission.conf (e.g. {59AD59368755F41A}Missions/21_GM_Eden.conf). Required to start server.'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :placeholder="'{59AD59368755F41A}Missions/21_GM_Eden.conf'"
                             :length="100"
                             :readonly="props.readonly"
-                            v-model="server.config.game.scenarioId"
-                        />
-                        <FormNumberInput
-                            :name="'maxPlayers'"
-                            :tooltip="'Maximum number of players allowed on the server simultaneously. Higher values require more resources. Range: 1-128, Default: 64'"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.game.maxPlayers"
+                            :name="'maxPlayers'"
+                            :tooltip="'Maximum number of players allowed on the server simultaneously. Higher values require more resources. Range: 1-128, Default: 64'"
                             :minVal="1"
                             :maxVal="128"
                             :readonly="props.readonly"
-                            v-model="server.config.game.maxPlayers"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.visible"
                             :name="'visible'"
                             :tooltip="'Whether the server appears in the public server browser. Disable for private/unlisted servers. Default: true'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.visible"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.crossPlatform"
                             :name="'crossPlatform'"
                             :tooltip="'Allow crossplay between different platforms (PC, Xbox, PlayStation). Must be supported by all selected platforms. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.crossPlatform"
                         />
                         <FormMultiSelectInput
+                            v-model="server.config.game.supportedPlatforms"
                             :name="'supportedPlatforms'"
                             :tooltip="'Platforms that can connect to this server. PC: Windows/Linux, XBL: Xbox, PSN: PlayStation. Select multiple for crossplay.'"
                             :options="['PLATFORM_PC', 'PLATFORM_XBL', 'PLATFORM_PSN']"
                             :readonly="props.readonly"
-                            v-model="server.config.game.supportedPlatforms"
                         />
                     </div>
                 </div>
@@ -320,79 +320,79 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormNumberInput
+                            v-model="server.config.game.gameProperties.serverMaxViewDistance"
                             :name="'serverMaxViewDistance'"
                             :tooltip="'Maximum view distance in meters enforced by server. Limits how far players can see regardless of client settings. Higher = more performance load. Range: 500-10000, Default: 1600'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="500"
                             :maxVal="10000"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.serverMaxViewDistance"
-                        />
-                        <FormNumberInput
-                            :name="'serverMinGrassDistance'"
-                            :tooltip="'Minimum grass render distance in meters for all players. Prevents players from disabling grass for unfair advantage. 0 = no minimum. Range: 0-150, Default: 0'"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.game.gameProperties.serverMinGrassDistance"
+                            :name="'serverMinGrassDistance'"
+                            :tooltip="'Minimum grass render distance in meters for all players. Prevents players from disabling grass for unfair advantage. 0 = no minimum. Range: 0-150, Default: 0'"
                             :minVal="0"
                             :maxVal="150"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.serverMinGrassDistance"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.fastValidation"
                             :name="'fastValidation'"
                             :tooltip="'Enable fast validation mode for quicker player data checks. Reduces join time but may be less thorough. Default: true'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.fastValidation"
                         />
                         <FormNumberInput
+                            v-model="server.config.game.gameProperties.networkViewDistance"
                             :name="'networkViewDistance'"
                             :tooltip="'Network bubble radius in meters. Defines how far entities are synchronized to each player. Lower = better performance. Range: 500-5000, Default: 1500'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="500"
                             :maxVal="1500"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.networkViewDistance"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.battlEye"
                             :name="'battlEye'"
                             :tooltip="'Enable BattlEye anti-cheat protection. Highly recommended for public servers. Kicks players without BattlEye client. Default: true'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.battlEye"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.disableThirdPerson"
                             :name="'disableThirdPerson'"
                             :tooltip="'Force first-person view only. Disables 3rd person camera for tactical/realistic gameplay. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.disableThirdPerson"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.VONDisableUI"
                             :name="'VONDisableUI'"
                             :tooltip="'Disable Voice-Over-Net UI indicators. Hides all visual feedback for voice chat (speaker icons, etc). Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.VONDisableUI"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.VONDisableDirectSpeechUI"
                             :name="'VONDisableDirectSpeechUI'"
                             :tooltip="'Disable direct speech VON UI indicators only. Hides visual feedback for proximity voice chat specifically. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.VONDisableDirectSpeechUI"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.game.gameProperties.VONCanTransmitCrossFaction"
                             :name="'VONCanTransmitCrossFaction'"
                             :tooltip="'Allow voice communication between enemy factions. Enable for casual play, disable for realism. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.VONCanTransmitCrossFaction"
                         />
                         <FormJsonInput
+                            v-model="server.config.game.gameProperties.missionHeader!"
                             :name="'missionHeader'"
                             :tooltip="'Custom JSON header data passed to the mission. Used for mission-specific configuration. Must be valid JSON object. Default: {}'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :placeholder="'{}'"
                             :readonly="props.readonly"
-                            v-model="server.config.game.gameProperties.missionHeader!"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                     </div>
                 </div> </template
@@ -424,73 +424,73 @@ const settingsSubTabs = [
                     </div>
                     <div class="field-list">
                         <FormCheckboxInput
+                            v-model="server.config.operating.lobbyPlayerSynchronise"
                             :name="'lobbyPlayerSynchronize'"
                             :tooltip="'Synchronize player data in lobby before joining game. Ensures all players load together. Disable for faster individual joins. Default: true'"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.lobbyPlayerSynchronise"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.operating.disableCrashReporter"
                             :name="'disableCrashReporter'"
                             :tooltip="'Disable automatic crash report sending to Bohemia Interactive. Enable for privacy or to reduce network traffic. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.disableCrashReporter"
                         />
                         <FormMultiSelectModInput
+                            v-model="server.config.operating.disableNavmeshStreaming"
                             :name="'disableNavmeshStreaming'"
                             :tooltip="'List of worlds/scenarios to disable AI navmesh streaming for. Can improve performance on static missions. Leave empty for default behavior. Optional parameter.'"
-                            :optional-param="true"
+                            :optionalParam="true"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.disableNavmeshStreaming"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.operating.disableServerShutdown"
                             :name="'disableServerShutdown'"
                             :tooltip="'Prevent server from shutting down when last player disconnects. Keep server running 24/7. Useful for persistence. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.disableServerShutdown"
                         />
                         <FormCheckboxInput
+                            v-model="server.config.operating.disableAI"
                             :name="'disableAI'"
                             :tooltip="'Disable all AI processing on the server. Removes AI units, improves performance. Use for PvP-only servers. Default: false'"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.disableAI"
                         />
                         <FormNumberInput
+                            v-model="server.config.operating.playerSaveTime"
                             :name="'playerSaveTime'"
                             :tooltip="'Auto-save interval in seconds for player data/progress. Lower = more frequent saves, higher load. 0 = save only on disconnect. Default: 120'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="0"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.playerSaveTime"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormNumberInput
+                            v-model="server.config.operating.aiLimit"
                             :name="'aiLimit'"
                             :tooltip="'Hard limit on total AI units. 0 = no AI allowed, -1 = ignore this setting (unlimited), positive number = max AI count. Default: -1 (ignored)'"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
                             :minVal="-1"
                             :readonly="props.readonly"
-                            v-model="server.config.operating.aiLimit"
+                            @violIncr="violIncr"
+                            @violDecr="violDecr"
                         />
                         <FormNumberInput
+                            v-model="server.config.operating.slotReservationTimeout"
                             :name="'slotReservationTimeout'"
                             :tooltip="'Seconds a player slot is reserved during connection before timing out. Prevents slot blocking by slow connections. Range: 5-300, Default: 60'"
+                            :minVal="5"
+                            :maxVal="300"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :minVal="5"
-                            :max-val="300"
-                            :readonly="props.readonly"
-                            v-model="server.config.operating.slotReservationTimeout"
                         />
                         <FormNumberInput
+                            v-model="server.config.operating.joinQueue.maxSize"
                             :name="'joinQueue.maxSize'"
                             :tooltip="'Maximum queue size when server is full. 0 = no queue (reject immediately), 1-50 = queue size. Players wait in queue for open slot. Range: 0-50, Default: 0'"
+                            :minVal="0"
+                            :maxVal="50"
+                            :readonly="props.readonly"
                             @violIncr="violIncr"
                             @violDecr="violDecr"
-                            :minVal="0"
-                            :max-val="50"
-                            :readonly="props.readonly"
-                            v-model="server.config.operating.joinQueue.maxSize"
                         />
                     </div>
                 </div> </template
@@ -506,17 +506,17 @@ const settingsSubTabs = [
                 </div>
                 <div class="field-list">
                     <FormCheckboxInput
+                        v-model="server.config.game.modsRequiredByDefault"
                         :name="'modsRequiredByDefault'"
                         :tooltip="'When enabled, all mods are required by default unless individually set to optional. When disabled, mods are optional by default.'"
                         :readonly="props.readonly"
-                        v-model="server.config.game.modsRequiredByDefault"
                     />
-                    <FormModsInput :name="'mods'" :readonly="props.readonly" v-model="server.config.game.mods" />
+                    <FormModsInput v-model="server.config.game.mods" :name="'mods'" :readonly="props.readonly" />
                 </div>
             </div> </template
         ><!-- end mods tab -->
 
-        <p class="violation-notice" v-if="inputViolationCounter > 0">
+        <p v-if="inputViolationCounter > 0" class="violation-notice">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 9v4M12 17h.01M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
             </svg>

@@ -78,25 +78,25 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="tab-actions">
-        <span class="timestamp" v-if="timestamp">Last updated {{ timestamp }}</span>
+        <span v-if="timestamp" class="timestamp">Last updated {{ timestamp }}</span>
         <span class="stretch"></span>
-        <button class="btn" @click="updateStats" :disabled="loading">
+        <button class="btn" :disabled="loading" @click="updateStats">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6" />
             </svg>
             Refresh
         </button>
-        <button class="btn btn-stop" v-if="autoUpdateRunning" @click="stopAutoUpdate">Stop auto-update</button>
-        <button class="btn btn-start" v-else @click="startAutoUpdate">Auto-update</button>
+        <button v-if="autoUpdateRunning" class="btn btn-stop" @click="stopAutoUpdate">Stop auto-update</button>
+        <button v-else class="btn btn-start" @click="startAutoUpdate">Auto-update</button>
     </div>
 
-    <div class="data-table" v-if="stats">
-        <div class="table-row" v-for="stat in stats" :key="stat.order">
+    <div v-if="stats" class="data-table">
+        <div v-for="stat in stats" :key="stat.order" class="table-row">
             <span class="stat-label">{{ stat.label }}</span>
             <span class="mono stat-value">{{ stat.value }}</span>
         </div>
     </div>
-    <div class="empty-box" v-else>
+    <div v-else class="empty-box">
         <span v-if="loading" class="loading-text">Loading…</span>
         <span v-else>No stats available. Server may be offline.</span>
     </div>

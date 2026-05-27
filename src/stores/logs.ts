@@ -22,7 +22,7 @@ export const useLogsStore = defineStore('logs', {
     },
     actions: {
         async add(message: string) {
-            let msg = { type: 'message', message: message } as Message;
+            const msg = { type: 'message', message: message } as Message;
             this.logs.push({ timestamp: new Date(), log: msg });
         },
 
@@ -30,11 +30,14 @@ export const useLogsStore = defineStore('logs', {
             return logs.reduce((acc, log) => {
                 const pullId = log.pullId ?? 'unknown';
 
-                if (!acc.has(pullId)) {
-                    acc.set(pullId, new Map());
+                let value = acc.get(pullId);
+                if (!value) {
+                    value = new Map();
                 }
 
-                acc.get(pullId)!.set(log.id, log);
+                value.set(log.id, log);
+
+                acc.set(pullId, value);
 
                 return acc;
             }, new Map<string, Map<string, PullLog>>());
@@ -43,11 +46,12 @@ export const useLogsStore = defineStore('logs', {
         upsertPullLog(grouped: Map<string, Map<string, PullLog>>, log: PullLog): void {
             const pullId = log.pullId ?? 'unknown';
 
-            if (!grouped.has(pullId)) {
-                grouped.set(pullId, new Map());
+            let value = grouped.get(pullId);
+            if (!value) {
+                value = new Map();
             }
 
-            grouped.get(pullId)!.set(log.id, log);
+            value.set(log.id, log);
         },
 
         async loadPullLogs(): Promise<void> {

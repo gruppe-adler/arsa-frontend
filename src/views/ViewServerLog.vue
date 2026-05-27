@@ -33,7 +33,7 @@ function refresh() {
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="page-main" v-else>
+    <main v-else class="page-main">
         <div class="breadcrumb">
             <a @click="router.push(`/server-logs-list/${route.params.id}`)">Logs</a>
             <span class="sep">/</span>
@@ -55,6 +55,7 @@ function refresh() {
             </div>
         </div>
 
+        <!-- eslint-disable-next-line vue/no-v-html -->
         <div class="log-block" v-html="serverLog"></div>
     </main>
 </template>

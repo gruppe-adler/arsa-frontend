@@ -13,7 +13,7 @@ const activeTab = defineModel<string>({ required: true });
 </script>
 
 <template>
-    <TabsRoot :model-value="activeTab" @update:model-value="activeTab = $event">
+    <TabsRoot :modelValue="activeTab" @update:modelValue="activeTab = $event">
         <TabsList class="tabs" :class="props.listClass">
             <TabsTrigger
                 v-for="tab in props.tabs"

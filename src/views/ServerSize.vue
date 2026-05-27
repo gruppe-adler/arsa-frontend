@@ -45,7 +45,7 @@ onMounted(() => getSize());
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="page-main" v-else>
+    <main v-else class="page-main">
         <div class="breadcrumb">
             <a @click="router.back()">Server</a>
             <span class="sep">/</span>
@@ -67,12 +67,12 @@ onMounted(() => getSize());
                         <span class="size-label">Mods</span>
                         <span class="size-value mono">{{ prettyBytes(size.addonsSize) }}</span>
                     </div>
-                    <pre class="size-pre" v-if="allMods">{{ allMods }}</pre>
+                    <pre v-if="allMods" class="size-pre">{{ allMods }}</pre>
                     <div class="size-subrow">
                         <span class="size-label">Logs</span>
                         <span class="size-value mono">{{ prettyBytes(size.logsSize) }}</span>
                     </div>
-                    <pre class="size-pre" v-if="allLogs">{{ allLogs }}</pre>
+                    <pre v-if="allLogs" class="size-pre">{{ allLogs }}</pre>
                 </div>
             </div>
 

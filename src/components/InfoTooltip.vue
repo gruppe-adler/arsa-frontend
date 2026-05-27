@@ -16,8 +16,8 @@ function toggleTooltip() {
 </script>
 
 <template>
-  <TooltipRoot v-model:open="open" :disable-hoverable-content="true">
-    <TooltipTrigger as-child>
+  <TooltipRoot v-model:open="open" :disableHoverableContent="true">
+    <TooltipTrigger asChild>
       <button
         type="button"
         class="info-icon"
@@ -36,8 +36,8 @@ function toggleTooltip() {
         class="tooltip-content"
         :side="side"
         :align="align"
-        :side-offset="8"
-        :collision-padding="16"
+        :sideOffset="8"
+        :collisionPadding="16"
       >
         <span class="tooltip-text">{{ content }}</span>
         <TooltipArrow class="tooltip-arrow" :width="10" :height="5" />

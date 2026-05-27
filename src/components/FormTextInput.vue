@@ -46,8 +46,9 @@ watch(
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
         <div v-if="props.pasteValue !== undefined" class="text-input-row">
-            <input type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
-                :disabled="props.readonly" v-model.trim="model" />
+            <input
+v-model.trim="model" type="text" :maxlength="length" :placeholder="placeholder!"
+                :style="style" :disabled="props.readonly" />
             <button
                 v-if="!props.readonly"
                 class="btn btn-ghost"
@@ -59,8 +60,9 @@ watch(
                 Use identity
             </button>
         </div>
-        <input v-else type="text" :maxlength="length" :placeholder="placeholder!" :style="style"
-            :disabled="props.readonly" v-model.trim="model" />
+        <input
+v-else v-model.trim="model" type="text" :maxlength="length" :placeholder="placeholder!"
+            :style="style" :disabled="props.readonly" />
     </div>
 </template>
 

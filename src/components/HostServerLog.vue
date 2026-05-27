@@ -35,9 +35,9 @@ function textToParts(text: string): Part[] {
     const parts: Part[] = [];
     let last = 0;
     for (const m of text.matchAll(UUID_RE)) {
-        if (m.index! > last) parts.push({ kind: 'text', text: text.slice(last, m.index) });
+        if (m.index > last) parts.push({ kind: 'text', text: text.slice(last, m.index) });
         parts.push({ kind: 'chip', uuid: m[0], serverName: resolveServerName(m[0]) });
-        last = m.index! + m[0].length;
+        last = m.index + m[0].length;
     }
     if (last < text.length) parts.push({ kind: 'text', text: text.slice(last) });
     return parts.length ? parts : [{ kind: 'text', text }];
@@ -159,14 +159,14 @@ async function copyAllLogs() {
                 <path d="M5 12l5 5L20 7" />
             </svg>
         </button>
-        <div class="log-block" v-if="parsedLogs.length > 0">
-            <div class="log-row" v-for="(entry, i) in parsedLogs" :key="i">
-                <TooltipRoot :delay-duration="0">
-                    <TooltipTrigger as-child>
+        <div v-if="parsedLogs.length > 0" class="log-block">
+            <div v-for="(entry, i) in parsedLogs" :key="i" class="log-row">
+                <TooltipRoot :delayDuration="0">
+                    <TooltipTrigger asChild>
                         <span class="log-time">{{ entry.relativeTime || entry.timestamp }}</span>
                     </TooltipTrigger>
                     <TooltipPortal>
-                        <TooltipContent class="log-time-tooltip" side="right" :side-offset="8">
+                        <TooltipContent class="log-time-tooltip" side="right" :sideOffset="8">
                             {{ entry.timestamp }}
                         </TooltipContent>
                     </TooltipPortal>
@@ -214,7 +214,7 @@ async function copyAllLogs() {
                 </span>
             </div>
         </div>
-        <div class="log-block empty-log" v-else>
+        <div v-else class="log-block empty-log">
             <span class="log-empty">No log entries yet.</span>
         </div>
     </div>

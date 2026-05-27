@@ -14,7 +14,7 @@ const validate = ajv.compile(arsConfigSchema);
 
 const server = defineModel<Server>('server', { required: true });
 
-function downloadConfig(filename: string, data: any) {
+function downloadConfig(filename: string, data: Server | ServerConfig) {
     const blob = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
     const a = document.createElement('a');
     a.setAttribute('href', blob);
@@ -41,7 +41,7 @@ function uploadConfig() {
             let json: ServerConfig = defaultConfig;
             try {
                 json = JSON.parse(content);
-            } catch (error) {
+            } catch {
                 alert('Not valid JSON. See browser console for details.');
                 return;
             }

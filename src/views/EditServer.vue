@@ -12,6 +12,7 @@ import TabStats from '../components/TabStats.vue';
 import TabSize from '../components/TabSize.vue';
 import TabLogs from '../components/TabLogs.vue';
 import { Server } from '../api/model';
+import { SettingOrModTab } from '../utils/type';
 
 const router = useRouter();
 const route = useRoute();
@@ -63,7 +64,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="form-container" v-else>
+    <main v-else class="form-container">
         <div class="breadcrumb">
             <a @click="router.push('/servers-list')">Servers</a>
             <span class="sep">/</span>
@@ -101,19 +102,19 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
         <!-- Settings / Mods -->
         <ConfigForm
             v-if="isFormTab"
-            v-model:input-violation-counter="inputViolationCounter"
+            v-model:inputViolationCounter="inputViolationCounter"
             v-model:server="server"
-            :tab="activeTab as 'settings' | 'mods'"
+            :tab="activeTab as SettingOrModTab"
         />
 
         <!-- Other tabs -->
-        <TabPlayers v-else-if="activeTab === 'players'" :server-id="server.uuid ?? ''" />
-        <TabStats v-else-if="activeTab === 'stats'" :server-id="server.uuid ?? ''" />
-        <TabSize v-else-if="activeTab === 'size'" :server-id="server.uuid ?? ''" />
-        <TabLogs v-else-if="activeTab === 'logs'" :server-id="server.uuid ?? ''" />
+        <TabPlayers v-else-if="activeTab === 'players'" :serverId="server.uuid ?? ''" />
+        <TabStats v-else-if="activeTab === 'stats'" :serverId="server.uuid ?? ''" />
+        <TabSize v-else-if="activeTab === 'size'" :serverId="server.uuid ?? ''" />
+        <TabLogs v-else-if="activeTab === 'logs'" :serverId="server.uuid ?? ''" />
 
         <!-- Save toolbar shown only on form tabs -->
-        <div class="form-toolbar" v-if="isFormTab">
+        <div v-if="isFormTab" class="form-toolbar">
             <div class="form-toolbar-status">
                 <span class="dot" :class="disabled ? 'red' : 'green'"></span>
                 <span v-if="disabled"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue';
 import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
@@ -10,7 +9,7 @@ const props = defineProps({
     placeholder: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits(['violIncr', 'violDecr']);
 
 const model = defineModel<object>({ required: true });
 
@@ -26,9 +25,8 @@ const style = computed<string>(() => {
             violation = false;
             emit('violDecr');
         }
-    }
-    catch (e) {
-        style = "background: rgba(255,0,0,0.5);";
+    } catch {
+        style = 'background: rgba(255,0,0,0.5);';
         if (!violation) {
             violation = true;
             emit('violIncr');
@@ -37,7 +35,6 @@ const style = computed<string>(() => {
 
     return style;
 });
-
 </script>
 
 <template>
@@ -46,13 +43,13 @@ const style = computed<string>(() => {
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
-        <textarea class="json-input" rows="5" :style="style" :disabled="props.readonly" v-model="missionHeader" />
+        <textarea v-model="missionHeader" class="json-input" rows="5" :style="style" :disabled="props.readonly" />
     </div>
 </template>
 
 <style scoped>
-    .json-input {
-        resize: none;
-        overflow-y: scroll;
-    }
+.json-input {
+    resize: none;
+    overflow-y: scroll;
+}
 </style>

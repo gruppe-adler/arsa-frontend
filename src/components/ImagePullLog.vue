@@ -17,7 +17,7 @@ async function fetchData() {
 
 onMounted(fetchData);
 
-function formatId(pullLog: PullLog): String {
+function formatId(pullLog: PullLog): string {
     const isGuid = new RegExp(UUID_REG_EXP, UUID_REG_EXP_FLAGS).test(pullLog.id);
     if (isGuid) {
         return '';
@@ -25,8 +25,8 @@ function formatId(pullLog: PullLog): String {
     return pullLog.id + ': ';
 }
 
-function formatStatus(pullLog: PullLog): String {
-    let ret: String = '';
+function formatStatus(pullLog: PullLog): string {
+    let ret = '';
 
     if (pullLog.status && pullLog.status.length > 0) {
         ret = pullLog.status;
@@ -38,7 +38,7 @@ function formatStatus(pullLog: PullLog): String {
     return ret;
 }
 
-function formatProgress(pullLog: PullLog): String {
+function formatProgress(pullLog: PullLog): string {
     if (pullLog.progressDetailCurrent && pullLog.progressDetailTotal) {
         return `${prettyBytes(pullLog.progressDetailCurrent)} / ${prettyBytes(pullLog.progressDetailTotal)} (${((pullLog.progressDetailCurrent / pullLog.progressDetailTotal) * 100).toFixed(2)}%)`;
     } else if (pullLog.progressDetailCurrent && pullLog.progressDetailCurrent > 0 && !pullLog.progressDetailTotal) {
@@ -68,7 +68,7 @@ function getProgressValue(pullLog: PullLog): number {
     return 0;
 }
 
-function getBranchFromLogMap(pullLogMaps: Map<string, PullLog>): String {
+function getBranchFromLogMap(pullLogMaps: Map<string, PullLog>): string {
     return [...pullLogMaps.keys()].find(key => Object.values(Branch).includes(key as Branch)) ?? '';
 }
 </script>

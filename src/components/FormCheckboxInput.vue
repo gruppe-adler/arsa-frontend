@@ -20,8 +20,8 @@ const model = defineModel<boolean>({ required: true });
             class="switch"
             :class="{ 'switch-disabled': props.readonly }"
             :disabled="props.readonly"
-            :model-value="model"
-            @update:model-value="model = $event"
+            :modelValue="model"
+            @update:modelValue="model = $event"
         >
             <SwitchThumb class="switch-track">
                 <span class="switch-knob" />
@@ -51,7 +51,7 @@ const model = defineModel<boolean>({ required: true });
     transition: background 140ms ease;
     display: block;
 }
-.switch[data-state="checked"] .switch-track {
+.switch[data-state='checked'] .switch-track {
     background: var(--ink);
 }
 .switch-knob {
@@ -66,7 +66,7 @@ const model = defineModel<boolean>({ required: true });
     transition: transform 140ms ease;
     display: block;
 }
-.switch[data-state="checked"] .switch-knob {
+.switch[data-state='checked'] .switch-knob {
     transform: translateX(16px);
 }
 .switch-disabled {

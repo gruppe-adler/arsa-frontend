@@ -54,44 +54,44 @@ function onDelete(logName: string) {
 </script>
 
 <template>
-    <div class="tab-loading" v-if="loading">Loading…</div>
+    <div v-if="loading" class="tab-loading">Loading…</div>
     <template v-else>
-        <div class="logs-table" v-if="sorted.length > 0 || serverLogs.containsCrashReportLog">
-            <div class="log-row" v-if="serverLogs.containsCrashReportLog">
+        <div v-if="sorted.length > 0 || serverLogs.containsCrashReportLog" class="logs-table">
+            <div v-if="serverLogs.containsCrashReportLog" class="log-row">
                 <span class="mono log-dir">CrashReports.log</span>
                 <div class="log-links">
                     <RouterLink class="log-link" :to="`/view-crash-reports-log/${props.serverId}`">View</RouterLink>
                 </div>
                 <div></div>
             </div>
-            <div class="log-row" v-for="log in sorted" :key="log.dir">
-                <TooltipRoot :delay-duration="0">
-                    <TooltipTrigger as-child>
+            <div v-for="log in sorted" :key="log.dir" class="log-row">
+                <TooltipRoot :delayDuration="0">
+                    <TooltipTrigger asChild>
                         <span class="mono log-dir">{{ getRelativeTime(log.dir) }}</span>
                     </TooltipTrigger>
                     <TooltipPortal>
-                        <TooltipContent class="log-time-tooltip" side="right" :side-offset="8">
+                        <TooltipContent class="log-time-tooltip" side="right" :sideOffset="8">
                             {{ log.dir }}
                         </TooltipContent>
                     </TooltipPortal>
                 </TooltipRoot>
                 <div class="log-links">
                     <RouterLink
+                        v-if="log.containsConsoleLog"
                         class="log-link"
                         :to="`/view-server-log/${props.serverId}/${log.dir}/console.log`"
-                        v-if="log.containsConsoleLog"
                         >console.log</RouterLink
                     >
-                    <RouterLink class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/error.log`" v-if="log.containsErrorLog"
+                    <RouterLink v-if="log.containsErrorLog" class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/error.log`"
                         >error.log</RouterLink
                     >
                     <RouterLink
+                        v-if="log.containsScriptLog"
                         class="log-link"
                         :to="`/view-server-log/${props.serverId}/${log.dir}/script.log`"
-                        v-if="log.containsScriptLog"
                         >script.log</RouterLink
                     >
-                    <RouterLink class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/crash.log`" v-if="log.containsCrashLog"
+                    <RouterLink v-if="log.containsCrashLog" class="log-link" :to="`/view-server-log/${props.serverId}/${log.dir}/crash.log`"
                         >crash.log</RouterLink
                     >
                 </div>
@@ -100,7 +100,7 @@ function onDelete(logName: string) {
                 </div>
             </div>
         </div>
-        <div class="empty-box" v-else>No log entries found.</div>
+        <div v-else class="empty-box">No log entries found.</div>
     </template>
 </template>
 

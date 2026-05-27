@@ -38,7 +38,7 @@ function onClickDelete(logName: string) {
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="page-main" v-else>
+    <main v-else class="page-main">
         <div class="breadcrumb">
             <a @click="router.back()">Server</a>
             <span class="sep">/</span>
@@ -49,39 +49,39 @@ function onClickDelete(logName: string) {
             <h1>Server Logs</h1>
         </div>
 
-        <div class="logs-table" v-if="sortedServerLogs.length > 0 || serverLogs.containsCrashReportLog">
-            <div class="log-row crash-row" v-if="serverLogs.containsCrashReportLog">
+        <div v-if="sortedServerLogs.length > 0 || serverLogs.containsCrashReportLog" class="logs-table">
+            <div v-if="serverLogs.containsCrashReportLog" class="log-row crash-row">
                 <span class="mono log-dir">CrashReports.log</span>
                 <div class="log-links">
                     <RouterLink class="log-link" :to="`/view-crash-reports-log/${route.params.id}`">View</RouterLink>
                 </div>
                 <div class="log-actions"></div>
             </div>
-            <div class="log-row" v-for="log in sortedServerLogs" :key="log.dir">
+            <div v-for="log in sortedServerLogs" :key="log.dir" class="log-row">
                 <span class="mono log-dir">{{ log.dir }}</span>
                 <div class="log-links">
                     <RouterLink
+                        v-if="log.containsConsoleLog"
                         class="log-link"
                         :to="`/view-server-log/${route.params.id}/${log.dir}/console.log`"
-                        v-if="log.containsConsoleLog"
                         >console.log</RouterLink
                     >
                     <RouterLink
+                        v-if="log.containsErrorLog"
                         class="log-link"
                         :to="`/view-server-log/${route.params.id}/${log.dir}/error.log`"
-                        v-if="log.containsErrorLog"
                         >error.log</RouterLink
                     >
                     <RouterLink
+                        v-if="log.containsScriptLog"
                         class="log-link"
                         :to="`/view-server-log/${route.params.id}/${log.dir}/script.log`"
-                        v-if="log.containsScriptLog"
                         >script.log</RouterLink
                     >
                     <RouterLink
+                        v-if="log.containsCrashLog"
                         class="log-link"
                         :to="`/view-server-log/${route.params.id}/${log.dir}/crash.log`"
-                        v-if="log.containsCrashLog"
                         >crash.log</RouterLink
                     >
                 </div>
@@ -90,7 +90,7 @@ function onClickDelete(logName: string) {
                 </div>
             </div>
         </div>
-        <div class="empty-box" v-else>No log entries found.</div>
+        <div v-else class="empty-box">No log entries found.</div>
     </main>
 </template>
 

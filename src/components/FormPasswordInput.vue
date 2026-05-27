@@ -66,7 +66,7 @@ watch(
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
         <div class="form-custom-input">
-            <input class="password-input" :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
+            <input :id="inputId" v-model="model" class="password-input" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly">
             <button class="form-input-button" type="button" @click="togglePasswordVisibility($event)">Show</button>
         </div>
     </div>

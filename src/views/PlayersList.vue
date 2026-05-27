@@ -29,7 +29,7 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="page-main" v-else>
+    <main v-else class="page-main">
         <div class="breadcrumb">
             <a @click="router.back()">Server</a>
             <span class="sep">/</span>
@@ -43,17 +43,17 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
             </div>
         </div>
 
-        <div class="data-table" v-if="sortedKnownPlayers.length > 0">
+        <div v-if="sortedKnownPlayers.length > 0" class="data-table">
             <div class="table-row table-head">
                 <span>Name</span>
                 <span>Identity ID</span>
             </div>
-            <div class="table-row" v-for="player in sortedKnownPlayers" :key="player.identityId">
+            <div v-for="player in sortedKnownPlayers" :key="player.identityId" class="table-row">
                 <span class="player-name">{{ player.name }}</span>
                 <span class="mono player-id">{{ player.identityId }}</span>
             </div>
         </div>
-        <div class="empty-box" v-else>No players recorded yet.</div>
+        <div v-else class="empty-box">No players recorded yet.</div>
     </main>
 </template>
 

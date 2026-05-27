@@ -7,6 +7,7 @@ import ConfigForm from '../components/ConfigForm.vue';
 import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
 import FormTabs from '../components/FormTabs.vue';
 import { Server } from '../api/model';
+import { SettingOrModTab } from './ViewServer.vue';
 
 const router = useRouter();
 const serversStore = useServersStore();
@@ -43,12 +44,8 @@ function addServer() {
             </div>
         </div>
 
-        <FormTabs :tabs="tabs" v-model="activeTab" />
-        <ConfigForm
-            v-model:input-violation-counter="inputViolationCounter"
-            v-model:server="server"
-            :tab="activeTab as 'settings' | 'mods'"
-        />
+        <FormTabs v-model="activeTab" :tabs="tabs" />
+        <ConfigForm v-model:inputViolationCounter="inputViolationCounter" v-model:server="server" :tab="activeTab as SettingOrModTab" />
 
         <div class="form-toolbar">
             <div class="form-toolbar-status">

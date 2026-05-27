@@ -60,4 +60,4 @@ watch(ws.data, value => {
 });
 </script>
 
-<template></template>
+<template><div></div></template>

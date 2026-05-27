@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { watch } from 'vue';
 import InfoTooltip from './InfoTooltip.vue';
 
@@ -11,25 +10,25 @@ const props = defineProps({
     maxVal: Number
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits(['violIncr', 'violDecr']);
 
 const model = defineModel<number>({ required: true });
 
 let violation = false;
 
-let style = "";
+let style = '';
 
 watch(
     model,
-    (value) => {
-        if (value < props.minVal! || value > props.maxVal!) {
-            style = "background: rgba(255,0,0,0.5);";
+    value => {
+        if ((props.minVal && value < props.minVal) || (props.maxVal && value > props.maxVal)) {
+            style = 'background: rgba(255,0,0,0.5);';
             if (!violation) {
                 violation = true;
                 emit('violIncr');
             }
         } else {
-            style = "";
+            style = '';
             if (violation) {
                 violation = false;
                 emit('violDecr');
@@ -38,7 +37,6 @@ watch(
     },
     { immediate: true }
 );
-
 </script>
 
 <template>
@@ -47,9 +45,17 @@ watch(
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
-        <input class="form-custom-input" type="number" :min="minVal" :max="maxVal" step="1" :disabled="props.readonly" :style="style" v-model="model">
+        <input
+            v-model="model"
+            class="form-custom-input"
+            type="number"
+            :min="minVal"
+            :max="maxVal"
+            step="1"
+            :disabled="props.readonly"
+            :style="style"
+        />
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

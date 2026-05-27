@@ -44,8 +44,8 @@ const arsStatusLabel = computed(() => ArsStatus[serversStore.arsStatus]);
                 <Menu />
                 <button
                     class="theme-toggle"
-                    @click="toggleTheme"
                     :aria-label="theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'"
+                    @click="toggleTheme"
                 >
                     <svg v-if="theme === 'light'" width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path

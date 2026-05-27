@@ -11,6 +11,7 @@ import TabStats from '../components/TabStats.vue';
 import TabSize from '../components/TabSize.vue';
 import TabLogs from '../components/TabLogs.vue';
 import { Server } from '../api/model';
+import { SettingOrModTab } from '../utils/type';
 
 const route = useRoute();
 const router = useRouter();
@@ -51,7 +52,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <main class="form-container" v-else>
+    <main v-else class="form-container">
         <div class="breadcrumb">
             <a @click="router.push('/servers-list')">Servers</a>
             <span class="sep">/</span>
@@ -61,8 +62,8 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
         <div class="server-detail-header">
             <h1>
                 {{ server.name }}
-                <span class="badge" v-if="server.isRunning"><span class="dot green"></span>Online</span>
-                <span class="badge offline" v-else><span class="dot"></span>Offline</span>
+                <span v-if="server.isRunning" class="badge"><span class="dot green"></span>Online</span>
+                <span v-else class="badge offline"><span class="dot"></span>Offline</span>
             </h1>
             <div class="header-actions">
                 <button class="btn" type="button" @click="onClone">Clone</button>
@@ -84,15 +85,15 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
 
         <ConfigForm
             v-if="isFormTab"
-            readonly
-            v-model:input-violation-counter="inputViolationCounter"
+            v-model:inputViolationCounter="inputViolationCounter"
             v-model:server="server"
-            :tab="activeTab as 'settings' | 'mods'"
+            readonly
+            :tab="activeTab as SettingOrModTab"
         />
-        <TabPlayers v-else-if="activeTab === 'players'" :server-id="server.uuid ?? ''" />
-        <TabStats v-else-if="activeTab === 'stats'" :server-id="server.uuid ?? ''" />
-        <TabSize v-else-if="activeTab === 'size'" :server-id="server.uuid ?? ''" />
-        <TabLogs v-else-if="activeTab === 'logs'" :server-id="server.uuid ?? ''" />
+        <TabPlayers v-else-if="activeTab === 'players'" :serverId="server.uuid ?? ''" />
+        <TabStats v-else-if="activeTab === 'stats'" :serverId="server.uuid ?? ''" />
+        <TabSize v-else-if="activeTab === 'size'" :serverId="server.uuid ?? ''" />
+        <TabLogs v-else-if="activeTab === 'logs'" :serverId="server.uuid ?? ''" />
     </main>
 </template>
 

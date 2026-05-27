@@ -54,10 +54,12 @@ async function getPublicIp(): Promise<void> {
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
         <div class="form-custom-input">
-            <input class="ip-address-input" type="text" :disabled="props.readonly" :style="style"
-                v-model="model">
-            <button class="form-input-button" type="button" @click="getPublicIp"
-                :disabled="props.readonly">Auto</button>
+            <input
+v-model="model" class="ip-address-input" type="text" :disabled="props.readonly"
+                :style="style">
+            <button
+class="form-input-button" type="button" :disabled="props.readonly"
+                @click="getPublicIp">Auto</button>
         </div>
     </div>
 </template>

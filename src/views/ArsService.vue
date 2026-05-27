@@ -105,19 +105,19 @@ updateArsStatus();
                     </svg>
                     <span>Destructive — do not run unless you know what you're doing.</span>
                 </div>
-                <div v-for="[branch, version] in branchVersions" class="card-foot">
+                <div v-for="[branch, version] in branchVersions" :key="branch" class="card-foot">
                     <span class="card-foot-note">Branch: {{ branch }} Version: {{ version ?? 'n/a' }}</span>
                     <button class="btn btn-danger" :disabled="recreateDisabled" @click="pullImage(branch)">
                         Pull latest image ({{ branch }})
                     </button>
                     <Dialog
                         :disabled="recreateDisabled"
-                        :trigger-label="`Pull latest image (${branch})`"
-                        :title-label="`Pull latest image (${branch})`"
+                        :triggerLabel="`Pull latest image (${branch})`"
+                        :titleLabel="`Pull latest image (${branch})`"
                         :description="`Rebuild the ARS container image (Branch: ${branch}) from scratch. Any running servers will be stopped. This operation may take several minutes.`"
-                        :cancel-label="'Cancel'"
-                        :handle-label="'Start pull'"
-                        :handle-function="() => pullImage(branch)"
+                        :cancelLabel="'Cancel'"
+                        :handleLabel="'Start pull'"
+                        :handleFunction="() => pullImage(branch)"
                     ></Dialog>
                 </div>
             </div>

@@ -26,19 +26,19 @@ const sorted = computed(() => [...knownPlayers.value].sort((a, b) => (a.name < b
 </script>
 
 <template>
-    <div class="tab-loading" v-if="loading">Loading…</div>
+    <div v-if="loading" class="tab-loading">Loading…</div>
     <template v-else>
-        <div class="data-table" v-if="sorted.length > 0">
+        <div v-if="sorted.length > 0" class="data-table">
             <div class="table-row table-head">
                 <span>Name</span>
                 <span>Identity ID</span>
             </div>
-            <div class="table-row" v-for="player in sorted" :key="player.identityId">
+            <div v-for="player in sorted" :key="player.identityId" class="table-row">
                 <span class="player-name">{{ player.name }}</span>
                 <span class="mono player-id">{{ player.identityId }}</span>
             </div>
         </div>
-        <div class="empty-box" v-else>No players recorded yet.</div>
+        <div v-else class="empty-box">No players recorded yet.</div>
     </template>
 </template>
 

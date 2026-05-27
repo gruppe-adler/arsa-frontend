@@ -1,4 +1,3 @@
-import { error } from 'ajv/dist/vocabularies/applicator/dependencies';
 import {
     getServers as apiGetServers,
     getServer as apiGetServer,
@@ -30,7 +29,8 @@ import {
     type LogType,
     type FileContentResponse,
     type PutServerBody,
-    PullLog
+    PullLog,
+    UuidResponse
 } from '../api/model';
 
 import { useLogsStore } from '../stores/logs';
@@ -38,6 +38,8 @@ import { useLogsStore } from '../stores/logs';
 const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
 const protocol = import.meta.env.VITE_API_PROTOCOL || 'http';
 
+// TODO:
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const apiBaseUrl = `${protocol}://${baseUrl}`;
 
 export async function getServers(): Promise<Server[]> {
@@ -161,7 +163,7 @@ export async function addServer(server: Server): Promise<string> {
     const response = await apiPostServer(server as PostServerBody);
     const logsStore = useLogsStore();
     if (response.status === 200) {
-        const uuid = (response.data as any)?.uuid || '';
+        const uuid = (response.data as UuidResponse)?.uuid || '';
         logsStore.add(`New Server added with UUID: ${uuid}`);
         return uuid;
     }

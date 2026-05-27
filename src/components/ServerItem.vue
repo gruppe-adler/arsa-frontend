@@ -13,9 +13,12 @@ const copyState = ref<'idle' | 'copied'>('idle');
 let copyTimer: ReturnType<typeof setTimeout>;
 
 async function copyUuid() {
-    const uuid = model.value!.uuid;
+    if (!model?.value?.uuid) {
+        return;
+    }
+    const uuid = model.value.uuid;
     try {
-        await navigator.clipboard.writeText(uuid!);
+        await navigator.clipboard.writeText(uuid);
     } catch {}
     copyState.value = 'copied';
     clearTimeout(copyTimer);
@@ -25,18 +28,27 @@ async function copyUuid() {
 }
 
 function onClickDelete() {
+    if (!model?.value?.uuid) {
+        return;
+    }
     if (confirm('Do you really want to delete this server?')) {
-        serversStore.delete(model.value!.uuid!).then(() => emit('serverDeleted'));
+        serversStore.delete(model.value.uuid).then(() => emit('serverDeleted'));
     }
 }
 function onClickClone() {
-    const server: Server = { ...model.value! };
+    if (!model.value) {
+        return;
+    }
+    const server: Server = { ...model.value };
     server.name = server.name.concat(' Duplicate');
     server.uuid = '';
     serversStore.add(server).then(() => emit('serverCloned'));
 }
 function serverRoute(tab?: string) {
-    const base = model.value!.isRunning ? `/view-server/${model.value!.uuid}` : `/edit-server/${model.value!.uuid}`;
+    if (!model?.value?.uuid) {
+        return '';
+    }
+    const base = model.value.isRunning ? `/view-server/${model.value.uuid}` : `/edit-server/${model.value.uuid}`;
     return tab ? `${base}?tab=${tab}` : base;
 }
 

@@ -28,7 +28,7 @@ watch(
     model.value,
     value => {
         if (value.type === 'number') {
-            if ((value.value as number) < value.minVal! || (value.value as number) > value.maxVal!) {
+            if ((value.minVal && (value.value as number) < value.minVal) || (value.maxVal && (value.value as number) > value.maxVal)) {
                 style = 'background: rgba(255,0,0,0.5);';
                 if (!violation) {
                     violation = true;
@@ -63,8 +63,8 @@ function setEnabled(val: boolean) {
             <SwitchRoot
                 class="switch sp-switch"
                 :disabled="props.readonly"
-                :model-value="model.enabled"
-                @update:model-value="setEnabled($event)"
+                :modelValue="model.enabled"
+                @update:modelValue="setEnabled($event)"
             >
                 <SwitchThumb class="switch-track">
                     <span class="switch-knob" />
@@ -72,14 +72,16 @@ function setEnabled(val: boolean) {
             </SwitchRoot>
 
             <input
+                v-if="model.type == 'string'"
+                v-model.trim="model.value"
                 class="startup-parameter-input"
                 type="text"
                 :style="style"
                 :disabled="disabled"
-                v-model.trim="model.value"
-                v-if="model.type == 'string'"
             />
             <input
+                v-if="model.type == 'number'"
+                v-model.trim="model.value"
                 class="startup-parameter-input"
                 type="number"
                 :min="model.minVal ?? 0"
@@ -87,11 +89,9 @@ function setEnabled(val: boolean) {
                 step="1"
                 :style="style"
                 :disabled="disabled"
-                v-model.trim="model.value"
-                v-if="model.type == 'number'"
             />
 
-            <SelectRoot v-if="model.type == 'select'" :disabled="disabled" v-model="model.value as string">
+            <SelectRoot v-if="model.type == 'select'" v-model="model.value as string" :disabled="disabled">
                 <SelectTrigger class="select-input select-trigger startup-parameter-input" :style="style">
                     <SelectValue />
                     <svg
@@ -108,7 +108,7 @@ function setEnabled(val: boolean) {
                     </svg>
                 </SelectTrigger>
                 <SelectPortal>
-                    <SelectContent class="select-content" position="popper" :side-offset="4">
+                    <SelectContent class="select-content" position="popper" :sideOffset="4">
                         <SelectViewport>
                             <SelectItem v-for="opt in model.valueList" :key="opt" :value="opt" class="select-item">
                                 <SelectItemText>{{ opt }}</SelectItemText>

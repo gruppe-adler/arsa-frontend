@@ -36,8 +36,8 @@ const allLogs = computed(() => {
 </script>
 
 <template>
-    <div class="tab-loading" v-if="loading">Loading…</div>
-    <div class="size-sections" v-else>
+    <div v-if="loading" class="tab-loading">Loading…</div>
+    <div v-else class="size-sections">
         <div class="size-card">
             <div class="size-card-head">
                 <span class="size-label">Profile directory</span>
@@ -48,12 +48,12 @@ const allLogs = computed(() => {
                     <span class="size-label">Mods</span>
                     <span class="size-value mono">{{ prettyBytes(size.addonsSize) }}</span>
                 </div>
-                <pre class="size-pre" v-if="allMods">{{ allMods }}</pre>
+                <pre v-if="allMods" class="size-pre">{{ allMods }}</pre>
                 <div class="size-subrow">
                     <span class="size-label">Logs</span>
                     <span class="size-value mono">{{ prettyBytes(size.logsSize) }}</span>
                 </div>
-                <pre class="size-pre" v-if="allLogs">{{ allLogs }}</pre>
+                <pre v-if="allLogs" class="size-pre">{{ allLogs }}</pre>
             </div>
         </div>
         <div class="size-card">
