@@ -13,7 +13,7 @@ import FormModsInput from './FormModsInput.vue';
 import FormStartupParameterInput from './FormStartupParameterInput.vue';
 import FormTabs from './FormTabs.vue';
 import { Branch, Server } from '../api/model';
-import FormComboboxInput from './FormComboboxInput.vue';
+import FormAdminInput from './FormAdminInput.vue';
 
 const props = defineProps({
     readonly: Boolean,
@@ -263,7 +263,7 @@ const settingsSubTabs = [
                             @violIncr="violIncr"
                             @violDecr="violDecr"
                         />
-                        <FormMultiSelectModInput
+                        <FormAdminInput
                             v-model="server.config.game.admins"
                             :name="'admins'"
                             :tooltip="'List of admin identities (BI UID format: 8-4-4-4-12 hex, or Steam ID: 17 digits). These players have permanent admin rights without password.'"
@@ -407,7 +407,7 @@ const settingsSubTabs = [
                         <p>Server branch</p>
                     </div>
                     <div class="field-list">
-                        <FormComboboxInput
+                        <FormSelectInput
                             v-model="server.branch"
                             :options="Object.values(Branch)"
                             :name="'branch'"
