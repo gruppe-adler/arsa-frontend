@@ -6,12 +6,16 @@
  */
 import type {
     ArsStatus,
+    AssetDetailResponse,
+    AssetScenariosResponse,
     Branch,
     DockerStats,
     ErrorResponse,
     FileContentResponse,
+    GetWorkshopParams,
     IPv4Response,
     ImageVersionResponse,
+    ListScenariosResponse,
     LogType,
     PlayerIdentityId,
     PostServerBody,
@@ -21,7 +25,8 @@ import type {
     ResultSize,
     Server,
     SuccessResponse,
-    UuidResponse
+    UuidResponse,
+    WorkshopResponse
 } from './model';
 
 export type getServersResponse200 = {
@@ -152,6 +157,81 @@ export const getPullLogs = async (options?: RequestInit): Promise<getPullLogsRes
 
     const data: getPullLogsResponse['data'] = body ? JSON.parse(body) : {};
     return { data, status: res.status, headers: res.headers } as getPullLogsResponse;
+};
+
+export type getScenariosFromBranchResponse200 = {
+    data: ListScenariosResponse;
+    status: 200;
+};
+
+export type getScenariosFromBranchResponse500 = {
+    data: ErrorResponse;
+    status: 500;
+};
+
+export type getScenariosFromBranchResponseSuccess = getScenariosFromBranchResponse200 & {
+    headers: Headers;
+};
+export type getScenariosFromBranchResponseError = getScenariosFromBranchResponse500 & {
+    headers: Headers;
+};
+
+export type getScenariosFromBranchResponse = getScenariosFromBranchResponseSuccess | getScenariosFromBranchResponseError;
+
+export const getGetScenariosFromBranchUrl = (branch: Branch) => {
+    return `http://localhost:3000/api/v2/scenarios/${branch}`;
+};
+
+export const getScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<getScenariosFromBranchResponse> => {
+    const res = await fetch(getGetScenariosFromBranchUrl(branch), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getScenariosFromBranchResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getScenariosFromBranchResponse;
+};
+
+export type updateScenariosFromBranchResponse200 = {
+    data: SuccessResponse;
+    status: 200;
+};
+
+export type updateScenariosFromBranchResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type updateScenariosFromBranchResponse500 = {
+    data: ErrorResponse;
+    status: 500;
+};
+
+export type updateScenariosFromBranchResponseSuccess = updateScenariosFromBranchResponse200 & {
+    headers: Headers;
+};
+export type updateScenariosFromBranchResponseError = (updateScenariosFromBranchResponse404 | updateScenariosFromBranchResponse500) & {
+    headers: Headers;
+};
+
+export type updateScenariosFromBranchResponse = updateScenariosFromBranchResponseSuccess | updateScenariosFromBranchResponseError;
+
+export const getUpdateScenariosFromBranchUrl = (branch: Branch) => {
+    return `http://localhost:3000/api/v2/scenarios/${branch}`;
+};
+
+export const updateScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<updateScenariosFromBranchResponse> => {
+    const res = await fetch(getUpdateScenariosFromBranchUrl(branch), {
+        ...options,
+        method: 'PUT'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: updateScenariosFromBranchResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as updateScenariosFromBranchResponse;
 };
 
 export type putServerResponse200 = {
@@ -673,4 +753,148 @@ export const getStatus = async (options?: RequestInit): Promise<getStatusRespons
 
     const data: getStatusResponse['data'] = body ? JSON.parse(body) : {};
     return { data, status: res.status, headers: res.headers } as getStatusResponse;
+};
+
+export type getWorkshopResponse200 = {
+    data: WorkshopResponse;
+    status: 200;
+};
+
+export type getWorkshopResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type getWorkshopResponseSuccess = getWorkshopResponse200 & {
+    headers: Headers;
+};
+export type getWorkshopResponseError = getWorkshopResponse400 & {
+    headers: Headers;
+};
+
+export type getWorkshopResponse = getWorkshopResponseSuccess | getWorkshopResponseError;
+
+export const getGetWorkshopUrl = (params?: GetWorkshopParams) => {
+    const normalizedParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined) {
+            normalizedParams.append(key, value === null ? 'null' : value.toString());
+        }
+    });
+
+    const stringifiedParams = normalizedParams.toString();
+
+    return stringifiedParams.length > 0
+        ? `http://localhost:3000/api/v2/workshop?${stringifiedParams}`
+        : `http://localhost:3000/api/v2/workshop`;
+};
+
+/**
+ * Proxies requests to the upstream Arma Platform workshop API with optional
+filtering by search term, tags, sort order, and page.
+ * @summary Search the Arma Reforger Workshop
+ */
+export const getWorkshop = async (params?: GetWorkshopParams, options?: RequestInit): Promise<getWorkshopResponse> => {
+    const res = await fetch(getGetWorkshopUrl(params), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getWorkshopResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getWorkshopResponse;
+};
+
+export type getWorkshopDetailResponse200 = {
+    data: AssetDetailResponse;
+    status: 200;
+};
+
+export type getWorkshopDetailResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type getWorkshopDetailResponse500 = {
+    data: ErrorResponse;
+    status: 500;
+};
+
+export type getWorkshopDetailResponseSuccess = getWorkshopDetailResponse200 & {
+    headers: Headers;
+};
+export type getWorkshopDetailResponseError = (getWorkshopDetailResponse404 | getWorkshopDetailResponse500) & {
+    headers: Headers;
+};
+
+export type getWorkshopDetailResponse = getWorkshopDetailResponseSuccess | getWorkshopDetailResponseError;
+
+export const getGetWorkshopDetailUrl = (id: string) => {
+    return `http://localhost:3000/api/v2/workshop/${id}`;
+};
+
+/**
+ * The `id` path parameter is the asset ID (e.g. `5965550F24A0C152`).
+The upstream slug format `{id}-{name}` is constructed automatically — just
+pass the bare hex ID.
+ * @summary Get full details for a single workshop asset, including its changelog
+ */
+export const getWorkshopDetail = async (id: string, options?: RequestInit): Promise<getWorkshopDetailResponse> => {
+    const res = await fetch(getGetWorkshopDetailUrl(id), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getWorkshopDetailResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getWorkshopDetailResponse;
+};
+
+export type getWorkshopScenariosResponse200 = {
+    data: AssetScenariosResponse;
+    status: 200;
+};
+
+export type getWorkshopScenariosResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type getWorkshopScenariosResponse500 = {
+    data: ErrorResponse;
+    status: 500;
+};
+
+export type getWorkshopScenariosResponseSuccess = getWorkshopScenariosResponse200 & {
+    headers: Headers;
+};
+export type getWorkshopScenariosResponseError = (getWorkshopScenariosResponse404 | getWorkshopScenariosResponse500) & {
+    headers: Headers;
+};
+
+export type getWorkshopScenariosResponse = getWorkshopScenariosResponseSuccess | getWorkshopScenariosResponseError;
+
+export const getGetWorkshopScenariosUrl = (id: string) => {
+    return `http://localhost:3000/api/v2/workshop/${id}/scenarios`;
+};
+
+/**
+ * Maps to the upstream `/workshop/{id}/scenarios.json` endpoint.
+Returns the scenarios bundled with the asset's current version, plus the
+full resolved dependency list.
+ * @summary List scenarios and dependencies for a workshop asset
+ */
+export const getWorkshopScenarios = async (id: string, options?: RequestInit): Promise<getWorkshopScenariosResponse> => {
+    const res = await fetch(getGetWorkshopScenariosUrl(id), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getWorkshopScenariosResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getWorkshopScenariosResponse;
 };

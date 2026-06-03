@@ -9,7 +9,7 @@
     "paths": {
         "/api/v2": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_servers",
                 "responses": {
                     "200": {
@@ -30,7 +30,7 @@
         },
         "/api/v2/image-version/{branch}": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["image"],
                 "operationId": "get_image_version",
                 "parameters": [
                     {
@@ -58,7 +58,7 @@
         },
         "/api/v2/public-ip": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_public_ip",
                 "responses": {
                     "200": {
@@ -76,7 +76,7 @@
         },
         "/api/v2/pull/image/{branch}": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["image"],
                 "operationId": "get_pull_image",
                 "parameters": [
                     {
@@ -104,7 +104,7 @@
         },
         "/api/v2/pull/logs": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["image"],
                 "operationId": "get_pull_logs",
                 "responses": {
                     "200": {
@@ -123,9 +123,93 @@
                 }
             }
         },
+        "/api/v2/scenarios/{branch}": {
+            "get": {
+                "tags": ["image"],
+                "operationId": "get_scenarios_from_branch",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch to pull",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/Branch" },
+                        "example": "stable"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Scenarios list returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListScenariosResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get scenarios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["image"],
+                "operationId": "update_scenarios_from_branch",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch to pull",
+                        "required": true,
+                        "schema": { "$ref": "#/components/schemas/Branch" },
+                        "example": "stable"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Scenarios list updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Image not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to start image or parse scenarios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2/server": {
             "put": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "put_server",
                 "requestBody": {
                     "description": "Server configuration to create a new server",
@@ -276,7 +360,7 @@
                 }
             },
             "post": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "post_server",
                 "requestBody": {
                     "description": "Server configuration to create a new server",
@@ -429,7 +513,7 @@
         },
         "/api/v2/server/known-players": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_player_log",
                 "responses": {
                     "200": {
@@ -460,7 +544,7 @@
         },
         "/api/v2/server/{id}": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_server",
                 "parameters": [
                     {
@@ -496,7 +580,7 @@
                 }
             },
             "delete": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "delete_server",
                 "parameters": [
                     {
@@ -534,7 +618,7 @@
         },
         "/api/v2/server/{id}/crash-reports-log": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_crash_log",
                 "parameters": [
                     {
@@ -572,7 +656,7 @@
         },
         "/api/v2/server/{id}/is-running": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "is_server_running",
                 "parameters": [
                     {
@@ -610,7 +694,7 @@
         },
         "/api/v2/server/{id}/logs": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_logs",
                 "parameters": [
                     {
@@ -648,7 +732,7 @@
         },
         "/api/v2/server/{id}/logs/{log}": {
             "delete": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "delete_log",
                 "parameters": [
                     {
@@ -708,7 +792,7 @@
         },
         "/api/v2/server/{id}/logs/{log}/{log_type}": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_log_file",
                 "parameters": [
                     {
@@ -790,7 +874,7 @@
         },
         "/api/v2/server/{id}/size": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_size_method",
                 "parameters": [
                     {
@@ -818,7 +902,7 @@
         },
         "/api/v2/server/{id}/start": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "start_server",
                 "parameters": [
                     {
@@ -856,7 +940,7 @@
         },
         "/api/v2/server/{id}/stats": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "get_stats",
                 "parameters": [
                     {
@@ -894,7 +978,7 @@
         },
         "/api/v2/server/{id}/stop": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["server"],
                 "operationId": "stop_server",
                 "parameters": [
                     {
@@ -932,7 +1016,7 @@
         },
         "/api/v2/status": {
             "get": {
-                "tags": ["arsa"],
+                "tags": ["image"],
                 "operationId": "get_status",
                 "responses": {
                     "200": {
@@ -941,6 +1025,182 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ArsStatus"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/workshop": {
+            "get": {
+                "tags": ["workshop"],
+                "summary": "Search the Arma Reforger Workshop",
+                "description": "Proxies requests to the upstream Arma Platform workshop API with optional\nfiltering by search term, tags, sort order, and page.",
+                "operationId": "get_workshop",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Free-text search string",
+                        "required": false,
+                        "schema": { "type": ["string", "null"] },
+                        "example": "My Mod"
+                    },
+                    {
+                        "name": "tags",
+                        "in": "query",
+                        "description": "One or more tags to filter by (repeat the parameter for multiple tags,\ne.g. `?tags=VEHICLES&tags=COMPOSITIONS`)",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "newest",
+                            "enum": [
+                                "newest",
+                                "popularity",
+                                "subscribers",
+                                "version_size"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (1-based, default: 1)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "minimum": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Workshop assets returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WorkshopResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Upstream request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/workshop/{id}": {
+            "get": {
+                "tags": ["workshop"],
+                "summary": "Get full details for a single workshop asset, including its changelog",
+                "description": "The `id` path parameter is the asset ID (e.g. `5965550F24A0C152`).\nThe upstream slug format `{id}-{name}` is constructed automatically — just\npass the bare hex ID.",
+                "operationId": "get_workshop_detail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Asset ID (hex), e.g. 5965550F24A0C152",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "5965550F24A0C152"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Asset detail returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetDetailResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Upstream request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/workshop/{id}/scenarios": {
+            "get": {
+                "tags": ["workshop"],
+                "summary": "List scenarios and dependencies for a workshop asset",
+                "description": "Maps to the upstream `/workshop/{id}/scenarios.json` endpoint.\nReturns the scenarios bundled with the asset's current version, plus the\nfull resolved dependency list.",
+                "operationId": "get_workshop_scenarios",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Asset ID (hex), e.g. CAFEBEEFF0CACC1A",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "CAFEBEEFF0CACC1A"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Scenarios returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetScenariosResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Asset not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Upstream request failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -974,7 +1234,298 @@
                 ],
                 "example": "Available"
             },
+            "Asset": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "type",
+                    "summary",
+                    "unlisted",
+                    "private",
+                    "blocked",
+                    "averageRating",
+                    "ratingCount",
+                    "subscriberCount",
+                    "currentVersionNumber",
+                    "currentVersionSize",
+                    "previews",
+                    "tags",
+                    "author",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "properties": {
+                    "author": { "$ref": "#/components/schemas/Author" },
+                    "averageRating": { "type": "number", "format": "double" },
+                    "blocked": { "type": "boolean" },
+                    "createdAt": { "type": "string" },
+                    "currentVersionNumber": { "type": "string" },
+                    "currentVersionSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "previews": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Preview" }
+                    },
+                    "private": { "type": "boolean" },
+                    "ratingCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "subscriberCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "summary": { "type": "string" },
+                    "tags": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/AssetTag" }
+                    },
+                    "type": { "type": "string" },
+                    "unlisted": { "type": "boolean" },
+                    "updatedAt": { "type": "string" }
+                }
+            },
+            "AssetDetail": {
+                "type": "object",
+                "description": "Full asset detail including all versions, ratings, changelog, and download count",
+                "required": [
+                    "id",
+                    "name",
+                    "type",
+                    "summary",
+                    "unlisted",
+                    "private",
+                    "blocked",
+                    "averageRating",
+                    "ratingCount",
+                    "subscriberCount",
+                    "currentVersionNumber",
+                    "currentVersionSize",
+                    "previews",
+                    "screenshots",
+                    "tags",
+                    "author",
+                    "createdAt",
+                    "updatedAt",
+                    "gameVersion",
+                    "obsolete",
+                    "versions",
+                    "ratings"
+                ],
+                "properties": {
+                    "author": { "$ref": "#/components/schemas/Author" },
+                    "averageRating": { "type": "number", "format": "double" },
+                    "blocked": { "type": "boolean" },
+                    "createdAt": { "type": "string" },
+                    "currentVersionNumber": { "type": "string" },
+                    "currentVersionSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "description": { "type": ["string", "null"] },
+                    "gameVersion": { "type": "string" },
+                    "id": { "type": "string" },
+                    "license": { "type": ["string", "null"] },
+                    "name": { "type": "string" },
+                    "obsolete": { "type": "boolean" },
+                    "previews": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Preview" }
+                    },
+                    "private": { "type": "boolean" },
+                    "ratingCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "ratings": { "$ref": "#/components/schemas/Ratings" },
+                    "screenshots": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Screenshot" }
+                    },
+                    "subscriberCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "summary": { "type": "string" },
+                    "tags": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/AssetTag" }
+                    },
+                    "type": { "type": "string" },
+                    "unlisted": { "type": "boolean" },
+                    "updatedAt": { "type": "string" },
+                    "versions": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/AssetVersion" }
+                    }
+                }
+            },
+            "AssetDetailResponse": {
+                "type": "object",
+                "description": "Response for the asset detail endpoint",
+                "required": ["asset", "version_detail", "download_total"],
+                "properties": {
+                    "asset": { "$ref": "#/components/schemas/AssetDetail" },
+                    "download_total": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "All-time download count",
+                        "minimum": 0
+                    },
+                    "version_detail": {
+                        "$ref": "#/components/schemas/AssetVersionDetail",
+                        "description": "Changelog and dependency info for the current version"
+                    }
+                }
+            },
+            "AssetScenariosResponse": {
+                "type": "object",
+                "description": "Response for the scenarios endpoint",
+                "required": ["asset_id", "scenarios", "dependencies"],
+                "properties": {
+                    "asset_id": { "type": "string" },
+                    "dependencies": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Dependency" }
+                    },
+                    "scenarios": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Scenario" }
+                    }
+                }
+            },
+            "AssetTag": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                    "category": { "type": ["string", "null"] },
+                    "name": { "type": "string" }
+                }
+            },
+            "AssetVersion": {
+                "type": "object",
+                "required": [
+                    "version",
+                    "approved",
+                    "published",
+                    "gameVersion",
+                    "totalFileSize",
+                    "milestone",
+                    "createdAt",
+                    "updatedAt",
+                    "assetId",
+                    "scenariosCount",
+                    "dependenciesCount"
+                ],
+                "properties": {
+                    "approved": { "type": "boolean" },
+                    "assetId": { "type": "string" },
+                    "createdAt": { "type": "string" },
+                    "dependenciesCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "gameVersion": { "type": "string" },
+                    "milestone": { "type": "boolean" },
+                    "published": { "type": "boolean" },
+                    "scenariosCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "totalFileSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "updatedAt": { "type": "string" },
+                    "version": { "type": "string" }
+                }
+            },
+            "AssetVersionDetail": {
+                "type": "object",
+                "required": ["scenarios", "dependencies"],
+                "properties": {
+                    "changelog": {
+                        "type": ["string", "null"],
+                        "description": "Changelog text for the current version"
+                    },
+                    "dependencies": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Dependency" }
+                    },
+                    "scenarios": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Scenario" }
+                    }
+                }
+            },
+            "AssetsPage": {
+                "type": "object",
+                "required": ["count", "rows"],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "rows": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Asset" }
+                    }
+                }
+            },
+            "Author": {
+                "type": "object",
+                "required": ["id", "username"],
+                "properties": {
+                    "id": { "type": "string" },
+                    "username": { "type": "string" }
+                }
+            },
             "Branch": { "type": "string", "enum": ["stable", "experimental"] },
+            "Dependency": {
+                "type": "object",
+                "properties": {
+                    "asset": {
+                        "$ref": "#/components/schemas/DependencyAssetStub"
+                    },
+                    "blocked": { "type": "boolean" },
+                    "dependencies": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/Dependency" }
+                    },
+                    "private": { "type": "boolean" },
+                    "published": { "type": "boolean" },
+                    "totalFileSize": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 0
+                    },
+                    "version": { "type": "string" }
+                }
+            },
+            "DependencyAssetStub": {
+                "type": "object",
+                "description": "Stub asset info embedded inside a dependency entry",
+                "required": ["id", "name"],
+                "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" }
+                }
+            },
             "DockerStats": {
                 "type": "object",
                 "required": [
@@ -1148,6 +1699,19 @@
                     }
                 }
             },
+            "ListScenariosResponse": {
+                "type": "object",
+                "required": ["branch", "scenarios"],
+                "properties": {
+                    "branch": { "$ref": "#/components/schemas/Branch" },
+                    "scenarios": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ScenarioEntry"
+                        }
+                    }
+                }
+            },
             "Log": {
                 "type": "object",
                 "required": [
@@ -1226,6 +1790,24 @@
                     "name": { "type": "string" }
                 }
             },
+            "Preview": {
+                "type": "object",
+                "required": ["url", "width", "height", "contentType"],
+                "properties": {
+                    "contentType": { "type": "string" },
+                    "height": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "url": { "type": "string" },
+                    "width": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
             "PullLog": {
                 "type": "object",
                 "required": [
@@ -1250,6 +1832,23 @@
                     },
                     "pullId": { "type": "string", "format": "uuid" },
                     "status": { "type": "string" }
+                }
+            },
+            "Ratings": {
+                "type": "object",
+                "required": ["likes", "dislikes", "rating"],
+                "properties": {
+                    "dislikes": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "likes": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "rating": { "type": "number", "format": "double" }
                 }
             },
             "Rcon": {
@@ -1324,6 +1923,84 @@
                     "profileSize": {
                         "type": "integer",
                         "format": "int64",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Scenario": {
+                "type": "object",
+                "description": "A playable scenario bundled with an asset",
+                "required": [
+                    "name",
+                    "gameId",
+                    "gameMode",
+                    "authorName",
+                    "description",
+                    "playerCount"
+                ],
+                "properties": {
+                    "authorName": { "type": "string" },
+                    "description": { "type": "string" },
+                    "gameId": {
+                        "type": "string",
+                        "description": "Enfusion game ID string, e.g. `{E2EC49F1…}Missions/…/Arland.conf`"
+                    },
+                    "gameMode": { "type": "string" },
+                    "image": {
+                        "oneOf": [
+                            { "type": "null" },
+                            { "$ref": "#/components/schemas/ScenarioImage" }
+                        ]
+                    },
+                    "name": { "type": "string" },
+                    "playerCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "ScenarioEntry": {
+                "type": "object",
+                "required": ["path", "name"],
+                "properties": {
+                    "name": { "type": "string" },
+                    "path": { "type": "string" }
+                }
+            },
+            "ScenarioImage": {
+                "type": "object",
+                "description": "Image with pre-generated thumbnail URLs",
+                "required": ["url", "width", "height", "contentType"],
+                "properties": {
+                    "contentType": { "type": "string" },
+                    "height": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "url": { "type": "string" },
+                    "width": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Screenshot": {
+                "type": "object",
+                "required": ["url", "width", "height", "contentType"],
+                "properties": {
+                    "contentType": { "type": "string" },
+                    "height": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "url": { "type": "string" },
+                    "width": {
+                        "type": "integer",
+                        "format": "int32",
                         "minimum": 0
                     }
                 }
@@ -1437,8 +2114,20 @@
                 "type": "object",
                 "required": ["uuid"],
                 "properties": { "uuid": { "type": "string", "format": "uuid" } }
+            },
+            "WorkshopResponse": {
+                "type": "object",
+                "description": "Top-level response returned by this proxy",
+                "required": ["assets"],
+                "properties": {
+                    "assets": { "$ref": "#/components/schemas/AssetsPage" }
+                }
             }
         }
     },
-    "tags": [{ "name": "arsa", "description": "ARSA API endpoints" }]
+    "tags": [
+        { "name": "server", "description": "Server api endpoints" },
+        { "name": "workshop", "description": "Workshop api" },
+        { "name": "image", "description": "Docker image endpoints" }
+    ]
 }

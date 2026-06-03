@@ -12,6 +12,7 @@ import FormJsonInput from './FormJsonInput.vue';
 import FormModsInput from './FormModsInput.vue';
 import FormStartupParameterInput from './FormStartupParameterInput.vue';
 import FormTabs from './FormTabs.vue';
+import MissionSelect from './MissionSelect.vue';
 import { Branch, Server } from '../api/model';
 import FormAdminInput from './FormAdminInput.vue';
 
@@ -269,6 +270,14 @@ const settingsSubTabs = [
                             :tooltip="'List of admin identities (BI UID format: 8-4-4-4-12 hex, or Steam ID: 17 digits). These players have permanent admin rights without password.'"
                             :regEx="['^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '^[0-9]{17}$']"
                             :readonly="props.readonly"
+                        />
+                        <MissionSelect
+                            v-model="server.config.game.scenarioId"
+                            :mods="server.config.game.mods"
+                            :name="'scenarioId'"
+                            :tooltip="'Select a vanilla mission, a workshop mission from the currently configured mods, or type the scenario path manually.'"
+                            :readonly="props.readonly"
+                            :branch="server.branch"
                         />
                         <FormTextInput
                             v-model="server.config.game.scenarioId"

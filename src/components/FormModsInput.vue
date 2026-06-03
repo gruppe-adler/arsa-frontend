@@ -196,7 +196,7 @@ onMounted(() => selectAll());
                     </button>
                 </div>
 
-                <!-- Import / Export modeset -->
+                <!-- Import / Export modset -->
                 <div class="btn-group">
                     <button class="btn" type="button" :class="{ 'has-panel': showImportPanel }" @click="openImport">
                         <svg
@@ -213,7 +213,7 @@ onMounted(() => selectAll());
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Import modeset
+                        Import modset
                     </button>
                     <button class="btn" type="button" :class="{ 'has-panel': showExportPanel }" @click="openExport">
                         <svg
@@ -230,7 +230,7 @@ onMounted(() => selectAll());
                             <polyline points="7 14 12 9 17 14" />
                             <line x1="12" y1="9" x2="12" y2="21" />
                         </svg>
-                        Export modeset
+                        Export modset
                     </button>
                 </div>
             </div>

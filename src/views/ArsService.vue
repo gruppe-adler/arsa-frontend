@@ -6,13 +6,19 @@ import HostServerLog from '../components/HostServerLog.vue';
 import { ArsStatus, Branch } from '../api/model';
 import ImagePullLog from '../components/ImagePullLog.vue';
 import Dialog from '../components/Dialog.vue';
+import { useScenarioStore } from '../stores/scenarios.ts';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
+const scenarioStore = useScenarioStore();
 
 async function updateArsStatus() {
     const result = await serversStore.getArsStatus();
     serversStore.arsStatus = result;
+}
+
+async function updateScenarios(branch: Branch) {
+    await scenarioStore.updateScenarios(branch);
 }
 
 async function pullImage(branch: Branch) {
@@ -46,10 +52,23 @@ async function getBranchVersions() {
     return new Map<Branch, string>(entries);
 }
 
+async function getScenarioCounts() {
+    const scenarioCounts = await Promise.all(
+        Object.values(Branch).map(async branch => {
+            const scenarioCount = (await scenarioStore.getScenarios(branch)).length;
+            return [branch, scenarioCount] as [Branch, number];
+        })
+    );
+
+    return new Map<Branch, number>(scenarioCounts);
+}
+
 const branchVersions = ref(new Map<Branch, string>());
+const scenarioCounts = ref(new Map<Branch, number>());
 
 onMounted(async () => {
     branchVersions.value = await getBranchVersions();
+    scenarioCounts.value = await getScenarioCounts();
 });
 
 const recreateDisabled = computed(() => serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown);
@@ -107,9 +126,7 @@ updateArsStatus();
                 </div>
                 <div v-for="[branch, version] in branchVersions" :key="branch" class="card-foot">
                     <span class="card-foot-note">Branch: {{ branch }} Version: {{ version ?? 'n/a' }}</span>
-                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="pullImage(branch)">
-                        Pull latest image ({{ branch }})
-                    </button>
+
                     <Dialog
                         :disabled="recreateDisabled"
                         :triggerLabel="`Pull latest image (${branch})`"
@@ -119,6 +136,9 @@ updateArsStatus();
                         :handleLabel="'Start pull'"
                         :handleFunction="() => pullImage(branch)"
                     ></Dialog>
+                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="updateScenarios(branch)">
+                        Update vanilla scenarios (Current count: {{ scenarioCounts.get(branch) ?? 0 }})
+                    </button>
                 </div>
             </div>
         </div>
