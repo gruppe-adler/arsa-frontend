@@ -7,6 +7,126 @@
         "version": "0.1.0"
     },
     "paths": {
+        "/api/api/v2/server/{id}/profile/{path}": {
+            "get": {
+                "tags": ["server"],
+                "operationId": "get_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "some.file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile file content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileContentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["server"],
+                "operationId": "put_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "settings.lua"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditProfileFileRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile file was written",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/v2": {
             "get": {
                 "tags": ["server"],
@@ -21,6 +141,126 @@
                                     "items": {
                                         "$ref": "#/components/schemas/Server"
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/api/v2/server/{id}/profile/{path}": {
+            "get": {
+                "tags": ["server"],
+                "operationId": "get_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "some.file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile file content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileContentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["server"],
+                "operationId": "put_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "settings.lua"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditProfileFileRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile file was written",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -500,6 +740,126 @@
                     },
                     "400": {
                         "description": "Invalid server configuration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/server/api/v2/server/{id}/profile/{path}": {
+            "get": {
+                "tags": ["server"],
+                "operationId": "get_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "some.file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile file content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileContentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File or server was not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["server"],
+                "operationId": "put_profile_file",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the server",
+                        "required": true,
+                        "schema": { "type": "string", "format": "uuid" },
+                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
+                    },
+                    {
+                        "name": "path",
+                        "in": "path",
+                        "description": "Relative path inside the profile directory",
+                        "required": true,
+                        "schema": { "type": "string" },
+                        "example": "settings.lua"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditProfileFileRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile file was written",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid profile file path",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Server was not found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1355,366 +1715,6 @@
                     },
                     "500": {
                         "description": "Upstream request failed",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v2/{id}/profile/{path}": {
-            "get": {
-                "tags": ["server"],
-                "operationId": "get_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "some.file"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Profile file content",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FileContentResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or server was not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": ["server"],
-                "operationId": "put_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "settings.lua"
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/EditProfileFileRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Profile file was written",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Server was not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/{id}/profile/{path}": {
-            "get": {
-                "tags": ["server"],
-                "operationId": "get_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "some.file"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Profile file content",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FileContentResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or server was not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": ["server"],
-                "operationId": "put_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "settings.lua"
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/EditProfileFileRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Profile file was written",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Server was not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/{id}/profile/{path}": {
-            "get": {
-                "tags": ["server"],
-                "operationId": "get_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "some.file"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Profile file content",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FileContentResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "File or server was not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "tags": ["server"],
-                "operationId": "put_profile_file",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Id of the server",
-                        "required": true,
-                        "schema": { "type": "string", "format": "uuid" },
-                        "example": "f30b8424-28d6-4b0a-9348-9f05327fa886"
-                    },
-                    {
-                        "name": "path",
-                        "in": "path",
-                        "description": "Relative path inside the profile directory",
-                        "required": true,
-                        "schema": { "type": "string" },
-                        "example": "settings.lua"
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/EditProfileFileRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Profile file was written",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SuccessResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid profile file path",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Server was not found",
                         "content": {
                             "application/json": {
                                 "schema": {

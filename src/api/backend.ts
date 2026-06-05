@@ -31,6 +31,93 @@ import type {
     WorkshopResponse
 } from './model';
 
+export type getProfileFileResponse200 = {
+    data: FileContentResponse;
+    status: 200;
+};
+
+export type getProfileFileResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type getProfileFileResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type getProfileFileResponseSuccess = getProfileFileResponse200 & {
+    headers: Headers;
+};
+export type getProfileFileResponseError = (getProfileFileResponse400 | getProfileFileResponse404) & {
+    headers: Headers;
+};
+
+export type getProfileFileResponse = getProfileFileResponseSuccess | getProfileFileResponseError;
+
+export const getGetProfileFileUrl = (id: string, path: string) => {
+    return `http://localhost:3000/api/v2/server/${id}/profile/${path}`;
+};
+
+export const getProfileFile = async (id: string, path: string, options?: RequestInit): Promise<getProfileFileResponse> => {
+    const res = await fetch(getGetProfileFileUrl(id, path), {
+        ...options,
+        method: 'GET'
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: getProfileFileResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as getProfileFileResponse;
+};
+
+export type putProfileFileResponse200 = {
+    data: SuccessResponse;
+    status: 200;
+};
+
+export type putProfileFileResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type putProfileFileResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type putProfileFileResponseSuccess = putProfileFileResponse200 & {
+    headers: Headers;
+};
+export type putProfileFileResponseError = (putProfileFileResponse400 | putProfileFileResponse404) & {
+    headers: Headers;
+};
+
+export type putProfileFileResponse = putProfileFileResponseSuccess | putProfileFileResponseError;
+
+export const getPutProfileFileUrl = (id: string, path: string) => {
+    return `http://localhost:3000/api/v2/server/${id}/profile/${path}`;
+};
+
+export const putProfileFile = async (
+    id: string,
+    path: string,
+    editProfileFileRequest: EditProfileFileRequest,
+    options?: RequestInit
+): Promise<putProfileFileResponse> => {
+    const res = await fetch(getPutProfileFileUrl(id, path), {
+        ...options,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        body: JSON.stringify(editProfileFileRequest)
+    });
+
+    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+    const data: putProfileFileResponse['data'] = body ? JSON.parse(body) : {};
+    return { data, status: res.status, headers: res.headers } as putProfileFileResponse;
+};
+
 export type getServersResponse200 = {
     data: Server[];
     status: 200;
@@ -633,93 +720,6 @@ export const getProfileFiles = async (id: string, options?: RequestInit): Promis
 
     const data: getProfileFilesResponse['data'] = body ? JSON.parse(body) : {};
     return { data, status: res.status, headers: res.headers } as getProfileFilesResponse;
-};
-
-export type getProfileFileResponse200 = {
-    data: FileContentResponse;
-    status: 200;
-};
-
-export type getProfileFileResponse400 = {
-    data: ErrorResponse;
-    status: 400;
-};
-
-export type getProfileFileResponse404 = {
-    data: ErrorResponse;
-    status: 404;
-};
-
-export type getProfileFileResponseSuccess = getProfileFileResponse200 & {
-    headers: Headers;
-};
-export type getProfileFileResponseError = (getProfileFileResponse400 | getProfileFileResponse404) & {
-    headers: Headers;
-};
-
-export type getProfileFileResponse = getProfileFileResponseSuccess | getProfileFileResponseError;
-
-export const getGetProfileFileUrl = (id: string, path: string) => {
-    return `http://localhost:3000/${id}/profile/${path}`;
-};
-
-export const getProfileFile = async (id: string, path: string, options?: RequestInit): Promise<getProfileFileResponse> => {
-    const res = await fetch(getGetProfileFileUrl(id, path), {
-        ...options,
-        method: 'GET'
-    });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getProfileFileResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getProfileFileResponse;
-};
-
-export type putProfileFileResponse200 = {
-    data: SuccessResponse;
-    status: 200;
-};
-
-export type putProfileFileResponse400 = {
-    data: ErrorResponse;
-    status: 400;
-};
-
-export type putProfileFileResponse404 = {
-    data: ErrorResponse;
-    status: 404;
-};
-
-export type putProfileFileResponseSuccess = putProfileFileResponse200 & {
-    headers: Headers;
-};
-export type putProfileFileResponseError = (putProfileFileResponse400 | putProfileFileResponse404) & {
-    headers: Headers;
-};
-
-export type putProfileFileResponse = putProfileFileResponseSuccess | putProfileFileResponseError;
-
-export const getPutProfileFileUrl = (id: string, path: string) => {
-    return `http://localhost:3000/${id}/profile/${path}`;
-};
-
-export const putProfileFile = async (
-    id: string,
-    path: string,
-    editProfileFileRequest: EditProfileFileRequest,
-    options?: RequestInit
-): Promise<putProfileFileResponse> => {
-    const res = await fetch(getPutProfileFileUrl(id, path), {
-        ...options,
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(editProfileFileRequest)
-    });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: putProfileFileResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as putProfileFileResponse;
 };
 
 export type getSizeMethodResponse200 = {
