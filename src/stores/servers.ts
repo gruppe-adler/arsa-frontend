@@ -14,15 +14,19 @@ import {
     getPublicIp,
     getArsStatus,
     getKnownPlayers,
+    editProfileFile,
     getStats,
     getSize,
-    getCrashReportsLog
+    getCrashReportsLog,
+    getProfileFilesForServer,
+    getProfileFileForServer
 } from '../utils/api';
 import {
     ArsStatus,
     Branch,
     DockerStats,
     FileContentResponse,
+    ProfileFileListResponse,
     LogType,
     PlayerIdentityId,
     ResultLogs,
@@ -94,6 +98,15 @@ export const useServersStore = defineStore('servers', {
         },
         async getKnownPlayers(): Promise<PlayerIdentityId[] | null> {
             return await getKnownPlayers();
+        },
+        async getProfileFiles(uuid: string): Promise<ProfileFileListResponse | null> {
+            return await getProfileFilesForServer(uuid);
+        },
+        async getProfileFile(uuid: string, path: string): Promise<FileContentResponse | null> {
+            return await getProfileFileForServer(uuid, path);
+        },
+        async editProfileFile(uuid: string, path: string, contents: string): Promise<boolean> {
+            return await editProfileFile(uuid, path, contents);
         },
         async getStats(uuid: string): Promise<DockerStats | null> {
             return await getStats(uuid);

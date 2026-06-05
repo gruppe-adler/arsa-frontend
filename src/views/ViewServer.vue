@@ -6,12 +6,12 @@ import { defaultServer } from '../utils/defaults';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
 import ConfigForm from '../components/ConfigForm.vue';
-import TabPlayers from '../components/TabPlayers.vue';
 import TabStats from '../components/TabStats.vue';
 import TabSize from '../components/TabSize.vue';
 import TabLogs from '../components/TabLogs.vue';
 import { Server } from '../api/model';
 import { SettingOrModTab } from '../utils/type';
+import TabProfile from '../components/TabProfile.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,7 +20,7 @@ const found = ref(false);
 const inputViolationCounter = ref(0);
 const serversStore = useServersStore();
 const server = ref<Server>(defaultServer);
-const validTabs = ['settings', 'mods', 'players', 'stats', 'size', 'logs'];
+const validTabs = ['settings', 'mods', 'players', 'stats', 'size', 'logs', 'profiles'];
 const activeTab = ref<string>(validTabs.includes(route.query.tab as string) ? (route.query.tab as string) : 'settings');
 
 serversStore.getAll().then(() => {
@@ -35,10 +35,10 @@ serversStore.getAll().then(() => {
 const tabs = [
     { key: 'settings', label: 'Settings' },
     { key: 'mods', label: 'Mods' },
-    { key: 'players', label: 'Players' },
     { key: 'stats', label: 'Stats' },
     { key: 'size', label: 'Size' },
-    { key: 'logs', label: 'Logs' }
+    { key: 'logs', label: 'Logs' },
+    { key: 'profiles', label: 'Profile files' }
 ];
 
 function onClone() {
@@ -90,10 +90,10 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
             readonly
             :tab="activeTab as SettingOrModTab"
         />
-        <TabPlayers v-else-if="activeTab === 'players'" :serverId="server.uuid ?? ''" />
         <TabStats v-else-if="activeTab === 'stats'" :serverId="server.uuid ?? ''" />
         <TabSize v-else-if="activeTab === 'size'" :serverId="server.uuid ?? ''" />
         <TabLogs v-else-if="activeTab === 'logs'" :serverId="server.uuid ?? ''" />
+        <TabProfile v-else-if="activeTab === 'profiles'" :serverId="server.uuid ?? ''" />
     </main>
 </template>
 

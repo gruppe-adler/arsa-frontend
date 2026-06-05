@@ -38,7 +38,9 @@ const props = defineProps({
                         class="btn btn-danger"
                         @click="
                             () => {
-                                props.handleFunction;
+                                if (props.handleFunction) {
+                                    props.handleFunction();
+                                }
                             }
                         "
                     >

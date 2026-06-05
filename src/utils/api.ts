@@ -18,6 +18,7 @@ import {
     putServer,
     getPullLogs
 } from '../api/backend';
+import { getProfileFiles, getProfileFile, putProfileFile } from '../api/backend';
 import {
     type PostServerBody,
     type ResultLogs,
@@ -28,9 +29,11 @@ import {
     type ArsStatus,
     type LogType,
     type FileContentResponse,
+    type ProfileFileListResponse,
     type PutServerBody,
     PullLog,
-    UuidResponse
+    UuidResponse,
+    EditProfileFileRequest
 } from '../api/model';
 
 import { useLogsStore } from '../stores/logs';
@@ -199,4 +202,32 @@ export async function getArsStatus(): Promise<ArsStatus> {
 export async function getAllPullLogs(): Promise<PullLog[]> {
     const response = await getPullLogs();
     return (response.data || []) as unknown as PullLog[];
+}
+
+export async function getProfileFilesForServer(id: string): Promise<ProfileFileListResponse> {
+    const response = await getProfileFiles(id);
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting profile files for Server with UUID: ${id}`);
+    if (response.status === 200) {
+        return response.data as ProfileFileListResponse;
+    }
+    throw new Error(`Failed to get profile files for ${id}`);
+}
+
+export async function getProfileFileForServer(id: string, path: string): Promise<FileContentResponse> {
+    const response = await getProfileFile(id, path);
+    const logsStore = useLogsStore();
+    logsStore.add(`Getting profile file ${path} for Server with UUID: ${id}`);
+    if (response.status === 200) {
+        return response.data as FileContentResponse;
+    }
+    throw new Error(`Failed to get profile file ${path} for ${id}`);
+}
+
+export async function editProfileFile(id: string, path: string, contents: string): Promise<boolean> {
+    const body = { fileContent: contents } as EditProfileFileRequest;
+    const response = await putProfileFile(id, path, body);
+    const logsStore = useLogsStore();
+    logsStore.add(`Updating profile file ${path} for Server with UUID: ${id}`);
+    return response.status === 200;
 }
