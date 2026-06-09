@@ -31,6 +31,7 @@ import type {
     WorkshopResponse
 } from './model';
 
+import { customFetch } from '../utils/fetcher';
 export type getProfileFileResponse200 = {
     data: FileContentResponse;
     status: 200;
@@ -60,15 +61,10 @@ export const getGetProfileFileUrl = (id: string, path: string) => {
 };
 
 export const getProfileFile = async (id: string, path: string, options?: RequestInit): Promise<getProfileFileResponse> => {
-    const res = await fetch(getGetProfileFileUrl(id, path), {
+    return customFetch<getProfileFileResponse>(getGetProfileFileUrl(id, path), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getProfileFileResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getProfileFileResponse;
 };
 
 export type putProfileFileResponse200 = {
@@ -105,17 +101,12 @@ export const putProfileFile = async (
     editProfileFileRequest: EditProfileFileRequest,
     options?: RequestInit
 ): Promise<putProfileFileResponse> => {
-    const res = await fetch(getPutProfileFileUrl(id, path), {
+    return customFetch<putProfileFileResponse>(getPutProfileFileUrl(id, path), {
         ...options,
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
         body: JSON.stringify(editProfileFileRequest)
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: putProfileFileResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as putProfileFileResponse;
 };
 
 export type getServersResponse200 = {
@@ -133,15 +124,10 @@ export const getGetServersUrl = () => {
 };
 
 export const getServers = async (options?: RequestInit): Promise<getServersResponse> => {
-    const res = await fetch(getGetServersUrl(), {
+    return customFetch<getServersResponse>(getGetServersUrl(), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getServersResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getServersResponse;
 };
 
 export type getImageVersionResponse200 = {
@@ -159,15 +145,10 @@ export const getGetImageVersionUrl = (branch: Branch) => {
 };
 
 export const getImageVersion = async (branch: Branch, options?: RequestInit): Promise<getImageVersionResponse> => {
-    const res = await fetch(getGetImageVersionUrl(branch), {
+    return customFetch<getImageVersionResponse>(getGetImageVersionUrl(branch), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getImageVersionResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getImageVersionResponse;
 };
 
 export type getPublicIpResponse200 = {
@@ -185,15 +166,10 @@ export const getGetPublicIpUrl = () => {
 };
 
 export const getPublicIp = async (options?: RequestInit): Promise<getPublicIpResponse> => {
-    const res = await fetch(getGetPublicIpUrl(), {
+    return customFetch<getPublicIpResponse>(getGetPublicIpUrl(), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getPublicIpResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getPublicIpResponse;
 };
 
 export type getPullImageResponse200 = {
@@ -211,15 +187,10 @@ export const getGetPullImageUrl = (branch: Branch) => {
 };
 
 export const getPullImage = async (branch: Branch, options?: RequestInit): Promise<getPullImageResponse> => {
-    const res = await fetch(getGetPullImageUrl(branch), {
+    return customFetch<getPullImageResponse>(getGetPullImageUrl(branch), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getPullImageResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getPullImageResponse;
 };
 
 export type getPullLogsResponse200 = {
@@ -237,15 +208,10 @@ export const getGetPullLogsUrl = () => {
 };
 
 export const getPullLogs = async (options?: RequestInit): Promise<getPullLogsResponse> => {
-    const res = await fetch(getGetPullLogsUrl(), {
+    return customFetch<getPullLogsResponse>(getGetPullLogsUrl(), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getPullLogsResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getPullLogsResponse;
 };
 
 export type getScenariosFromBranchResponse200 = {
@@ -272,15 +238,10 @@ export const getGetScenariosFromBranchUrl = (branch: Branch) => {
 };
 
 export const getScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<getScenariosFromBranchResponse> => {
-    const res = await fetch(getGetScenariosFromBranchUrl(branch), {
+    return customFetch<getScenariosFromBranchResponse>(getGetScenariosFromBranchUrl(branch), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getScenariosFromBranchResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getScenariosFromBranchResponse;
 };
 
 export type updateScenariosFromBranchResponse200 = {
@@ -312,15 +273,10 @@ export const getUpdateScenariosFromBranchUrl = (branch: Branch) => {
 };
 
 export const updateScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<updateScenariosFromBranchResponse> => {
-    const res = await fetch(getUpdateScenariosFromBranchUrl(branch), {
+    return customFetch<updateScenariosFromBranchResponse>(getUpdateScenariosFromBranchUrl(branch), {
         ...options,
         method: 'PUT'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: updateScenariosFromBranchResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as updateScenariosFromBranchResponse;
 };
 
 export type putServerResponse200 = {
@@ -347,17 +303,12 @@ export const getPutServerUrl = () => {
 };
 
 export const putServer = async (putServerBody: PutServerBody, options?: RequestInit): Promise<putServerResponse> => {
-    const res = await fetch(getPutServerUrl(), {
+    return customFetch<putServerResponse>(getPutServerUrl(), {
         ...options,
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
         body: JSON.stringify(putServerBody)
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: putServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as putServerResponse;
 };
 
 export type postServerResponse200 = {
@@ -384,17 +335,12 @@ export const getPostServerUrl = () => {
 };
 
 export const postServer = async (postServerBody: PostServerBody, options?: RequestInit): Promise<postServerResponse> => {
-    const res = await fetch(getPostServerUrl(), {
+    return customFetch<postServerResponse>(getPostServerUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
         body: JSON.stringify(postServerBody)
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: postServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as postServerResponse;
 };
 
 export type getPlayerLogResponse200 = {
@@ -421,15 +367,10 @@ export const getGetPlayerLogUrl = () => {
 };
 
 export const getPlayerLog = async (options?: RequestInit): Promise<getPlayerLogResponse> => {
-    const res = await fetch(getGetPlayerLogUrl(), {
+    return customFetch<getPlayerLogResponse>(getGetPlayerLogUrl(), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getPlayerLogResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getPlayerLogResponse;
 };
 
 export type getServerResponse200 = {
@@ -456,15 +397,10 @@ export const getGetServerUrl = (id: string) => {
 };
 
 export const getServer = async (id: string, options?: RequestInit): Promise<getServerResponse> => {
-    const res = await fetch(getGetServerUrl(id), {
+    return customFetch<getServerResponse>(getGetServerUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getServerResponse;
 };
 
 export type deleteServerResponse200 = {
@@ -491,15 +427,10 @@ export const getDeleteServerUrl = (id: string) => {
 };
 
 export const deleteServer = async (id: string, options?: RequestInit): Promise<deleteServerResponse> => {
-    const res = await fetch(getDeleteServerUrl(id), {
+    return customFetch<deleteServerResponse>(getDeleteServerUrl(id), {
         ...options,
         method: 'DELETE'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: deleteServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as deleteServerResponse;
 };
 
 export type getCrashLogResponse200 = {
@@ -526,15 +457,10 @@ export const getGetCrashLogUrl = (id: string) => {
 };
 
 export const getCrashLog = async (id: string, options?: RequestInit): Promise<getCrashLogResponse> => {
-    const res = await fetch(getGetCrashLogUrl(id), {
+    return customFetch<getCrashLogResponse>(getGetCrashLogUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getCrashLogResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getCrashLogResponse;
 };
 
 export type isServerRunningResponse200 = {
@@ -561,15 +487,10 @@ export const getIsServerRunningUrl = (id: string) => {
 };
 
 export const isServerRunning = async (id: string, options?: RequestInit): Promise<isServerRunningResponse> => {
-    const res = await fetch(getIsServerRunningUrl(id), {
+    return customFetch<isServerRunningResponse>(getIsServerRunningUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: isServerRunningResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as isServerRunningResponse;
 };
 
 export type getLogsResponse200 = {
@@ -596,15 +517,10 @@ export const getGetLogsUrl = (id: string) => {
 };
 
 export const getLogs = async (id: string, options?: RequestInit): Promise<getLogsResponse> => {
-    const res = await fetch(getGetLogsUrl(id), {
+    return customFetch<getLogsResponse>(getGetLogsUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getLogsResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getLogsResponse;
 };
 
 export type deleteLogResponse200 = {
@@ -636,15 +552,10 @@ export const getDeleteLogUrl = (id: string, log: string) => {
 };
 
 export const deleteLog = async (id: string, log: string, options?: RequestInit): Promise<deleteLogResponse> => {
-    const res = await fetch(getDeleteLogUrl(id, log), {
+    return customFetch<deleteLogResponse>(getDeleteLogUrl(id, log), {
         ...options,
         method: 'DELETE'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: deleteLogResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as deleteLogResponse;
 };
 
 export type getLogFileResponse200 = {
@@ -676,15 +587,10 @@ export const getGetLogFileUrl = (id: string, log: string, logType: LogType) => {
 };
 
 export const getLogFile = async (id: string, log: string, logType: LogType, options?: RequestInit): Promise<getLogFileResponse> => {
-    const res = await fetch(getGetLogFileUrl(id, log, logType), {
+    return customFetch<getLogFileResponse>(getGetLogFileUrl(id, log, logType), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getLogFileResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getLogFileResponse;
 };
 
 export type getProfileFilesResponse200 = {
@@ -711,15 +617,10 @@ export const getGetProfileFilesUrl = (id: string) => {
 };
 
 export const getProfileFiles = async (id: string, options?: RequestInit): Promise<getProfileFilesResponse> => {
-    const res = await fetch(getGetProfileFilesUrl(id), {
+    return customFetch<getProfileFilesResponse>(getGetProfileFilesUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getProfileFilesResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getProfileFilesResponse;
 };
 
 export type getSizeMethodResponse200 = {
@@ -737,15 +638,10 @@ export const getGetSizeMethodUrl = (id: string) => {
 };
 
 export const getSizeMethod = async (id: string, options?: RequestInit): Promise<getSizeMethodResponse> => {
-    const res = await fetch(getGetSizeMethodUrl(id), {
+    return customFetch<getSizeMethodResponse>(getGetSizeMethodUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getSizeMethodResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getSizeMethodResponse;
 };
 
 export type startServerResponse200 = {
@@ -772,15 +668,10 @@ export const getStartServerUrl = (id: string) => {
 };
 
 export const startServer = async (id: string, options?: RequestInit): Promise<startServerResponse> => {
-    const res = await fetch(getStartServerUrl(id), {
+    return customFetch<startServerResponse>(getStartServerUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: startServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as startServerResponse;
 };
 
 export type getStatsResponse200 = {
@@ -807,15 +698,10 @@ export const getGetStatsUrl = (id: string) => {
 };
 
 export const getStats = async (id: string, options?: RequestInit): Promise<getStatsResponse> => {
-    const res = await fetch(getGetStatsUrl(id), {
+    return customFetch<getStatsResponse>(getGetStatsUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getStatsResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getStatsResponse;
 };
 
 export type stopServerResponse200 = {
@@ -842,15 +728,10 @@ export const getStopServerUrl = (id: string) => {
 };
 
 export const stopServer = async (id: string, options?: RequestInit): Promise<stopServerResponse> => {
-    const res = await fetch(getStopServerUrl(id), {
+    return customFetch<stopServerResponse>(getStopServerUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: stopServerResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as stopServerResponse;
 };
 
 export type getStatusResponse200 = {
@@ -868,15 +749,10 @@ export const getGetStatusUrl = () => {
 };
 
 export const getStatus = async (options?: RequestInit): Promise<getStatusResponse> => {
-    const res = await fetch(getGetStatusUrl(), {
+    return customFetch<getStatusResponse>(getGetStatusUrl(), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getStatusResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getStatusResponse;
 };
 
 export type getWorkshopResponse200 = {
@@ -920,15 +796,10 @@ filtering by search term, tags, sort order, and page.
  * @summary Search the Arma Reforger Workshop
  */
 export const getWorkshop = async (params?: GetWorkshopParams, options?: RequestInit): Promise<getWorkshopResponse> => {
-    const res = await fetch(getGetWorkshopUrl(params), {
+    return customFetch<getWorkshopResponse>(getGetWorkshopUrl(params), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getWorkshopResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getWorkshopResponse;
 };
 
 export type getWorkshopDetailResponse200 = {
@@ -966,15 +837,10 @@ pass the bare hex ID.
  * @summary Get full details for a single workshop asset, including its changelog
  */
 export const getWorkshopDetail = async (id: string, options?: RequestInit): Promise<getWorkshopDetailResponse> => {
-    const res = await fetch(getGetWorkshopDetailUrl(id), {
+    return customFetch<getWorkshopDetailResponse>(getGetWorkshopDetailUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getWorkshopDetailResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getWorkshopDetailResponse;
 };
 
 export type getWorkshopScenariosResponse200 = {
@@ -1012,13 +878,8 @@ full resolved dependency list.
  * @summary List scenarios and dependencies for a workshop asset
  */
 export const getWorkshopScenarios = async (id: string, options?: RequestInit): Promise<getWorkshopScenariosResponse> => {
-    const res = await fetch(getGetWorkshopScenariosUrl(id), {
+    return customFetch<getWorkshopScenariosResponse>(getGetWorkshopScenariosUrl(id), {
         ...options,
         method: 'GET'
     });
-
-    const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-    const data: getWorkshopScenariosResponse['data'] = body ? JSON.parse(body) : {};
-    return { data, status: res.status, headers: res.headers } as getWorkshopScenariosResponse;
 };

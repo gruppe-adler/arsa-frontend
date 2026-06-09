@@ -5,6 +5,9 @@ import InfoTooltip from './InfoTooltip.vue';
 import Combobox from './Combobox.vue';
 import { useServersStore } from '../stores/servers';
 import type { PlayerIdentityId } from '../api/model';
+import { useToast } from '../composables/useToast.ts';
+
+const { toast } = useToast();
 
 const serversStore = useServersStore();
 
@@ -56,7 +59,7 @@ function addItem() {
             if (new RegExp(e as string).exec(input.value)) hit++;
         });
         if (hit === 0) {
-            alert('Malformatted string. See reference for details.');
+            toast.error('Malformed string', 'See reference for details.');
             return;
         }
     }

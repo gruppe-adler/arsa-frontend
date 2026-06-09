@@ -1,15 +1,17 @@
 import { defineStore } from 'pinia';
-import { Branch, ScenarioEntry } from '../api/model';
-import { getScenariosFromBranch, updateScenariosFromBranch } from '../api/backend';
+import { AssetDetailResponse, Branch, ScenarioEntry } from '../api/model';
+import { getScenariosFromBranch, getWorkshopDetail, updateScenariosFromBranch } from '../api/backend';
 
 interface State {
     scenarios: Map<Branch, ScenarioEntry[]>;
+    customScenarios: Map<string, ScenarioEntry[]>;
 }
 
 export const useScenarioStore = defineStore('scenarios', {
     state: (): State => {
         return {
-            scenarios: new Map<Branch, ScenarioEntry[]>()
+            scenarios: new Map<Branch, ScenarioEntry[]>(),
+            customScenarios: new Map<Branch, ScenarioEntry[]>()
         };
     },
     actions: {
@@ -28,6 +30,22 @@ export const useScenarioStore = defineStore('scenarios', {
                 }
             }
             return scenarios ?? [];
+        },
+
+        async getModScenarios(assetID: string): Promise<ScenarioEntry[]> {
+            const scenarioEntries = this.customScenarios.get(assetID);
+            if (scenarioEntries) {
+                return scenarioEntries;
+            }
+
+            const assetDetail = (await getWorkshopDetail(assetID)).data as AssetDetailResponse;
+
+            const scenarios = assetDetail.version_detail.scenarios.map(x => {
+                return { name: x.name, path: x.gameId } as ScenarioEntry;
+            });
+
+            this.customScenarios.set(assetID, scenarios);
+            return scenarios;
         }
     }
 });

@@ -8,6 +8,9 @@ import ajvFormats from 'ajv-formats';
 import ajvKeywords from 'ajv-keywords';
 import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
 import { Mod } from '../api/model';
+import { useToast } from '../composables/useToast.ts';
+
+const { toast } = useToast();
 
 const ajv = new Ajv({ allErrors: true, useDefaults: true });
 ajvFormats(ajv);
@@ -57,8 +60,9 @@ function addMod() {
     };
 
     if (!validateMod(mod)) {
+        toast.error('Mod validation failed.', ' See browser console for details.');
+        // TODO: Rework this when redesigning the Mod/Workshop stuff
         console.log(validateMod.errors);
-        alert('Mod validation failed. See browser console for details.');
         return;
     }
 
@@ -95,14 +99,14 @@ function importModset() {
     try {
         modset = JSON.parse('[' + text + ']');
     } catch {
-        alert('Not valid JSON. See browser console for details.');
+        toast.error('Not valid JSON', 'See browser console for details.');
         return;
     }
     if (modset.length === 0) return;
 
     if (!validateModset(modset)) {
+        toast.error('Modset validation failed', 'See browser console for details.');
         console.log(validateModset.errors);
-        alert('Modset validation failed. See browser console for details.');
         return;
     }
 

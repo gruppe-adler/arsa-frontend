@@ -8,7 +8,13 @@ export default defineConfig({
             schemas: './src/api/model',
             client: 'fetch',
             formatter: 'prettier',
-            baseUrl: 'http://localhost:3000/'
+            baseUrl: 'http://localhost:3000/',
+            override: {
+                mutator: {
+                    path: './src/utils/fetcher.ts',
+                    name: 'customFetch'
+                }
+            }
         }
     }
 });

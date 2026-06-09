@@ -6,6 +6,9 @@ import ajvKeywords from 'ajv-keywords';
 import { arsConfigSchema } from '../utils/json-schema';
 import { defaultConfig } from '../utils/defaults';
 import { Server, ServerConfig } from '../api/model';
+import { useToast } from '../composables/useToast';
+
+const { toast } = useToast();
 
 const ajv = new Ajv({ allErrors: true, useDefaults: true });
 ajvFormats(ajv);
@@ -42,11 +45,11 @@ function uploadConfig() {
             try {
                 json = JSON.parse(content);
             } catch {
-                alert('Not valid JSON. See browser console for details.');
+                toast.error('Not valid JSON', 'See browser console for details.');
                 return;
             }
             if (!validate(json)) {
-                alert('JSON validation failed. See browser console for details.');
+                toast.error('JSON validation failed', 'See browser console for details.');
             } else {
                 server.value.config = json;
             }

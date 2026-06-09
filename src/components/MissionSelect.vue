@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import InfoTooltip from './InfoTooltip.vue';
-import { getWorkshopScenarios } from '../api/backend';
-import { Branch, type Mod } from '../api/model';
+import { Branch, ScenarioEntry, type Mod } from '../api/model';
 import { useScenarioStore } from '../stores/scenarios.ts';
 
 const scenarioStore = useScenarioStore();
@@ -17,7 +16,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue']);
 
-const missions = ref<{ label: string; value: string }[]>([]);
+const missions = ref<ScenarioEntry[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -47,32 +46,17 @@ async function loadMissions() {
 
     loading.value = true;
     try {
-        const allScenarios = await Promise.all(
-            assetIds.map(async assetId => {
-                const response = await getWorkshopScenarios(assetId);
-                return response.status === 200 ? response.data.scenarios : [];
-            })
-        );
+        const allScenarios = (
+            await Promise.all(
+                assetIds.map(async assetId => {
+                    return await scenarioStore.getModScenarios(assetId);
+                })
+            )
+        ).flat();
 
-        const merged = new Map<string, { label: string; value: string }>();
-        allScenarios.flat().forEach(scenario => {
-            const value = scenario.gameId;
-            if (!merged.has(value)) {
-                merged.set(value, {
-                    value,
-                    label: `${scenario.name} (${scenario.gameId})`
-                });
-            }
-        });
+        const missionsTemp = Array.from(allScenarios.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-        const missionsTemp = Array.from(merged.values()).sort((a, b) => a.label.localeCompare(b.label));
-
-        const vanillaScenarios = (await scenarioStore.getScenarios(props.branch as Branch)).map(scenario => {
-            return {
-                label: `${scenario.name} (${scenario.path}) [Vanilla]`,
-                value: scenario.path
-            };
-        });
+        const vanillaScenarios = await scenarioStore.getScenarios(props.branch as Branch);
 
         missions.value = [...missionsTemp, ...vanillaScenarios];
     } catch (err) {
@@ -106,8 +90,8 @@ onMounted(loadMissions);
             <div v-else>
                 <select v-model="selectedMission" :disabled="props.readonly || !available">
                     <option value="" disabled>Select a vanilla mission or a mission from installed mods</option>
-                    <option v-for="mission in missions" :key="mission.value" :value="mission.value">
-                        {{ mission.label }}
+                    <option v-for="mission in missions" :key="mission.path" :value="mission.path">
+                        {{ mission.name }} ({{ mission.path }})
                     </option>
                 </select>
                 <p v-if="!available" class="mission-select-hint">No mission scenarios found for the current mod list.</p>
@@ -117,7 +101,7 @@ onMounted(loadMissions);
         <div v-if="available" class="mission-select-list">
             <p class="mission-select-list-title">Available missions</p>
             <ul>
-                <li v-for="mission in missions" :key="mission.value">{{ mission.label }}</li>
+                <li v-for="mission in missions" :key="mission.path">{{ mission.name }} ({{ mission.path }})</li>
             </ul>
         </div>
     </div>

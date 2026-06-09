@@ -169,7 +169,7 @@ export async function addServer(server: Server): Promise<string> {
         logsStore.add(`New Server added with UUID: ${uuid}`);
         return uuid;
     }
-    throw new Error('Failed to add server');
+    return '';
 }
 
 export async function updateServer(server: Server): Promise<boolean> {
@@ -179,7 +179,7 @@ export async function updateServer(server: Server): Promise<boolean> {
         logsStore.add(`Server with UUID ${server.uuid} updated`);
         return response.data.success;
     }
-    throw new Error('Failed to update server');
+    return false;
 }
 
 export async function getPublicIp(): Promise<string> {
@@ -189,7 +189,7 @@ export async function getPublicIp(): Promise<string> {
     if (response.status === 200) {
         return response.data.ipv4;
     }
-    throw new Error('Failed to get public ip');
+    return '';
 }
 
 export async function getArsStatus(): Promise<ArsStatus> {

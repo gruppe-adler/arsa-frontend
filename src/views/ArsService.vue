@@ -7,10 +7,12 @@ import { ArsStatus, Branch } from '../api/model';
 import ImagePullLog from '../components/ImagePullLog.vue';
 import Dialog from '../components/Dialog.vue';
 import { useScenarioStore } from '../stores/scenarios.ts';
+import { useToast } from '../composables/useToast.ts';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const scenarioStore = useScenarioStore();
+const { toast } = useToast();
 
 async function updateArsStatus() {
     const result = await serversStore.getArsStatus();
@@ -18,6 +20,7 @@ async function updateArsStatus() {
 }
 
 async function updateScenarios(branch: Branch) {
+    toast.info('Updating Scenarios...', 'Takes about 30s');
     await scenarioStore.updateScenarios(branch);
 }
 

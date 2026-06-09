@@ -3,9 +3,13 @@ import Menu from './components/Menu.vue';
 import WebSocket from './components/WebSocket.vue';
 import { useServersStore } from './stores/servers';
 import { useTheme } from './composables/useTheme';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { TooltipProvider } from 'reka-ui';
 import { ArsStatus } from './api/model';
+import ToastProvider from './components/ToastProvider.vue';
+import { ToastParameters, useToast } from './composables/useToast.ts';
+
+const { toast } = useToast();
 
 const serversStore = useServersStore();
 const { theme, toggleTheme, initTheme } = useTheme();
@@ -29,6 +33,12 @@ const arsStatusDot = computed(() => {
 });
 
 const arsStatusLabel = computed(() => ArsStatus[serversStore.arsStatus]);
+
+const handleToast = ((e: CustomEvent<ToastParameters>) =>
+    toast[e.detail.type](e.detail.title, e.detail.description, e.detail.duration)) as EventListener;
+
+onMounted(() => window.addEventListener('app:toast', handleToast));
+onUnmounted(() => window.removeEventListener('app:toast', handleToast));
 </script>
 
 <template>
@@ -80,6 +90,7 @@ const arsStatusLabel = computed(() => ArsStatus[serversStore.arsStatus]);
             </div>
         </header>
         <RouterView />
+        <ToastProvider />
     </TooltipProvider>
 </template>
 

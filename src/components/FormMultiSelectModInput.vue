@@ -2,6 +2,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref, watch } from 'vue';
 import InfoTooltip from './InfoTooltip.vue';
+import { useToast } from '../composables/useToast.ts';
+
+const { toast } = useToast();
 
 const props = defineProps({
     readonly: Boolean,
@@ -35,7 +38,7 @@ function addItem() {
             if (new RegExp(e as string).exec(input.value)) hit++;
         });
         if (hit === 0) {
-            alert('Malformatted string. See reference for details.');
+            toast.error('Malformatted string.', 'See reference for details.');
             return;
         }
     }
