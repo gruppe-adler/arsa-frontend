@@ -42,6 +42,7 @@ function onClickClone() {
     const server: Server = { ...model.value };
     server.name = server.name.concat(' Duplicate');
     server.uuid = '';
+    server.isRunning = false;
     serversStore.add(server).then(() => emit('serverCloned'));
 }
 function serverRoute(tab?: string) {
