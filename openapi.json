@@ -1,10 +1,10 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "arsa-backend-rs",
+        "title": "arsa-backend",
         "description": "",
         "license": { "name": "" },
-        "version": "0.1.0"
+        "version": "2.0.0"
     },
     "paths": {
         "/api/api/v2/server/{id}/profile/{path}": {
@@ -289,6 +289,58 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ImageVersionResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v2/logs": {
+            "get": {
+                "tags": ["log"],
+                "operationId": "get_global_logs",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (default: 1)",
+                        "required": false,
+                        "schema": {
+                            "type": ["integer", "null"],
+                            "format": "int64",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page (default: 50)",
+                        "required": false,
+                        "schema": {
+                            "type": ["integer", "null"],
+                            "format": "int64",
+                            "minimum": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logs returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_GlobalLog"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get logs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
                                 }
                             }
                         }
@@ -2206,6 +2258,16 @@
                     }
                 }
             },
+            "GlobalLog": {
+                "type": "object",
+                "required": ["action", "timestamp"],
+                "properties": {
+                    "action": { "$ref": "#/components/schemas/LogAction" },
+                    "id": { "type": "string", "format": "uuid" },
+                    "target": { "type": ["string", "null"], "format": "uuid" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                }
+            },
             "IPv4Response": {
                 "type": "object",
                 "required": ["ipv4"],
@@ -2257,6 +2319,18 @@
                     "dir": { "type": "string" }
                 }
             },
+            "LogAction": {
+                "type": "string",
+                "enum": [
+                    "ServerAdded",
+                    "ServerDeleted",
+                    "ServerStarted",
+                    "ServerUpdated",
+                    "ServerStopped",
+                    "ServerLogDeleted",
+                    "ImagePullStarted"
+                ]
+            },
             "LogType": {
                 "type": "string",
                 "enum": ["console.log", "error.log", "script.log", "crash.log"]
@@ -2302,6 +2376,58 @@
                     "slotReservationTimeout": {
                         "type": "integer",
                         "format": "int32",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PaginatedResponse_GlobalLog": {
+                "type": "object",
+                "required": ["data", "page", "limit", "total", "total_pages"],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["action", "timestamp"],
+                            "properties": {
+                                "action": {
+                                    "$ref": "#/components/schemas/LogAction"
+                                },
+                                "id": { "type": "string", "format": "uuid" },
+                                "target": {
+                                    "type": ["string", "null"],
+                                    "format": "uuid"
+                                },
+                                "timestamp": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            }
+                        },
+                        "description": "Data"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Limit",
+                        "minimum": 0
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Page number",
+                        "minimum": 0
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Total",
+                        "minimum": 0
+                    },
+                    "total_pages": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Total pages",
                         "minimum": 0
                     }
                 }
@@ -2663,6 +2789,7 @@
     "tags": [
         { "name": "server", "description": "Server api endpoints" },
         { "name": "workshop", "description": "Workshop api" },
-        { "name": "image", "description": "Docker image endpoints" }
+        { "name": "image", "description": "Docker image endpoints" },
+        { "name": "log", "description": "Global log endpoints" }
     ]
 }

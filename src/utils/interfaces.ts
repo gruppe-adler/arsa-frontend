@@ -1,7 +1,15 @@
-import { ArsStatus, PullLog } from '../api/model';
+import { ArsStatus, GlobalLog, PullLog } from '../api/model';
 
 export interface ServerStatusUpdate {
-    type: 'isRunningUpdate' | 'arsStatusUpdate' | 'message' | 'createImageProgress' | 'createImageFinished' | 'error' | 'playerCountUpdate';
+    type:
+        | 'isRunningUpdate'
+        | 'arsStatusUpdate'
+        | 'message'
+        | 'createImageProgress'
+        | 'createImageFinished'
+        | 'error'
+        | 'playerCountUpdate'
+        | 'logUpdate';
 }
 
 export interface IsRunningUpdate extends ServerStatusUpdate {
@@ -15,9 +23,9 @@ export interface ArsStatusUpdate extends ServerStatusUpdate {
     arsStatus: ArsStatus;
 }
 
-export interface Message extends ServerStatusUpdate {
-    type: 'message';
-    message: string;
+export interface LogUpdate extends ServerStatusUpdate {
+    type: 'logUpdate';
+    log: GlobalLog;
 }
 
 export interface CreateImageProgress extends ServerStatusUpdate {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
 import ServerItem from '../components/ServerItem.vue';
@@ -9,7 +9,16 @@ import { Server } from '../api/model';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
+const route = useRoute();
 const router = useRouter();
+
+function parsePositiveInteger(value: unknown): number | undefined {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+const hostLogPage = computed(() => parsePositiveInteger(route.query.page) ?? 1);
+const hostLogLimit = computed(() => parsePositiveInteger(route.query.limit));
 
 async function updateServerList() {
     await serversStore.getAll();
@@ -87,7 +96,7 @@ onMounted(async () => {
                 Clear
             </button>
         </div>
-        <HostServerLog />
+        <HostServerLog :page="hostLogPage" :limit="hostLogLimit" />
     </main>
 </template>
 

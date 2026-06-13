@@ -36,8 +36,6 @@ import {
     EditProfileFileRequest
 } from '../api/model';
 
-import { useLogsStore } from '../stores/logs';
-
 // TODO:
 // const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
 // const protocol = import.meta.env.VITE_API_PROTOCOL || 'http';
@@ -46,36 +44,26 @@ import { useLogsStore } from '../stores/logs';
 
 export async function getServers(): Promise<Server[]> {
     const response = await apiGetServers();
-    const logsStore = useLogsStore();
-    logsStore.add(`Server list retrieved`);
     return (response.data || []) as unknown as Server[];
 }
 
 export async function getServer(uuid: string): Promise<Server> {
     const response = await apiGetServer(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} retrieved`);
     return response.data as unknown as Server;
 }
 
 export async function startServer(uuid: string): Promise<boolean> {
     const response = await apiStartServer(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} started`);
     return response.status === 200;
 }
 
 export async function stopServer(uuid: string): Promise<boolean> {
     const response = await apiStopServer(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} stopped`);
     return response.status === 200;
 }
 
 export async function deleteServer(uuid: string): Promise<boolean> {
     const response = await apiDeleteServer(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} deleted`);
     return response.status === 200;
 }
 
@@ -86,8 +74,6 @@ export async function isRunning(uuid: string): Promise<boolean> {
 
 export async function getLogs(uuid: string): Promise<ResultLogs> {
     const response = await apiGetLogs(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Logs for Server with UUID ${uuid}`);
     if (response.status === 200) {
         return response.data as ResultLogs;
     }
@@ -96,8 +82,6 @@ export async function getLogs(uuid: string): Promise<ResultLogs> {
 
 export async function getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
     const response = await apiGetLogFile(uuid, log, file);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
     if (response.status === 200) {
         return response.data;
     }
@@ -106,8 +90,6 @@ export async function getLog(uuid: string, log: string, file: LogType): Promise<
 
 export async function getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
     const response = await apiGetCrashLog(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting CrashReports.log for Server with UUID: ${uuid}`);
     if (response.status === 200) {
         return response.data;
     }
@@ -116,25 +98,11 @@ export async function getCrashReportsLog(uuid: string): Promise<FileContentRespo
 
 export async function deleteLog(uuid: string, log: string): Promise<boolean> {
     const response = await apiDeleteLog(uuid, log);
-    const logsStore = useLogsStore();
-    logsStore.add(`Deleting Log ${log} for Server with UUID: ${uuid}`);
     return response.status === 200;
 }
 
-// export async function getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
-//     const response = await apiGetPlayerLog(uuid);
-//     const logsStore = useLogsStore();
-//     logsStore.add(`Getting Players from Log ${log} for Server with UUID: ${uuid}`);
-//     if (response.status === 200) {
-//         return response.data as PlayerIdentityId[];
-//     }
-//     return [];
-// }
-
 export async function getKnownPlayers(): Promise<PlayerIdentityId[]> {
     const response = await apiGetPlayerLog();
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting known Players`);
     if (response.status === 200) {
         return response.data as PlayerIdentityId[];
     }
@@ -143,8 +111,6 @@ export async function getKnownPlayers(): Promise<PlayerIdentityId[]> {
 
 export async function getStats(uuid: string): Promise<DockerStats> {
     const response = await apiGetStats(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Stats for Server with UUID: ${uuid}`);
     if (response.status === 200) {
         return response.data as DockerStats;
     }
@@ -153,8 +119,6 @@ export async function getStats(uuid: string): Promise<DockerStats> {
 
 export async function getSize(uuid: string): Promise<ResultSize> {
     const response = await apiGetSize(uuid);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Size for Server with UUID: ${uuid}`);
     if (response.status === 200) {
         return response.data as ResultSize;
     }
@@ -163,20 +127,15 @@ export async function getSize(uuid: string): Promise<ResultSize> {
 
 export async function addServer(server: Server): Promise<string> {
     const response = await apiPostServer(server as PostServerBody);
-    const logsStore = useLogsStore();
     if (response.status === 200) {
-        const uuid = (response.data as UuidResponse)?.uuid || '';
-        logsStore.add(`New Server added with UUID: ${uuid}`);
-        return uuid;
+        return (response.data as UuidResponse)?.uuid || '';
     }
     return '';
 }
 
 export async function updateServer(server: Server): Promise<boolean> {
     const response = await putServer(server as PutServerBody);
-    const logsStore = useLogsStore();
     if (response.status === 200 && response.data.success) {
-        logsStore.add(`Server with UUID ${server.uuid} updated`);
         return response.data.success;
     }
     return false;
@@ -184,8 +143,6 @@ export async function updateServer(server: Server): Promise<boolean> {
 
 export async function getPublicIp(): Promise<string> {
     const response = await apiGetPublicIp();
-    const logsStore = useLogsStore();
-    logsStore.add(`Public IP address retrieved`);
     if (response.status === 200) {
         return response.data.ipv4;
     }
@@ -194,8 +151,6 @@ export async function getPublicIp(): Promise<string> {
 
 export async function getArsStatus(): Promise<ArsStatus> {
     const response = await apiGetStatus();
-    const logsStore = useLogsStore();
-    logsStore.add(`ARS status fetched`);
     return response.data;
 }
 
@@ -206,8 +161,6 @@ export async function getAllPullLogs(): Promise<PullLog[]> {
 
 export async function getProfileFilesForServer(id: string): Promise<ProfileFileListResponse> {
     const response = await getProfileFiles(id);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting profile files for Server with UUID: ${id}`);
     if (response.status === 200) {
         return response.data as ProfileFileListResponse;
     }
@@ -216,8 +169,6 @@ export async function getProfileFilesForServer(id: string): Promise<ProfileFileL
 
 export async function getProfileFileForServer(id: string, path: string): Promise<FileContentResponse> {
     const response = await getProfileFile(id, path);
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting profile file ${path} for Server with UUID: ${id}`);
     if (response.status === 200) {
         return response.data as FileContentResponse;
     }
@@ -227,7 +178,5 @@ export async function getProfileFileForServer(id: string, path: string): Promise
 export async function editProfileFile(id: string, path: string, contents: string): Promise<boolean> {
     const body = { fileContent: contents } as EditProfileFileRequest;
     const response = await putProfileFile(id, path, body);
-    const logsStore = useLogsStore();
-    logsStore.add(`Updating profile file ${path} for Server with UUID: ${id}`);
     return response.status === 200;
 }

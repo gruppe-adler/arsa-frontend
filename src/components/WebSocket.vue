@@ -8,6 +8,7 @@ import {
     CreateImageFinished,
     CreateImageProgress,
     IsRunningUpdate,
+    LogUpdate,
     PlayerCountUpdate,
     ServerStatusUpdate
 } from '../utils/interfaces';
@@ -38,9 +39,12 @@ watch(ws.data, value => {
         // console.log(value);
         const update: ServerStatusUpdate = JSON.parse(value);
         if (update.type !== 'createImageProgress') {
-            logsStore.addServerStatusUpdate(update);
+            // logsStore.addServerStatusUpdate(update);
         }
-        if (update.type === 'isRunningUpdate') {
+        if (update.type === 'logUpdate') {
+            const logUpdate = update as LogUpdate;
+            logsStore.updateLog(logUpdate.log);
+        } else if (update.type === 'isRunningUpdate') {
             const isRunningUpdate: IsRunningUpdate = update as IsRunningUpdate;
             serversStore.isRunningUpdate(isRunningUpdate.uuid, isRunningUpdate.isRunning);
         } else if (update.type === 'arsStatusUpdate') {

@@ -1,14 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { TooltipRoot, TooltipTrigger, TooltipPortal, TooltipContent } from 'reka-ui';
-import { HostLog, useLogsStore } from '../stores/logs';
+import { useLogsStore } from '../stores/logs';
 import { useServersStore } from '../stores/servers';
-import { ArsStatusUpdate, IsRunningUpdate, Message } from '../utils/interfaces';
+import { GlobalLog, LogAction } from '../api/model';
+
+const props = withDefaults(
+    defineProps<{
+        page?: number;
+        limit?: number;
+    }>(),
+    {
+        page: 1
+    }
+);
 
 const logsStore = useLogsStore();
 const serversStore = useServersStore();
+const pageSize = computed(() => {
+    const limit = props.limit ?? 50;
 
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+    return Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 50;
+});
 
 interface TextPart {
     kind: 'text';
@@ -31,39 +44,36 @@ function resolveServerName(uuid: string): string {
     return serversStore.servers.find(s => s.uuid === uuid)?.name ?? uuid.slice(0, 8);
 }
 
-function textToParts(text: string): Part[] {
-    const parts: Part[] = [];
-    let last = 0;
-    for (const m of text.matchAll(UUID_RE)) {
-        if (m.index > last) parts.push({ kind: 'text', text: text.slice(last, m.index) });
-        parts.push({ kind: 'chip', uuid: m[0], serverName: resolveServerName(m[0]) });
-        last = m.index + m[0].length;
+function actionToLabel(action: LogAction): string {
+    switch (action) {
+        case LogAction.ServerAdded:
+            return 'Server added by [todo] ';
+        case LogAction.ServerDeleted:
+            return 'Server deleted by [todo] ';
+        case LogAction.ServerStarted:
+            return 'Server started by [todo] ';
+        case LogAction.ServerUpdated:
+            return 'Server updated by [todo] ';
+        case LogAction.ServerStopped:
+            return 'Server stopped by [todo] ';
+        case LogAction.ServerLogDeleted:
+            return 'Server log deleted by [todo] ';
+        case LogAction.ImagePullStarted:
+            return 'Image pull started by [todo] ';
+        default:
+            return action;
     }
-    if (last < text.length) parts.push({ kind: 'text', text: text.slice(last) });
-    return parts.length ? parts : [{ kind: 'text', text }];
 }
 
-function parseEntry(hostLog: HostLog): ParsedEntry {
-    const timestamp = hostLog.timestamp;
-    const timestampLocal = new Date(timestamp).toLocaleString();
+function parseEntry(log: GlobalLog): ParsedEntry {
+    const timestamp = new Date(log.timestamp);
+    const timestampLocal = timestamp.toLocaleString();
     const timestampRelative = getRelativeTime(timestamp);
 
-    let parts: Part[] = [];
+    const parts: Part[] = [{ kind: 'text', text: actionToLabel(log.action) }];
 
-    if (hostLog.log.type === 'isRunningUpdate') {
-        const isRunningUpdate = hostLog.log as IsRunningUpdate;
-        parts = [
-            { kind: 'chip', uuid: isRunningUpdate.uuid, serverName: resolveServerName(isRunningUpdate.uuid) },
-            { kind: 'text', text: isRunningUpdate.isRunning ? ' started' : ' stopped' }
-        ];
-    } else if (hostLog.log.type === 'arsStatusUpdate') {
-        const arsStatusUpdate = hostLog.log as ArsStatusUpdate;
-        parts = [{ kind: 'text', text: `ARS status: ${arsStatusUpdate.arsStatus}` }];
-    } else if (hostLog.log.type === 'message') {
-        const message = hostLog.log as Message;
-        parts = textToParts(message.message);
-    } else if (hostLog.log.type === 'playerCountUpdate') {
-        parts = [{ kind: 'text', text: `Player count update received` }];
+    if (log.target) {
+        parts.push({ kind: 'chip', uuid: log.target ?? '', serverName: resolveServerName(log.target) });
     }
 
     return {
@@ -91,7 +101,106 @@ function getRelativeTime(date: Date): string {
     }
 }
 
-const parsedLogs = computed(() => logsStore.logs.map(parseEntry).reverse());
+const parsedLogs = computed(() => logsStore.logs.map(parseEntry));
+const hasMoreLogs = computed(() => logsStore.globalLogsTotalPages > 0 && logsStore.globalLogsPage < logsStore.globalLogsTotalPages);
+const isLoading = ref(false);
+const loadError = ref('');
+const loadMoreSentinel = ref<HTMLElement | null>(null);
+let loadMoreObserver: IntersectionObserver | undefined;
+
+function isSentinelVisible(): boolean {
+    const sentinel = loadMoreSentinel.value;
+
+    if (!sentinel) {
+        return false;
+    }
+
+    const rect = sentinel.getBoundingClientRect();
+    return rect.top <= window.innerHeight + 200;
+}
+
+async function loadPage(page: number) {
+    if (isLoading.value) {
+        return;
+    }
+
+    isLoading.value = true;
+    loadError.value = '';
+
+    try {
+        await logsStore.getLogs({
+            page,
+            limit: pageSize.value
+        });
+    } catch (error) {
+        loadError.value = error instanceof Error ? error.message : 'Failed to load host log.';
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+async function loadInitialLogs() {
+    await loadPage(1);
+    await nextTick();
+
+    if (hasMoreLogs.value && isSentinelVisible()) {
+        await loadNextPage();
+    }
+}
+
+async function loadNextPage() {
+    if (isLoading.value || !hasMoreLogs.value) {
+        return;
+    }
+
+    const nextPage = logsStore.globalLogsPage + 1;
+    await loadPage(nextPage);
+    await nextTick();
+
+    if (hasMoreLogs.value && isSentinelVisible()) {
+        await loadNextPage();
+    }
+}
+
+function setupObserver() {
+    loadMoreObserver?.disconnect();
+
+    const sentinel = loadMoreSentinel.value;
+
+    if (!sentinel) {
+        return;
+    }
+
+    loadMoreObserver = new IntersectionObserver(
+        entries => {
+            if (entries.some(entry => entry.isIntersecting)) {
+                void loadNextPage();
+            }
+        },
+        {
+            rootMargin: '200px 0px'
+        }
+    );
+
+    loadMoreObserver.observe(sentinel);
+}
+
+onMounted(async () => {
+    setupObserver();
+    await loadInitialLogs();
+});
+
+onBeforeUnmount(() => {
+    loadMoreObserver?.disconnect();
+});
+
+watch(pageSize, () => {
+    void loadInitialLogs();
+});
+
+watch(loadMoreSentinel, () => {
+    setupObserver();
+});
 
 const copyStates = ref<Record<string, boolean>>({});
 const copyTimers: Record<string, ReturnType<typeof setTimeout>> = {};
@@ -112,7 +221,11 @@ let logCopyTimer: ReturnType<typeof setTimeout>;
 
 async function copyAllLogs() {
     try {
-        await navigator.clipboard.writeText(logsStore.logs.join('\n'));
+        await navigator.clipboard.writeText(
+            parsedLogs.value
+                .map(entry => `${entry.timestamp} ${entry.parts.map(part => (part.kind === 'text' ? part.text : part.uuid)).join('')}`)
+                .join('\n')
+        );
         logCopied.value = true;
         clearTimeout(logCopyTimer);
         logCopyTimer = setTimeout(() => {
@@ -124,6 +237,7 @@ async function copyAllLogs() {
 
 <template>
     <div class="log-wrapper">
+        <div v-if="loadError" class="log-error">{{ loadError }}</div>
         <button
             v-if="parsedLogs.length > 0"
             class="copy-log-btn"
@@ -159,7 +273,10 @@ async function copyAllLogs() {
                 <path d="M5 12l5 5L20 7" />
             </svg>
         </button>
-        <div v-if="parsedLogs.length > 0" class="log-block">
+        <div v-if="isLoading && parsedLogs.length === 0" class="log-block empty-log">
+            <span class="log-empty">Loading host log…</span>
+        </div>
+        <div v-else-if="parsedLogs.length > 0" class="log-block">
             <div v-for="(entry, i) in parsedLogs" :key="i" class="log-row">
                 <TooltipRoot :delayDuration="0">
                     <TooltipTrigger asChild>
@@ -217,6 +334,12 @@ async function copyAllLogs() {
         <div v-else class="log-block empty-log">
             <span class="log-empty">No log entries yet.</span>
         </div>
+        <div v-if="parsedLogs.length > 0" class="log-footer">
+            <span v-if="isLoading">Loading older entries…</span>
+            <span v-else-if="hasMoreLogs">Scroll to load more</span>
+            <span v-else>Reached the end of the host log.</span>
+        </div>
+        <div ref="loadMoreSentinel" class="load-more-sentinel" aria-hidden="true"></div>
     </div>
 </template>
 
@@ -263,6 +386,24 @@ async function copyAllLogs() {
 }
 .log-empty {
     font-size: 12.5px;
+}
+
+.log-footer {
+    margin-top: 12px;
+    color: var(--ink-3);
+    font-size: 12px;
+    min-height: 18px;
+}
+
+.log-error {
+    margin-bottom: 12px;
+    color: var(--red);
+    font-size: 12px;
+}
+
+.load-more-sentinel {
+    width: 100%;
+    height: 1px;
 }
 </style>
 

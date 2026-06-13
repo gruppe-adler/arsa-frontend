@@ -5,6 +5,7 @@ import { useLogsStore } from '../stores/logs';
 import HostServerLog from '../components/HostServerLog.vue';
 import { ArsStatus, Branch } from '../api/model';
 import ImagePullLog from '../components/ImagePullLog.vue';
+import { useRoute } from 'vue-router';
 import Dialog from '../components/Dialog.vue';
 import { useScenarioStore } from '../stores/scenarios.ts';
 import { useToast } from '../composables/useToast.ts';
@@ -12,7 +13,16 @@ import { useToast } from '../composables/useToast.ts';
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const scenarioStore = useScenarioStore();
+const route = useRoute();
 const { toast } = useToast();
+
+function parsePositiveInteger(value: unknown): number | undefined {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+const hostLogPage = computed(() => parsePositiveInteger(route.query.page) ?? 1);
+const hostLogLimit = computed(() => parsePositiveInteger(route.query.limit));
 
 async function updateArsStatus() {
     const result = await serversStore.getArsStatus();
@@ -164,7 +174,7 @@ updateArsStatus();
                 Clear
             </button>
         </div>
-        <HostServerLog />
+        <HostServerLog :page="hostLogPage" :limit="hostLogLimit" />
     </main>
 </template>
 

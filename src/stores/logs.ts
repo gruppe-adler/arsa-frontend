@@ -1,10 +1,14 @@
 import { defineStore } from 'pinia';
-import { Message, ServerStatusUpdate } from '../utils/interfaces';
-import { PullLog } from '../api/model';
+import { ServerStatusUpdate } from '../utils/interfaces';
+import { GetGlobalLogsParams, GlobalLog, PullLog } from '../api/model';
 import { getAllPullLogs } from '../utils/api';
+import { getGlobalLogs } from '../api/backend';
 
 interface State {
-    logs: HostLog[];
+    logs: GlobalLog[];
+    globalLogsPage: number;
+    globalLogsTotalPages: number;
+    globalLogsLimit: number;
     pullLogs: Map<string, Map<string, PullLog>>;
 }
 
@@ -17,13 +21,40 @@ export const useLogsStore = defineStore('logs', {
     state: (): State => {
         return {
             logs: [],
+            globalLogsPage: 0,
+            globalLogsTotalPages: 0,
+            globalLogsLimit: 50,
             pullLogs: new Map<string, Map<string, PullLog>>()
         };
     },
     actions: {
-        async add(message: string) {
-            const msg = { type: 'message', message: message } as Message;
-            this.logs.push({ timestamp: new Date(), log: msg });
+        async updateLog(log: GlobalLog) {
+            this.logs.unshift(log);
+        },
+
+        async getLogs(params: GetGlobalLogsParams = {}) {
+            const page = params.page ?? 1;
+            const limit = params.limit ?? this.globalLogsLimit ?? 50;
+
+            const response = await getGlobalLogs({
+                page,
+                limit
+            });
+
+            if (response.status !== 200) {
+                throw new Error('Failed to load global logs');
+            }
+
+            this.globalLogsPage = response.data.page;
+            this.globalLogsTotalPages = response.data.total_pages;
+            this.globalLogsLimit = response.data.limit;
+
+            if (page <= 1) {
+                this.logs = [...response.data.data];
+                return;
+            }
+
+            this.logs = [...this.logs, ...response.data.data];
         },
 
         groupPullLogs(logs: PullLog[]): Map<string, Map<string, PullLog>> {
@@ -62,16 +93,15 @@ export const useLogsStore = defineStore('logs', {
             this.upsertPullLog(this.pullLogs, pullLog);
         },
 
+        clear(): void {
+            this.logs = [];
+            this.globalLogsPage = 0;
+            this.globalLogsTotalPages = 0;
+            this.globalLogsLimit = 50;
+        },
+
         clearPullLog(uuid: string) {
             this.pullLogs.delete(uuid);
-        },
-
-        addServerStatusUpdate(message: ServerStatusUpdate) {
-            this.logs.push({ timestamp: new Date(), log: message });
-        },
-
-        clear() {
-            this.logs = [];
         }
     }
 });
