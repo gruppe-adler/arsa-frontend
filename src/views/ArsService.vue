@@ -36,6 +36,7 @@ async function updateScenarios(branch: Branch) {
 
 async function pullImage(branch: Branch) {
     await serversStore.pullImage(branch);
+    await logsStore.loadPullLogs();
 }
 
 const arsStatus = computed<string>(() => ArsStatus[serversStore.arsStatus]);
@@ -57,11 +58,10 @@ const statusDot = computed(() => {
 async function getBranchVersions() {
     const entries = await Promise.all(
         Object.values(Branch).map(async branch => {
-            const version = await serversStore.getImageVersion(branch);
+            const version = (await serversStore.getImageVersion(branch)) ?? '';
             return [branch, version] as [Branch, string];
         })
     );
-
     return new Map<Branch, string>(entries);
 }
 

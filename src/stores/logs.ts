@@ -74,15 +74,15 @@ export const useLogsStore = defineStore('logs', {
             }, new Map<string, Map<string, PullLog>>());
         },
 
-        upsertPullLog(grouped: Map<string, Map<string, PullLog>>, log: PullLog): void {
+        upsertPullLog(grouped: Map<string, Map<string, PullLog>>, log: PullLog): Map<string, Map<string, PullLog>> {
             const pullId = log.pullId ?? 'unknown';
+            const nextGrouped = new Map(grouped);
+            const nextValue = new Map(nextGrouped.get(pullId) ?? []);
 
-            let value = grouped.get(pullId);
-            if (!value) {
-                value = new Map();
-            }
+            nextValue.set(log.id, log);
+            nextGrouped.set(pullId, nextValue);
 
-            value.set(log.id, log);
+            return nextGrouped;
         },
 
         async loadPullLogs(): Promise<void> {
@@ -90,7 +90,7 @@ export const useLogsStore = defineStore('logs', {
         },
 
         async updatePullLog(pullLog: PullLog) {
-            this.upsertPullLog(this.pullLogs, pullLog);
+            this.pullLogs = this.upsertPullLog(this.pullLogs, pullLog);
         },
 
         clear(): void {
@@ -101,7 +101,13 @@ export const useLogsStore = defineStore('logs', {
         },
 
         clearPullLog(uuid: string) {
-            this.pullLogs.delete(uuid);
+            if (!this.pullLogs.has(uuid)) {
+                return;
+            }
+
+            const nextPullLogs = new Map(this.pullLogs);
+            nextPullLogs.delete(uuid);
+            this.pullLogs = nextPullLogs;
         }
     }
 });

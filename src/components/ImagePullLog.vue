@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useLogsStore } from '../stores/logs';
 import { Branch, PullLog } from '../api/model';
 import { ProgressRoot, ProgressIndicator } from 'reka-ui';
@@ -8,11 +8,10 @@ import { UUID_REG_EXP, UUID_REG_EXP_FLAGS } from '../utils/shared';
 
 const logsStore = useLogsStore();
 
-const pullLogs = ref<Map<string, Map<string, PullLog>>>();
+const pullLogs = computed(() => logsStore.pullLogs);
 
 async function fetchData() {
     await logsStore.loadPullLogs();
-    pullLogs.value = logsStore.pullLogs;
 }
 
 onMounted(fetchData);

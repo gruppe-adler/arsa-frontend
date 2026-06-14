@@ -25,9 +25,9 @@ const props = defineProps({
 <template>
     <AlertDialogRoot>
         <AlertDialogTrigger class="btn btn-danger" :disabled="props.disabled"> {{ props.triggerLabel }} </AlertDialogTrigger>
-        <AlertDialogPortal class="card">
+        <AlertDialogPortal>
             <AlertDialogOverlay class="AlertDialogOverlay" />
-            <AlertDialogContent class="AlertDialogContent">
+            <AlertDialogContent class="card AlertDialogContent">
                 <AlertDialogTitle v-if="props.titleLabel" class="card-eyebrow">{{ props.titleLabel }} </AlertDialogTitle>
                 <AlertDialogDescription v-if="props.description" class="AlertDialogDescription">
                     {{ props.description }}
