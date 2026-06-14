@@ -11,6 +11,10 @@ interface State {
     searchTerm: string;
     sort: GetWorkshopSort;
     loading: boolean;
+    /** True once a search has completed (success or empty), so the UI can tell "no results" from "not searched yet". */
+    hasSearched: boolean;
+    /** Set when the last search failed (e.g. backend unreachable); cleared on a successful search. */
+    error: boolean;
     detailCache: Map<string, AssetDetailResponse>;
 }
 
@@ -23,6 +27,8 @@ export const useWorkshopStore = defineStore('workshop', {
             searchTerm: '',
             sort: 'newest',
             loading: false,
+            hasSearched: false,
+            error: false,
             detailCache: new Map<string, AssetDetailResponse>()
         };
     },
@@ -37,6 +43,7 @@ export const useWorkshopStore = defineStore('workshop', {
     actions: {
         async runSearch(params: GetWorkshopParams): Promise<void> {
             this.loading = true;
+            this.error = false;
             try {
                 const result = await getWorkshop(params);
                 if (result.status === 200) {
@@ -46,7 +53,14 @@ export const useWorkshopStore = defineStore('workshop', {
                     this.sort = params.sort ?? 'newest';
                     this.page = params.page ?? 1;
                 }
+            } catch {
+                // customFetch already surfaced an error toast; flag it so the
+                // browser shows "couldn't reach the service" instead of "no results".
+                this.error = true;
+                this.assets = [];
+                this.totalCount = 0;
             } finally {
+                this.hasSearched = true;
                 this.loading = false;
             }
         },

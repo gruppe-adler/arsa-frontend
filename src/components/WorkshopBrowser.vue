@@ -121,6 +121,17 @@ onMounted(() => {
             </form>
 
             <div v-if="store.loading" class="state-msg">Searching…</div>
+            <div v-else-if="store.error" class="state-msg state-error">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <path d="M12 9v4M12 17h.01" />
+                </svg>
+                <div>
+                    <p class="state-title">Couldn't reach the workshop service</p>
+                    <p class="state-sub">The backend may be offline. Check your connection and try again.</p>
+                </div>
+                <button class="btn btn-sm" type="button" @click="runSearch(store.page)">Retry</button>
+            </div>
             <div v-else-if="store.assets.length === 0" class="state-msg">No assets found.</div>
 
             <template v-else>
@@ -266,6 +277,36 @@ onMounted(() => {
     font-size: 14px;
     padding: 32px 0;
     text-align: center;
+}
+.state-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: left;
+    color: var(--red);
+    border: 1px solid color-mix(in oklab, var(--red), transparent 70%);
+    border-radius: var(--radius-lg);
+    background: var(--red-soft);
+    padding: 20px 24px;
+}
+.state-error svg {
+    flex-shrink: 0;
+}
+.state-error .state-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.state-error .state-sub {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--ink-3);
+}
+.state-error .btn {
+    flex-shrink: 0;
+    margin-left: auto;
 }
 .results-meta {
     font-size: 12px;
