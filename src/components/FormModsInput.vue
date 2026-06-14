@@ -7,8 +7,9 @@ import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
 import ajvKeywords from 'ajv-keywords';
 import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
-import { Mod } from '../api/model';
+import { Asset, Mod } from '../api/model';
 import { useToast } from '../composables/useToast.ts';
+import WorkshopBrowser from './WorkshopBrowser.vue';
 
 const { toast } = useToast();
 
@@ -24,6 +25,7 @@ const model = defineModel<Mod[]>({ required: true });
 
 const showImportPanel = ref(false);
 const showExportPanel = ref(false);
+const showWorkshopPanel = ref(false);
 const importText = ref('');
 const exportText = ref('');
 
@@ -127,11 +129,40 @@ function openExport() {
     exportText.value = json.substring(2, json.length - 2);
     showExportPanel.value = true;
     showImportPanel.value = false;
+    showWorkshopPanel.value = false;
 }
 
 function openImport() {
     showImportPanel.value = true;
     showExportPanel.value = false;
+    showWorkshopPanel.value = false;
+}
+
+function openWorkshop() {
+    showWorkshopPanel.value = true;
+    showImportPanel.value = false;
+    showExportPanel.value = false;
+}
+
+function addFromWorkshop(asset: Asset) {
+    if (localMods.value.some(m => m.modId === asset.id)) {
+        toast.info('Mod already added', `${asset.name} is already in the list.`);
+        return;
+    }
+
+    const mod: Mod = {
+        modId: asset.id,
+        name: asset.name,
+        version: asset.currentVersionNumber || undefined,
+        required: true
+    };
+
+    localMods.value.push(mod);
+    setTimeout(() => {
+        selectAll();
+        model.value = localMods.value;
+    }, 0);
+    toast.info('Mod added', `${asset.name} was added to the mod list.`);
 }
 
 function selectAll() {
@@ -197,6 +228,17 @@ onMounted(() => selectAll());
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
                         </svg>
                         Delete selected
+                    </button>
+                </div>
+
+                <!-- Workshop search -->
+                <div class="btn-group">
+                    <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="M21 21l-4.3-4.3" />
+                        </svg>
+                        Search workshop
                     </button>
                 </div>
 
@@ -271,6 +313,21 @@ onMounted(() => selectAll());
                 <textarea class="modset-textarea" :value="exportText" readonly />
                 <div class="modset-panel-foot">
                     <button class="btn btn-primary" type="button" @click="showExportPanel = false">Done</button>
+                </div>
+            </div>
+
+            <!-- Workshop search panel -->
+            <div v-if="showWorkshopPanel" class="modset-panel workshop-panel">
+                <div class="modset-panel-head">
+                    <span class="modset-panel-title">Search workshop</span>
+                    <button class="btn btn-ghost" type="button" @click="showWorkshopPanel = false">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="workshop-panel-body">
+                    <WorkshopBrowser selectable @select="addFromWorkshop" />
                 </div>
             </div>
         </div>
@@ -386,6 +443,13 @@ onMounted(() => selectAll());
     justify-content: flex-end;
     gap: 8px;
     padding: 12px 16px;
+}
+
+/* Workshop search panel */
+.workshop-panel-body {
+    padding: 16px;
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 @media (max-width: 480px) {

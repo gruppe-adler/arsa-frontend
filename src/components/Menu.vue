@@ -4,6 +4,7 @@
     <nav class="nav">
         <RouterLink class="nav-link" to="/servers-list">Servers</RouterLink>
         <RouterLink class="nav-link" to="/known-players">Known Players</RouterLink>
+        <RouterLink class="nav-link" to="/workshop">Workshop</RouterLink>
         <RouterLink class="nav-link" to="/ars-service">ARS Service</RouterLink>
     </nav>
 </template>
