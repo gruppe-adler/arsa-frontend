@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {
     SwitchRoot,
     SwitchThumb,
@@ -15,30 +15,36 @@ import {
 import InfoTooltip from './InfoTooltip.vue';
 import { StartupParameter } from '../api/model';
 
-const props = defineProps({ readonly: Boolean });
+const props = defineProps({ readonly: Boolean, fieldId: String });
 
-const emit = defineEmits(['violIncr', 'violDecr']);
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<StartupParameter>({ required: true });
 
-let violation = false;
-let style = '';
+const violation = ref(false);
+const style = ref('');
 
 watch(
     model.value,
     value => {
         if (value.type === 'number') {
-            if ((value.minVal && (value.value as number) < value.minVal) || (value.maxVal && (value.value as number) > value.maxVal)) {
-                style = 'background: rgba(255,0,0,0.5);';
-                if (!violation) {
-                    violation = true;
-                    emit('violIncr');
+            const numeric = typeof value.value === 'number' ? value.value : Number(value.value);
+            const invalid =
+                !Number.isFinite(numeric) ||
+                (value.minVal !== undefined && value.minVal !== null && numeric < value.minVal) ||
+                (value.maxVal !== undefined && value.maxVal !== null && numeric > value.maxVal);
+
+            if (invalid) {
+                style.value = 'background: rgba(255,0,0,0.5);';
+                if (!violation.value) {
+                    violation.value = true;
+                    emit('violation', true);
                 }
             } else {
-                style = '';
-                if (violation) {
-                    violation = false;
-                    emit('violDecr');
+                style.value = '';
+                if (violation.value) {
+                    violation.value = false;
+                    emit('violation', false);
                 }
             }
         }
@@ -54,7 +60,7 @@ function setEnabled(val: boolean) {
 </script>
 
 <template>
-    <div class="form-input-container">
+    <div class="form-input-container" :data-field-id="fieldId">
         <label class="form-input-label">
             {{ model.parameter }}
             <InfoTooltip v-if="model.tooltip" :content="model.tooltip" side="right" align="start" />

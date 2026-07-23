@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
@@ -7,31 +7,52 @@ const props = defineProps({
     name: String,
     tooltip: String,
     minVal: Number,
-    maxVal: Number
+    maxVal: Number,
+    fieldId: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr']);
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<number>({ required: true });
 
-let violation = false;
+// Decoupled from `model` so a blank/partial input (e.g. mid-typing "-5") never
+// writes a non-numeric value into the number-typed model.
+const raw = ref(String(model.value));
 
-let style = '';
+watch(model, value => {
+    if (Number(raw.value) !== value) {
+        raw.value = String(value);
+    }
+});
+
+const violation = ref(false);
+
+const style = ref('');
 
 watch(
-    model,
+    raw,
     value => {
-        if ((props.minVal && value < props.minVal) || (props.maxVal && value > props.maxVal)) {
-            style = 'background: rgba(255,0,0,0.5);';
-            if (!violation) {
-                violation = true;
-                emit('violIncr');
+        const numeric = value === '' ? NaN : Number(value);
+        const invalid =
+            !Number.isFinite(numeric) ||
+            (props.minVal !== undefined && numeric < props.minVal) ||
+            (props.maxVal !== undefined && numeric > props.maxVal);
+
+        if (!invalid) {
+            model.value = numeric;
+        }
+
+        if (invalid) {
+            style.value = 'background: rgba(255,0,0,0.5);';
+            if (!violation.value) {
+                violation.value = true;
+                emit('violation', true);
             }
         } else {
-            style = '';
-            if (violation) {
-                violation = false;
-                emit('violDecr');
+            style.value = '';
+            if (violation.value) {
+                violation.value = false;
+                emit('violation', false);
             }
         }
     },
@@ -40,13 +61,13 @@ watch(
 </script>
 
 <template>
-    <div class="form-input-container">
+    <div class="form-input-container" :data-field-id="fieldId">
         <label class="form-input-label">
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
         <input
-            v-model="model"
+            v-model="raw"
             class="form-custom-input"
             type="number"
             :min="minVal"

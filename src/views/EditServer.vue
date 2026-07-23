@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { defaultServer } from '../utils/defaults';
@@ -23,6 +23,16 @@ const serversStore = useServersStore();
 const server = ref<Server>(defaultServer);
 const validTabs = ['settings', 'mods', 'stats', 'size', 'logs', 'profiles'];
 const activeTab = ref<string>(validTabs.includes(route.query.tab as string) ? (route.query.tab as string) : 'settings');
+const configForm = ref<InstanceType<typeof ConfigForm>>();
+
+function goToViolation() {
+    const violation = configForm.value?.firstViolation;
+    if (!violation) {
+        return;
+    }
+    activeTab.value = violation.tab;
+    nextTick(() => configForm.value?.focusViolation(violation.id, violation.subTab));
+}
 
 serversStore.getAll().then(() => {
     const result = serversStore.servers.find(i => i.uuid === route.params.id);
@@ -102,6 +112,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
         <!-- Settings / Mods -->
         <ConfigForm
             v-if="isFormTab"
+            ref="configForm"
             v-model:inputViolationCounter="inputViolationCounter"
             v-model:server="server"
             :tab="activeTab as SettingOrModTab"
@@ -121,6 +132,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
                     >Fix {{ inputViolationCounter }} violation{{ inputViolationCounter > 1 ? 's' : '' }} before saving</span
                 >
                 <span v-else>Ready to save</span>
+                <button v-if="disabled" class="btn btn-ghost" type="button" @click="goToViolation">Go to violation</button>
             </div>
             <div class="row">
                 <button class="btn btn-ghost" type="button" @click="router.push('/servers-list')">Discard</button>

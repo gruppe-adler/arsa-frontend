@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import { isIPv4 } from 'is-ip';
 import { useServersStore } from '../stores/servers';
 import InfoTooltip from './InfoTooltip.vue';
@@ -10,31 +10,32 @@ const serversStore = useServersStore();
 const props = defineProps({
     readonly: Boolean,
     tooltip: String,
-    name: String
+    name: String,
+    fieldId: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<string>({ required: true });
 
-let violation = false;
+const violation = ref(false);
 
-let style = "";
+const style = ref("");
 
 watch(
     model,
     (value) => {
         if (!isIPv4(value)) {
-            style = "background: rgba(255,0,0,0.5);";
-            if (!violation) {
-                violation = true;
-                emit('violIncr');
+            style.value = "background: rgba(255,0,0,0.5);";
+            if (!violation.value) {
+                violation.value = true;
+                emit('violation', true);
             }
         } else {
-            style = "";
-            if (violation) {
-                violation = false;
-                emit('violDecr');
+            style.value = "";
+            if (violation.value) {
+                violation.value = false;
+                emit('violation', false);
             }
         }
     },
@@ -48,7 +49,7 @@ async function getPublicIp(): Promise<void> {
 </script>
 
 <template>
-    <div class="form-input-container">
+    <div class="form-input-container" :data-field-id="fieldId">
         <label class="form-input-label">
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />

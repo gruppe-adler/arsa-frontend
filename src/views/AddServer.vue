@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { defaultServer } from '../utils/defaults';
@@ -15,6 +15,16 @@ const server = ref<Server>(Object.assign({}, defaultServer));
 const inputViolationCounter = ref(0);
 const disabled = computed<boolean>(() => inputViolationCounter.value > 0);
 const activeTab = ref<string>('settings');
+const configForm = ref<InstanceType<typeof ConfigForm>>();
+
+function goToViolation() {
+    const violation = configForm.value?.firstViolation;
+    if (!violation) {
+        return;
+    }
+    activeTab.value = violation.tab;
+    nextTick(() => configForm.value?.focusViolation(violation.id, violation.subTab));
+}
 
 const tabs = [
     { key: 'settings', label: 'Settings' },
@@ -45,7 +55,7 @@ function addServer() {
         </div>
 
         <FormTabs v-model="activeTab" :tabs="tabs" />
-        <ConfigForm v-model:inputViolationCounter="inputViolationCounter" v-model:server="server" :tab="activeTab as SettingOrModTab" />
+        <ConfigForm ref="configForm" v-model:inputViolationCounter="inputViolationCounter" v-model:server="server" :tab="activeTab as SettingOrModTab" />
 
         <div class="form-toolbar">
             <div class="form-toolbar-status">
@@ -55,6 +65,7 @@ function addServer() {
                     >Fix {{ inputViolationCounter }} violation{{ inputViolationCounter > 1 ? 's' : '' }} before saving</span
                 >
                 <span v-else>Ready to add</span>
+                <button v-if="disabled" class="btn btn-ghost" type="button" @click="goToViolation">Go to violation</button>
             </div>
             <div class="row">
                 <button class="btn btn-ghost" type="button" @click="router.push('/servers-list')">Cancel</button>

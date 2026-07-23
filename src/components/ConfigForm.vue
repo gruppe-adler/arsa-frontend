@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import FormTextInput from './FormTextInput.vue';
 import FormIpAddressInput from './FormIpAddressInput.vue';
 import FormNumberInput from './FormNumberInput.vue';
@@ -24,19 +24,45 @@ const props = defineProps({
 const server = defineModel<Server>('server', { required: true });
 const inputViolationCounter = defineModel<number>('inputViolationCounter', { required: true });
 
-function violIncr() {
-    inputViolationCounter.value++;
-}
-function violDecr() {
-    inputViolationCounter.value--;
+type SettingsSubTab = 'server' | 'game' | 'advanced';
+type ViolationLocation = { tab: 'settings' | 'mods'; subTab?: SettingsSubTab };
+
+// Keyed by a stable field id so a field's violation status stays correct even
+// when it unmounts/remounts (e.g. switching tabs) instead of relying on
+// increment/decrement calls that can drift out of sync with what's on screen.
+const violations = reactive(new Map<string, ViolationLocation>());
+
+function setViolation(id: string, tab: 'settings' | 'mods', subTab: SettingsSubTab | undefined, isViolating: boolean) {
+    if (isViolating) {
+        violations.set(id, { tab, subTab });
+    } else {
+        violations.delete(id);
+    }
 }
 
-const settingsSubTab = ref<'server' | 'game' | 'advanced'>('server');
+watch(() => violations.size, size => (inputViolationCounter.value = size), { immediate: true });
+
+const settingsSubTab = ref<SettingsSubTab>('server');
 const settingsSubTabs = [
     { key: 'server', label: 'Server' },
     { key: 'game', label: 'Game' },
     { key: 'advanced', label: 'Advanced' }
 ];
+
+defineExpose({
+    firstViolation: computed(() => {
+        const next = violations.entries().next();
+        return next.done ? null : { id: next.value[0], ...next.value[1] };
+    }),
+    focusViolation(id: string, subTab?: SettingsSubTab) {
+        if (subTab) {
+            settingsSubTab.value = subTab;
+        }
+        nextTick(() => {
+            document.querySelector(`[data-field-id="${CSS.escape(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+});
 </script>
 
 <template>
@@ -60,8 +86,8 @@ const settingsSubTabs = [
                             :placeholder="'Server\'s name'"
                             :length="100"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="name"
+                            @violation="v => setViolation('name', 'settings', 'server', v)"
                         />
                     </div>
                 </div>
@@ -78,8 +104,8 @@ const settingsSubTabs = [
                             :key="idx"
                             v-model="server.startupParameters[idx]"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            :field-id="'startup.' + _item.parameter"
+                            @violation="v => setViolation('startup.' + _item.parameter, 'settings', 'server', v)"
                         />
                     </div>
                 </div>
@@ -96,8 +122,8 @@ const settingsSubTabs = [
                             :name="'bindAddress'"
                             :tooltip="'Local IP address the server binds to. Use 0.0.0.0 to listen on all interfaces, or a specific IP for one interface. Default: 0.0.0.0'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="network.bindAddress"
+                            @violation="v => setViolation('network.bindAddress', 'settings', 'server', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.bindPort"
@@ -106,16 +132,16 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="network.bindPort"
+                            @violation="v => setViolation('network.bindPort', 'settings', 'server', v)"
                         />
                         <FormIpAddressInput
                             v-model="server.config.publicAddress"
                             :name="'publicAddress'"
                             :tooltip="'Public IP address advertised to server browser and players. Leave empty for automatic detection. Required if behind NAT/firewall. Default: auto-detect'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="network.publicAddress"
+                            @violation="v => setViolation('network.publicAddress', 'settings', 'server', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.publicPort"
@@ -124,8 +150,8 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="network.publicPort"
+                            @violation="v => setViolation('network.publicPort', 'settings', 'server', v)"
                         />
                     </div>
                 </div>
@@ -142,8 +168,8 @@ const settingsSubTabs = [
                             :name="'address'"
                             :tooltip="'IP address for Steam A2S query protocol. Used by server browsers to fetch server info. Use 0.0.0.0 for all interfaces. Required.'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="a2s.address"
+                            @violation="v => setViolation('a2s.address', 'settings', 'server', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.a2s.port"
@@ -152,8 +178,8 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="a2s.port"
+                            @violation="v => setViolation('a2s.port', 'settings', 'server', v)"
                         />
                     </div>
                 </div>
@@ -170,8 +196,8 @@ const settingsSubTabs = [
                             :name="'address'"
                             :tooltip="'IP address for RCON (Remote Console) access. Use 127.0.0.1 for localhost only, or 0.0.0.0 for external access. Required.'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="rcon.address"
+                            @violation="v => setViolation('rcon.address', 'settings', 'server', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.rcon.port"
@@ -180,8 +206,8 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="65535"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="rcon.port"
+                            @violation="v => setViolation('rcon.port', 'settings', 'server', v)"
                         />
                         <FormPasswordInput
                             v-model="server.config.rcon.password"
@@ -190,8 +216,8 @@ const settingsSubTabs = [
                             :policyWhitespace="true"
                             :policyMinimum="3"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="rcon.password"
+                            @violation="v => setViolation('rcon.password', 'settings', 'server', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.rcon.maxClients"
@@ -200,8 +226,8 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="16"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="rcon.maxClients"
+                            @violation="v => setViolation('rcon.maxClients', 'settings', 'server', v)"
                         />
                         <FormSelectInput
                             v-model="server.config.rcon.permission"
@@ -244,16 +270,16 @@ const settingsSubTabs = [
                             :length="100"
                             :readonly="props.readonly"
                             :pasteValue="server.name"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="game.name"
+                            @violation="v => setViolation('game.name', 'settings', 'game', v)"
                         />
                         <FormPasswordInput
                             v-model="server.config.game.password"
                             :name="'password'"
                             :tooltip="'Server password required for players to join. Leave empty for public server. Players must enter this to connect.'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="game.password"
+                            @violation="v => setViolation('game.password', 'settings', 'game', v)"
                         />
                         <FormPasswordInput
                             v-model="server.config.game.passwordAdmin"
@@ -261,8 +287,8 @@ const settingsSubTabs = [
                             :tooltip="'Admin password for in-game admin login. No spaces allowed. Grants access to admin commands and functions. Leave empty to disable.'"
                             :policyWhitespace="true"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="game.passwordAdmin"
+                            @violation="v => setViolation('game.passwordAdmin', 'settings', 'game', v)"
                         />
                         <FormAdminInput
                             v-model="server.config.game.admins"
@@ -286,8 +312,8 @@ const settingsSubTabs = [
                             :minVal="1"
                             :maxVal="128"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="game.maxPlayers"
+                            @violation="v => setViolation('game.maxPlayers', 'settings', 'game', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.visible"
@@ -325,8 +351,8 @@ const settingsSubTabs = [
                             :minVal="500"
                             :maxVal="10000"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="gameProperties.serverMaxViewDistance"
+                            @violation="v => setViolation('gameProperties.serverMaxViewDistance', 'settings', 'game', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.game.gameProperties.serverMinGrassDistance"
@@ -335,8 +361,8 @@ const settingsSubTabs = [
                             :minVal="0"
                             :maxVal="150"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="gameProperties.serverMinGrassDistance"
+                            @violation="v => setViolation('gameProperties.serverMinGrassDistance', 'settings', 'game', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.gameProperties.fastValidation"
@@ -351,8 +377,8 @@ const settingsSubTabs = [
                             :minVal="500"
                             :maxVal="1500"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="gameProperties.networkViewDistance"
+                            @violation="v => setViolation('gameProperties.networkViewDistance', 'settings', 'game', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.gameProperties.battlEye"
@@ -390,8 +416,8 @@ const settingsSubTabs = [
                             :tooltip="'Custom JSON header data passed to the mission. Used for mission-specific configuration. Must be valid JSON object. Default: {}'"
                             :placeholder="'{}'"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="gameProperties.missionHeader"
+                            @violation="v => setViolation('gameProperties.missionHeader', 'settings', 'game', v)"
                         />
                     </div>
                 </div> </template
@@ -459,8 +485,8 @@ const settingsSubTabs = [
                             :tooltip="'Auto-save interval in seconds for player data/progress. Lower = more frequent saves, higher load. 0 = save only on disconnect. Default: 120'"
                             :minVal="0"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="operating.playerSaveTime"
+                            @violation="v => setViolation('operating.playerSaveTime', 'settings', 'advanced', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.operating.aiLimit"
@@ -468,8 +494,8 @@ const settingsSubTabs = [
                             :tooltip="'Hard limit on total AI units. 0 = no AI allowed, -1 = ignore this setting (unlimited), positive number = max AI count. Default: -1 (ignored)'"
                             :minVal="-1"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="operating.aiLimit"
+                            @violation="v => setViolation('operating.aiLimit', 'settings', 'advanced', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.operating.slotReservationTimeout"
@@ -478,8 +504,8 @@ const settingsSubTabs = [
                             :minVal="5"
                             :maxVal="300"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="operating.slotReservationTimeout"
+                            @violation="v => setViolation('operating.slotReservationTimeout', 'settings', 'advanced', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.operating.joinQueue.maxSize"
@@ -488,8 +514,8 @@ const settingsSubTabs = [
                             :minVal="0"
                             :maxVal="50"
                             :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
+                            field-id="operating.joinQueue.maxSize"
+                            @violation="v => setViolation('operating.joinQueue.maxSize', 'settings', 'advanced', v)"
                         />
                     </div>
                 </div> </template

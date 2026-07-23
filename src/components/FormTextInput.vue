@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
@@ -9,29 +9,30 @@ const props = defineProps({
     placeholder: String,
     length: Number,
     pasteValue: String,
+    fieldId: String,
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<string>({ required: true });
 
-let violation = false;
-let style = "";
+const violation = ref(false);
+const style = ref("");
 
 watch(
     model,
     (value) => {
         if (value === "") {
-            style = "background: rgba(255,0,0,0.5);";
-            if (!violation) {
-                violation = true;
-                emit('violIncr');
+            style.value = "background: rgba(255,0,0,0.5);";
+            if (!violation.value) {
+                violation.value = true;
+                emit('violation', true);
             }
         } else {
-            style = "";
-            if (violation) {
-                violation = false;
-                emit('violDecr');
+            style.value = "";
+            if (violation.value) {
+                violation.value = false;
+                emit('violation', false);
             }
         }
     },
@@ -40,7 +41,7 @@ watch(
 </script>
 
 <template>
-    <div class="form-input-container">
+    <div class="form-input-container" :data-field-id="fieldId">
         <label class="form-input-label">
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />

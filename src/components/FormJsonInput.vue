@@ -6,10 +6,11 @@ const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
-    placeholder: String
+    placeholder: String,
+    fieldId: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr']);
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<object>({ required: true });
 
@@ -23,13 +24,13 @@ const style = computed<string>(() => {
         model.value = JSON.parse(missionHeader.value);
         if (violation) {
             violation = false;
-            emit('violDecr');
+            emit('violation', false);
         }
     } catch {
         style = 'background: rgba(255,0,0,0.5);';
         if (!violation) {
             violation = true;
-            emit('violIncr');
+            emit('violation', true);
         }
     }
 
@@ -38,7 +39,7 @@ const style = computed<string>(() => {
 </script>
 
 <template>
-    <div class="form-input-container">
+    <div class="form-input-container" :data-field-id="fieldId">
         <label class="form-input-label">
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
