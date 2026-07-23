@@ -265,6 +265,9 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
         gap: 10px;
         padding: 16px;
     }
+    .server-info {
+        flex-wrap: wrap;
+    }
     .server-actions {
         flex-wrap: wrap;
     }

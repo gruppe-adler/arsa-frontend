@@ -161,4 +161,12 @@ const rows = [
     color: var(--ink);
     font-size: 13px;
 }
+
+@media (max-width: 480px) {
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 10px 16px;
+    }
+}
 </style>

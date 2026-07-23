@@ -177,4 +177,12 @@ function onClickDelete(logName: string) {
     font-size: 14px;
     background: var(--bg);
 }
+
+@media (max-width: 480px) {
+    .log-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+}
 </style>

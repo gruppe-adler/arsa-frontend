@@ -111,6 +111,7 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
 .search-box {
     margin: 5px 0px;
     width: 300px;
+    max-width: 100%;
 
     padding: 7px 10px;
 }
@@ -150,6 +151,7 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
 .player-id {
     color: var(--ink-2);
     font-size: 12px;
+    overflow-wrap: anywhere;
 }
 
 .empty-box {
@@ -160,5 +162,12 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
     color: var(--ink-3);
     font-size: 14px;
     background: var(--bg);
+}
+
+@media (max-width: 480px) {
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
 }
 </style>

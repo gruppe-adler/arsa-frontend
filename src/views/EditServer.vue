@@ -194,6 +194,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
 .tabs {
     display: flex;
     gap: 2px;
+    flex-wrap: wrap;
     border-bottom: 1px solid var(--line);
     margin-bottom: 36px;
 }
@@ -224,6 +225,9 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
     }
     .header-actions {
         flex-wrap: wrap;
+    }
+    .divider-v-lg {
+        display: none;
     }
 }
 </style>

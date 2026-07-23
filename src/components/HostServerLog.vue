@@ -388,6 +388,16 @@ async function copyAllLogs() {
     font-size: 12.5px;
 }
 
+@media (max-width: 480px) {
+    /* Log rows wrap onto multiple lines at this width and reach the top of
+       .log-block, so the absolutely-positioned button ends up covering the
+       first row's text — dock it above the block instead. */
+    .copy-log-btn {
+        position: static;
+        margin: 0 0 8px auto;
+    }
+}
+
 .log-footer {
     margin-top: 12px;
     color: var(--ink-3);
