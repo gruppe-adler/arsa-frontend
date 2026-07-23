@@ -387,8 +387,9 @@ ul { padding-inline-start: 0; }
   border-radius: var(--radius);
   background: color-mix(in oklab, var(--amber), transparent 92%);
   border: 1px solid color-mix(in oklab, var(--amber), transparent 70%);
-  color: oklch(45% 0.10 75);
+  color: oklch(55% 0.10 75);
   font-size: 12.5px;
+  align-items:center;
 }
 .warning-banner svg { flex-shrink: 0; margin-top: 1px; }
 
