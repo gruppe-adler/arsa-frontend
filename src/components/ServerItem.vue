@@ -56,9 +56,6 @@ function serverRoute(tab?: string) {
 function onClickLogs() {
     router.push(serverRoute('logs'));
 }
-function onClickSize() {
-    router.push(serverRoute('size'));
-}
 function onClickStats() {
     router.push(serverRoute('stats'));
 }
@@ -71,7 +68,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 </script>
 
 <template>
-    <div class="server-row">
+    <div class="server-row" @click="onClickName">
         <!-- status -->
         <div class="server-status" :class="{ online: model!.isRunning }">
             <span class="dot" :class="model!.isRunning ? 'green' : ''"></span>
@@ -80,7 +77,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 
         <!-- meta -->
         <div class="server-meta">
-            <a class="server-name" @click="onClickName">{{ model!.name }}</a>
+            <a class="server-name">{{ model!.name }}</a>
             <div class="server-info">
                 <span class="port-tag">:{{ model!.config.bindPort }}</span>
                 <span class="players-tag" :title="`${model!.playerCount} player${model!.playerCount === 1 ? '' : 's'} online`">
@@ -132,7 +129,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
         </div>
 
         <!-- actions -->
-        <div class="server-actions">
+        <div class="server-actions" @click.stop>
             <button v-if="model!.isRunning" class="btn btn-stop" :disabled="!arsAvailable()" @click="serversStore.stop(model!.uuid!)">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="1" /></svg>
                 Stop
@@ -146,7 +143,6 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 
             <div class="btn-group">
                 <button class="btn" :disabled="!model!.isRunning" @click="onClickStats">Stats</button>
-                <button class="btn" @click="onClickSize">Size</button>
                 <button class="btn" @click="onClickLogs">Logs</button>
             </div>
 
@@ -168,6 +164,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
     gap: 24px;
     padding: 20px 24px;
     border-bottom: 1px solid var(--line);
+    cursor: pointer;
 }
 .server-row:last-child {
     border-bottom: none;
