@@ -4,7 +4,7 @@ import { useServersStore } from '../stores/servers';
 import { DockerStats } from '../api/model';
 import prettyBytes from 'pretty-bytes';
 
-const props = defineProps<{ serverId: string }>();
+const props = defineProps<{ serverId: string; isRunning: boolean }>();
 
 const serversStore = useServersStore();
 const loading = ref(true);
@@ -20,12 +20,28 @@ interface DockerStatsEntry {
 }
 
 async function updateStats() {
-    const result = await serversStore.getStats(props.serverId);
-    if (result) {
-        timestamp.value = new Date(result.timestamp).toLocaleString();
-        stats.value = buildEntries(result);
+    // Docker stats only exist while the container is running — the backend
+    // 404s otherwise, and we already know the answer from the server's own
+    // status, so skip the doomed request entirely.
+    if (!props.isRunning) {
+        stopAutoUpdate();
+        stats.value = [];
+        loading.value = false;
+        return;
     }
-    loading.value = false;
+
+    try {
+        const result = await serversStore.getStats(props.serverId);
+        if (result) {
+            timestamp.value = new Date(result.timestamp).toLocaleString();
+            stats.value = buildEntries(result);
+        }
+    } catch {
+        // customFetch already toasted the error.
+        stats.value = [];
+    } finally {
+        loading.value = false;
+    }
 }
 
 function buildEntries(stats: DockerStats): DockerStatsEntry[] {
@@ -64,7 +80,7 @@ function stopAutoUpdate() {
 }
 
 watch(
-    () => props.serverId,
+    [() => props.serverId, () => props.isRunning],
     () => {
         loading.value = true;
         updateStats();
@@ -80,17 +96,17 @@ onBeforeUnmount(() => {
     <div class="tab-actions">
         <span v-if="timestamp" class="timestamp">Last updated {{ timestamp }}</span>
         <span class="stretch"></span>
-        <button class="btn" :disabled="loading" @click="updateStats">
+        <button class="btn" :disabled="loading || !isRunning" @click="updateStats">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6" />
             </svg>
             Refresh
         </button>
         <button v-if="autoUpdateRunning" class="btn btn-stop" @click="stopAutoUpdate">Stop auto-update</button>
-        <button v-else class="btn btn-start" @click="startAutoUpdate">Auto-update</button>
+        <button v-else class="btn btn-start" :disabled="!isRunning" @click="startAutoUpdate">Auto-update</button>
     </div>
 
-    <div v-if="stats" class="data-table">
+    <div v-if="stats.length > 0" class="data-table">
         <div v-for="stat in stats" :key="stat.order" class="table-row">
             <span class="stat-label">{{ stat.label }}</span>
             <span class="mono stat-value">{{ stat.value }}</span>
@@ -98,7 +114,8 @@ onBeforeUnmount(() => {
     </div>
     <div v-else class="empty-box">
         <span v-if="loading" class="loading-text">Loading…</span>
-        <span v-else>No stats available. Server may be offline.</span>
+        <span v-else-if="!isRunning">Server is offline — start it to see live stats.</span>
+        <span v-else>No stats available.</span>
     </div>
 </template>
 

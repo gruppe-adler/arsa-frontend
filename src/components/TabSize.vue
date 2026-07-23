@@ -18,9 +18,14 @@ const size = ref<ResultSize>({
 
 async function load() {
     loading.value = true;
-    const result = await serversStore.getSize(props.serverId);
-    if (result) size.value = result;
-    loading.value = false;
+    try {
+        const result = await serversStore.getSize(props.serverId);
+        if (result) size.value = result;
+    } catch {
+        // Most commonly the server isn't running yet — customFetch already toasted the error.
+    } finally {
+        loading.value = false;
+    }
 }
 
 watch(() => props.serverId, load, { immediate: true });

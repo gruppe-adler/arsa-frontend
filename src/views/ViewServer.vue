@@ -90,7 +90,7 @@ const isFormTab = computed(() => activeTab.value === 'settings' || activeTab.val
             readonly
             :tab="activeTab as SettingOrModTab"
         />
-        <TabStats v-else-if="activeTab === 'stats'" :serverId="server.uuid ?? ''" />
+        <TabStats v-else-if="activeTab === 'stats'" :serverId="server.uuid ?? ''" :isRunning="server.isRunning" />
         <TabSize v-else-if="activeTab === 'size'" :serverId="server.uuid ?? ''" />
         <TabLogs v-else-if="activeTab === 'logs'" :serverId="server.uuid ?? ''" />
         <TabProfile v-else-if="activeTab === 'profiles'" :serverId="server.uuid ?? ''" />

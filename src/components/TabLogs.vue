@@ -39,9 +39,14 @@ function getRelativeTime(timestamp: string): string {
 
 async function load() {
     loading.value = true;
-    const logs = await serversStore.getLogs(props.serverId);
-    if (logs) serverLogs.value = logs;
-    loading.value = false;
+    try {
+        const logs = await serversStore.getLogs(props.serverId);
+        if (logs) serverLogs.value = logs;
+    } catch {
+        // Most commonly the server isn't running yet — customFetch already toasted the error.
+    } finally {
+        loading.value = false;
+    }
 }
 
 watch(() => props.serverId, load, { immediate: true });
