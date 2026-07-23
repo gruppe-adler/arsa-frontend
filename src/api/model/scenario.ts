@@ -10,11 +10,23 @@ import type { ScenarioImage } from './scenarioImage';
  * A playable scenario bundled with an asset
  */
 export interface Scenario {
-    authorName: string;
-    description: string;
+    /**
+     * Upstream omits this for some scenarios — not guaranteed present.
+     * @nullable
+     */
+    authorName?: string | null;
+    /**
+     * Upstream omits this for some scenarios — not guaranteed present.
+     * @nullable
+     */
+    description?: string | null;
     /** Enfusion game ID string, e.g. `{E2EC49F1…}Missions/…/Arland.conf` */
     gameId: string;
-    gameMode: string;
+    /**
+     * Upstream omits this for some scenarios — not guaranteed present.
+     * @nullable
+     */
+    gameMode?: string | null;
     image?: null | ScenarioImage;
     name: string;
     /** @minimum 0 */

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { Asset, GetWorkshopSort } from '../api/model';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
+import { Asset, GetWorkshopSort, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
+import { useScenarioStore } from '../stores/scenarios';
 import WorkshopAssetDetail from './WorkshopAssetDetail.vue';
 
 defineProps<{
@@ -10,9 +12,11 @@ defineProps<{
 
 const emit = defineEmits<{
     select: [asset: Asset];
+    setMission: [payload: { asset: Asset; scenario: ScenarioEntry }];
 }>();
 
 const store = useWorkshopStore();
+const scenarioStore = useScenarioStore();
 
 const searchInput = ref('');
 const sort = ref<GetWorkshopSort>('newest');
@@ -59,6 +63,37 @@ function formatNumber(n: number): string {
     return n.toLocaleString();
 }
 
+// Which assets in the current grid bundle a scenario, keyed by asset id.
+// Populated progressively (in small concurrent batches) since each check is
+// a live upstream workshop-detail fetch, not a cheap local lookup.
+const scenarioCheck = reactive(new Map<string, ScenarioEntry[]>());
+const SCENARIO_CHECK_BATCH_SIZE = 5;
+
+async function checkScenarios(assets: Asset[]) {
+    const pending = assets.filter(asset => !scenarioCheck.has(asset.id));
+    for (let i = 0; i < pending.length; i += SCENARIO_CHECK_BATCH_SIZE) {
+        const batch = pending.slice(i, i + SCENARIO_CHECK_BATCH_SIZE);
+        await Promise.all(
+            batch.map(async asset => {
+                try {
+                    const scenarios = await scenarioStore.getModScenarios(asset.id);
+                    scenarioCheck.set(asset.id, scenarios);
+                } catch {
+                    // One asset's upstream data being broken/unreachable shouldn't
+                    // block the "set as mission" check for the rest of the batch.
+                    scenarioCheck.set(asset.id, []);
+                }
+            })
+        );
+    }
+}
+
+watch(() => store.assets, checkScenarios, { immediate: true });
+
+function scenariosFor(asset: Asset): ScenarioEntry[] {
+    return scenarioCheck.get(asset.id) ?? [];
+}
+
 onMounted(() => {
     // Initialise from the store so re-opening the browser keeps prior results.
     searchInput.value = store.searchTerm;
@@ -78,6 +113,7 @@ onMounted(() => {
             :selectable="selectable"
             @back="closeDetail"
             @select="emit('select', $event)"
+            @set-mission="emit('setMission', $event)"
         />
 
         <!-- Search + results -->
@@ -170,6 +206,41 @@ onMounted(() => {
                             </svg>
                             Add
                         </button>
+
+                        <button
+                            v-if="scenariosFor(asset).length === 1"
+                            type="button"
+                            class="btn btn-sm card-mission"
+                            @click.stop="emit('setMission', { asset, scenario: scenariosFor(asset)[0] })"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4" />
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                            </svg>
+                            Set as mission
+                        </button>
+                        <PopoverRoot v-else-if="scenariosFor(asset).length > 1">
+                            <PopoverTrigger class="btn btn-sm card-mission" @click.stop>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 11l3 3L22 4" />
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                                </svg>
+                                Set as mission
+                            </PopoverTrigger>
+                            <PopoverPortal>
+                                <PopoverContent class="mission-popover-content" position="popper" :sideOffset="4" @click.stop>
+                                    <button
+                                        v-for="scenario in scenariosFor(asset)"
+                                        :key="scenario.path"
+                                        type="button"
+                                        class="mission-popover-item"
+                                        @click.stop="emit('setMission', { asset, scenario })"
+                                    >
+                                        {{ scenario.name }}
+                                    </button>
+                                </PopoverContent>
+                            </PopoverPortal>
+                        </PopoverRoot>
                     </button>
                 </div>
 
@@ -400,6 +471,41 @@ onMounted(() => {
     position: absolute;
     top: 8px;
     right: 8px;
+}
+.card-mission {
+    position: absolute;
+    top: 44px;
+    right: 8px;
+}
+
+.mission-popover-content {
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+}
+.mission-popover-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+.mission-popover-item:hover {
+    background: var(--bg-soft);
 }
 
 .pagination {

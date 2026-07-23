@@ -520,7 +520,12 @@ const settingsSubTabs = [
                         :tooltip="'When enabled, all mods are required by default unless individually set to optional. When disabled, mods are optional by default.'"
                         :readonly="props.readonly"
                     />
-                    <FormModsInput v-model="server.config.game.mods" :name="'mods'" :readonly="props.readonly" />
+                    <FormModsInput
+                        v-model="server.config.game.mods"
+                        :name="'mods'"
+                        :readonly="props.readonly"
+                        @set-scenario="server.config.game.scenarioId = $event"
+                    />
                 </div>
             </div> </template
         ><!-- end mods tab -->

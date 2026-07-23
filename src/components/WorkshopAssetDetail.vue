@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { Asset, AssetDetailResponse } from '../api/model';
+import { Asset, AssetDetailResponse, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
 
 const props = defineProps<{
@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     select: [asset: Asset];
+    setMission: [payload: { asset: Asset; scenario: ScenarioEntry }];
     back: [];
 }>();
 
@@ -17,6 +18,21 @@ const store = useWorkshopStore();
 
 const detail = ref<AssetDetailResponse | undefined>(undefined);
 const loading = ref(false);
+const copyState = ref<'idle' | 'copied'>('idle');
+let copyTimer: ReturnType<typeof setTimeout>;
+
+async function copyId() {
+    try {
+        await navigator.clipboard.writeText(props.asset.id);
+    } catch {
+        return;
+    }
+    copyState.value = 'copied';
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => {
+        copyState.value = 'idle';
+    }, 1400);
+}
 
 async function load(id: string) {
     loading.value = true;
@@ -73,6 +89,42 @@ function formatNumber(n: number): string {
         <div class="detail-title">
             <h2>{{ asset.name }}</h2>
             <span class="detail-author">by {{ asset.author.username }}</span>
+            <button
+                class="id-chip"
+                type="button"
+                :class="{ copied: copyState === 'copied' }"
+                :title="copyState === 'copied' ? 'Copied!' : 'Click to copy workshop ID'"
+                @click="copyId"
+            >
+                <span class="id-label">{{ asset.id }}</span>
+                <svg
+                    v-if="copyState === 'idle'"
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <svg
+                    v-else
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M5 12l5 5L20 7" />
+                </svg>
+            </button>
         </div>
 
         <div v-if="loading" class="detail-loading">Loading details…</div>
@@ -152,9 +204,20 @@ function formatNumber(n: number): string {
             <!-- Scenarios -->
             <div v-if="detail && detail.version_detail.scenarios.length > 0" class="section">
                 <h3 class="section-title">Scenarios</h3>
-                <ul class="plain-list">
-                    <li v-for="(s, idx) in detail.version_detail.scenarios" :key="idx">
-                        {{ s.name }} <span class="muted">— {{ s.gameMode }}</span>
+                <ul class="scenario-list">
+                    <li v-for="(s, idx) in detail.version_detail.scenarios" :key="idx" class="scenario-item">
+                        <span>{{ s.name }} <span v-if="s.gameMode" class="muted">— {{ s.gameMode }}</span></span>
+                        <button
+                            type="button"
+                            class="btn btn-sm"
+                            @click="emit('setMission', { asset, scenario: { name: s.name, path: s.gameId } })"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4" />
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                            </svg>
+                            Set as mission
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -278,5 +341,29 @@ function formatNumber(n: number): string {
     color: var(--ink-2);
     font-size: 14px;
     line-height: 1.7;
+}
+
+.scenario-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.scenario-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    color: var(--ink-2);
+    font-size: 14px;
+}
+.scenario-item .btn {
+    flex-shrink: 0;
 }
 </style>

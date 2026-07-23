@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 import { onMounted, ref, watch } from 'vue';
+import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui';
 import InfoTooltip from './InfoTooltip.vue';
 
 import Ajv from 'ajv';
 import ajvFormats from 'ajv-formats';
 import ajvKeywords from 'ajv-keywords';
 import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
-import { Asset, Mod } from '../api/model';
+import { Asset, Dependency, Mod, ScenarioEntry } from '../api/model';
 import { useToast } from '../composables/useToast.ts';
+import { useWorkshopStore } from '../stores/workshop';
 import WorkshopBrowser from './WorkshopBrowser.vue';
 
 const { toast } = useToast();
+const workshopStore = useWorkshopStore();
 
 const ajv = new Ajv({ allErrors: true, useDefaults: true });
 ajvFormats(ajv);
@@ -22,6 +25,7 @@ const validateModset = ajv.compile(arsModsetSchema);
 
 const props = defineProps({ readonly: Boolean, name: String, tooltip: String });
 const model = defineModel<Mod[]>({ required: true });
+const emit = defineEmits<{ 'set-scenario': [path: string] }>();
 
 const showImportPanel = ref(false);
 const showExportPanel = ref(false);
@@ -144,10 +148,9 @@ function openWorkshop() {
     showExportPanel.value = false;
 }
 
-function addFromWorkshop(asset: Asset) {
+function ensureModPresent(asset: Asset): boolean {
     if (localMods.value.some(m => m.modId === asset.id)) {
-        toast.info('Mod already added', `${asset.name} is already in the list.`);
-        return;
+        return false;
     }
 
     const mod: Mod = {
@@ -162,7 +165,103 @@ function addFromWorkshop(asset: Asset) {
         selectAll();
         model.value = localMods.value;
     }, 0);
-    toast.info('Mod added', `${asset.name} was added to the mod list.`);
+    return true;
+}
+
+function depToMod(dep: Dependency): Mod | undefined {
+    if (!dep.asset) return undefined;
+    return {
+        modId: dep.asset.id,
+        name: dep.asset.name,
+        version: dep.version || undefined,
+        required: true
+    };
+}
+
+// The Workshop API only returns one level of dependencies per asset (a
+// dependency's own `dependencies` field always comes back empty), so the
+// transitive closure has to be walked by fetching each newly-discovered
+// dependency's own detail in turn. Dedup by id guards against diamond
+// dependencies and cycles.
+async function resolveDependencyMods(initialDeps: Dependency[]): Promise<Mod[]> {
+    const resolved = new Map<string, Mod>();
+    const seen = new Set<string>();
+    const queue: Dependency[] = [...initialDeps];
+
+    while (queue.length > 0) {
+        const dep = queue.shift()!;
+        const id = dep.asset?.id;
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+
+        const mod = depToMod(dep);
+        if (mod) resolved.set(id, mod);
+
+        try {
+            const detail = await workshopStore.getDetail(id);
+            if (detail) queue.push(...detail.version_detail.dependencies);
+        } catch {
+            // Best-effort: skip this branch's further dependencies if the lookup fails.
+        }
+    }
+
+    return Array.from(resolved.values());
+}
+
+async function addDependenciesFor(asset: Asset): Promise<number> {
+    let addedCount = 0;
+    try {
+        const detail = await workshopStore.getDetail(asset.id);
+        const depMods = await resolveDependencyMods(detail?.version_detail.dependencies ?? []);
+        depMods.forEach(mod => {
+            if (!localMods.value.some(m => m.modId === mod.modId)) {
+                localMods.value.push(mod);
+                addedCount++;
+            }
+        });
+        if (addedCount > 0) {
+            setTimeout(() => {
+                selectAll();
+                model.value = localMods.value;
+            }, 0);
+        }
+    } catch {
+        toast.error('Dependency lookup failed', `Could not resolve dependencies for ${asset.name}. Add them manually if needed.`);
+    }
+    return addedCount;
+}
+
+async function addFromWorkshop(asset: Asset) {
+    if (!ensureModPresent(asset)) {
+        toast.info('Mod already added', `${asset.name} is already in the list.`);
+        return;
+    }
+
+    const addedCount = await addDependenciesFor(asset);
+    toast.info(
+        'Mod added',
+        addedCount > 0
+            ? `${asset.name} was added, plus ${addedCount} dependenc${addedCount === 1 ? 'y' : 'ies'}.`
+            : `${asset.name} was added to the mod list.`
+    );
+}
+
+async function onSetMission({ asset, scenario }: { asset: Asset; scenario: ScenarioEntry }) {
+    const wasAdded = ensureModPresent(asset);
+    emit('set-scenario', scenario.path);
+    showWorkshopPanel.value = false;
+
+    if (wasAdded) {
+        const addedCount = await addDependenciesFor(asset);
+        toast.info(
+            'Mission set',
+            addedCount > 0
+                ? `${scenario.name} is now the mission scenario. Added ${asset.name} plus ${addedCount} dependenc${addedCount === 1 ? 'y' : 'ies'}.`
+                : `${scenario.name} is now the mission scenario.`
+        );
+    } else {
+        toast.info('Mission set', `${scenario.name} is now the mission scenario.`);
+    }
 }
 
 function selectAll() {
@@ -316,20 +415,25 @@ onMounted(() => selectAll());
                 </div>
             </div>
 
-            <!-- Workshop search panel -->
-            <div v-if="showWorkshopPanel" class="modset-panel workshop-panel">
-                <div class="modset-panel-head">
-                    <span class="modset-panel-title">Search workshop</span>
-                    <button class="btn btn-ghost" type="button" @click="showWorkshopPanel = false">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="workshop-panel-body">
-                    <WorkshopBrowser selectable @select="addFromWorkshop" />
-                </div>
-            </div>
+            <!-- Workshop search overlay -->
+            <DialogRoot v-model:open="showWorkshopPanel">
+                <DialogPortal>
+                    <DialogOverlay class="workshop-dialog-overlay" />
+                    <DialogContent class="workshop-dialog-content">
+                        <div class="modset-panel-head">
+                            <DialogTitle class="modset-panel-title">Search workshop</DialogTitle>
+                            <DialogClose class="btn btn-ghost" type="button">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </DialogClose>
+                        </div>
+                        <div class="workshop-panel-body">
+                            <WorkshopBrowser selectable @select="addFromWorkshop" @set-mission="onSetMission" />
+                        </div>
+                    </DialogContent>
+                </DialogPortal>
+            </DialogRoot>
         </div>
     </div>
 </template>
@@ -445,11 +549,58 @@ onMounted(() => selectAll());
     padding: 12px 16px;
 }
 
-/* Workshop search panel */
+/* Workshop search overlay */
+.workshop-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: var(--bg-sunken);
+    animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.workshop-dialog-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    width: 96vw;
+    height: 92vh;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg);
+    box-shadow:
+        hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+        hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+    overflow: hidden;
+    animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.workshop-dialog-content:focus {
+    outline: none;
+}
 .workshop-panel-body {
+    flex: 1;
     padding: 16px;
-    max-height: 600px;
     overflow-y: auto;
+}
+
+@keyframes overlayShow {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes contentShow {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 @media (max-width: 480px) {
