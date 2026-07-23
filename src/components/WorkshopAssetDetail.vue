@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, AssetDetailResponse, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
 
@@ -50,6 +51,10 @@ watch(
     id => load(id)
 );
 
+const scenarioEntries = computed<ScenarioEntry[]>(
+    () => detail.value?.version_detail.scenarios.map(s => ({ name: s.name, path: s.gameId })) ?? []
+);
+
 const images = computed(() => {
     const d = detail.value?.asset;
     if (!d) return props.asset.previews;
@@ -78,12 +83,48 @@ function formatNumber(n: number): string {
                 </svg>
                 Back to results
             </button>
-            <button v-if="selectable" class="btn btn-primary btn-sm" type="button" @click="emit('select', asset)">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14" />
-                </svg>
-                Add to server
-            </button>
+            <div class="detail-head-actions">
+                <button
+                    v-if="scenarioEntries.length === 1"
+                    type="button"
+                    class="btn btn-sm"
+                    @click="emit('setMission', { asset, scenario: scenarioEntries[0] })"
+                >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                    Set as mission
+                </button>
+                <PopoverRoot v-else-if="scenarioEntries.length > 1">
+                    <PopoverTrigger class="btn btn-sm">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4" />
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                        </svg>
+                        Set as mission
+                    </PopoverTrigger>
+                    <PopoverPortal>
+                        <PopoverContent class="mission-popover-content" position="popper" :sideOffset="4">
+                            <button
+                                v-for="scenario in scenarioEntries"
+                                :key="scenario.path"
+                                type="button"
+                                class="mission-popover-item"
+                                @click="emit('setMission', { asset, scenario })"
+                            >
+                                {{ scenario.name }}
+                            </button>
+                        </PopoverContent>
+                    </PopoverPortal>
+                </PopoverRoot>
+                <button v-if="selectable" class="btn btn-primary btn-sm" type="button" @click="emit('select', asset)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Add to server
+                </button>
+            </div>
         </div>
 
         <div class="detail-title">
@@ -247,6 +288,41 @@ function formatNumber(n: number): string {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+.detail-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mission-popover-content {
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+}
+.mission-popover-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+.mission-popover-item:hover {
+    background: var(--bg-soft);
 }
 .detail-title {
     display: flex;

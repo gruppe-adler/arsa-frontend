@@ -279,16 +279,6 @@ const settingsSubTabs = [
                             :readonly="props.readonly"
                             :branch="server.branch"
                         />
-                        <FormTextInput
-                            v-model="server.config.game.scenarioId"
-                            :name="'scenarioId'"
-                            :tooltip="'Mission scenario to load. Format: {GUID}Path/To/Mission.conf (e.g. {59AD59368755F41A}Missions/21_GM_Eden.conf). Required to start server.'"
-                            :placeholder="'{59AD59368755F41A}Missions/21_GM_Eden.conf'"
-                            :length="100"
-                            :readonly="props.readonly"
-                            @violIncr="violIncr"
-                            @violDecr="violDecr"
-                        />
                         <FormNumberInput
                             v-model="server.config.game.maxPlayers"
                             :name="'maxPlayers'"

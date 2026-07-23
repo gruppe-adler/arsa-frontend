@@ -27,6 +27,8 @@ const selectedMission = computed({
 
 const available = computed(() => missions.value.length > 0);
 
+const selectedMissionEntry = computed(() => missions.value.find(m => m.path === props.modelValue));
+
 function extractAssetId(modId: string): string | null {
     if (!modId) return null;
     const trimmed = modId.trim();
@@ -91,18 +93,12 @@ onMounted(loadMissions);
                 <select v-model="selectedMission" :disabled="props.readonly || !available">
                     <option value="" disabled>Select a vanilla mission or a mission from installed mods</option>
                     <option v-for="mission in missions" :key="mission.path" :value="mission.path">
-                        {{ mission.name }} ({{ mission.path }})
+                        {{ mission.name }}
                     </option>
                 </select>
+                <p v-if="selectedMissionEntry" class="mission-select-path">{{ selectedMissionEntry.path }}</p>
                 <p v-if="!available" class="mission-select-hint">No mission scenarios found for the current mod list.</p>
             </div>
-        </div>
-
-        <div v-if="available" class="mission-select-list">
-            <p class="mission-select-list-title">Available missions</p>
-            <ul>
-                <li v-for="mission in missions" :key="mission.path">{{ mission.name }} ({{ mission.path }})</li>
-            </ul>
         </div>
     </div>
 </template>
@@ -129,25 +125,10 @@ onMounted(loadMissions);
     font-size: 0.9rem;
 }
 
-.mission-select-list {
-    margin-top: 0.75rem;
-    grid-column: 2;
-}
-
-.mission-select-list-title {
-    margin: 0 0 0.25rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.mission-select-list ul {
+.mission-select-path {
     margin: 0;
-    padding-left: 1.2rem;
-    color: var(--ink);
-}
-
-.mission-select-list li {
-    margin-bottom: 0.3rem;
-    line-height: 1.4;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+    font-family: 'Geist Mono', ui-monospace, monospace;
 }
 </style>
