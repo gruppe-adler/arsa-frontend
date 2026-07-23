@@ -16,7 +16,9 @@ import {
     getPublicIp as apiGetPublicIp,
     getStatus as apiGetStatus,
     putServer,
-    getPullLogs
+    getPullLogs,
+    getDefaults as apiGetDefaults,
+    putDefaults as apiPutDefaults
 } from '../api/backend';
 import { getProfileFiles, getProfileFile, putProfileFile } from '../api/backend';
 import {
@@ -31,6 +33,8 @@ import {
     type FileContentResponse,
     type ProfileFileListResponse,
     type PutServerBody,
+    type ServerDefaults,
+    type PutDefaultsBody,
     PullLog,
     UuidResponse,
     EditProfileFileRequest
@@ -139,6 +143,16 @@ export async function updateServer(server: Server): Promise<boolean> {
         return response.data.success;
     }
     return false;
+}
+
+export async function getDefaults(): Promise<ServerDefaults> {
+    const response = await apiGetDefaults();
+    return response.data as unknown as ServerDefaults;
+}
+
+export async function updateDefaults(defaults: ServerDefaults): Promise<ServerDefaults> {
+    const response = await apiPutDefaults(defaults as PutDefaultsBody);
+    return response.data as unknown as ServerDefaults;
 }
 
 export async function getPublicIp(): Promise<string> {

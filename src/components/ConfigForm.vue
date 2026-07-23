@@ -24,7 +24,37 @@ const props = defineProps({
 const server = defineModel<Server>('server', { required: true });
 const inputViolationCounter = defineModel<number>('inputViolationCounter', { required: true });
 
-type SettingsSubTab = 'server' | 'game' | 'advanced';
+// Starts coupled whenever the two names already match (fresh servers, or existing
+// ones where nobody diverged them yet) so they keep following each other by default,
+// without silently overwriting a pre-existing intentional difference on load.
+const namesCoupled = ref(server.value.name === server.value.config.game.name);
+
+// AddServer/EditServer both mount this with a placeholder `server` and swap in the
+// real one asynchronously once it's fetched — recompute against the real data
+// instead of leaving the placeholder-derived initial value in place.
+watch(
+    () => server.value,
+    newServer => {
+        namesCoupled.value = newServer.name === newServer.config.game.name;
+    }
+);
+
+watch(
+    () => server.value.name,
+    name => {
+        if (namesCoupled.value) {
+            server.value.config.game.name = name;
+        }
+    }
+);
+
+watch(namesCoupled, coupled => {
+    if (coupled) {
+        server.value.config.game.name = server.value.name;
+    }
+});
+
+type SettingsSubTab = 'server' | 'advanced';
 type ViolationLocation = { tab: 'settings' | 'mods'; subTab?: SettingsSubTab };
 
 // Keyed by a stable field id so a field's violation status stays correct even
@@ -44,8 +74,7 @@ watch(() => violations.size, size => (inputViolationCounter.value = size), { imm
 
 const settingsSubTab = ref<SettingsSubTab>('server');
 const settingsSubTabs = [
-    { key: 'server', label: 'Server' },
-    { key: 'game', label: 'Game' },
+    { key: 'server', label: 'Basic' },
     { key: 'advanced', label: 'Advanced' }
 ];
 
@@ -77,7 +106,7 @@ defineExpose({
                 <div class="form-section">
                     <div class="form-section-head">
                         <h2>Identity</h2>
-                        <p>The display name for this server within ARSA. Not visible to players in-game.</p>
+                        <p>The display name for this server within ARSA, and the name players see in the in-game server browser.</p>
                     </div>
                     <div class="field-list">
                         <FormTextInput
@@ -89,207 +118,33 @@ defineExpose({
                             field-id="name"
                             @violation="v => setViolation('name', 'settings', 'server', v)"
                         />
-                    </div>
-                </div>
-
-                <!-- Startup Parameters -->
-                <div class="form-section">
-                    <div class="form-section-head">
-                        <h2>Startup parameters</h2>
-                        <p>Command-line flags passed to the ARS process. Toggle a parameter to include it in the launch command.</p>
-                    </div>
-                    <div class="field-list">
-                        <FormStartupParameterInput
-                            v-for="(_item, idx) in server.startupParameters"
-                            :key="idx"
-                            v-model="server.startupParameters[idx]"
+                        <FormCheckboxInput
+                            v-model="namesCoupled"
+                            :name="'Use for in-game name too'"
+                            :tooltip="'When on, the in-game server browser name always matches the ARSA name above. Turn off to set a different in-game name.'"
                             :readonly="props.readonly"
-                            :field-id="'startup.' + _item.parameter"
-                            @violation="v => setViolation('startup.' + _item.parameter, 'settings', 'server', v)"
+                        />
+                        <FormTextInput
+                            v-model="server.config.game.name"
+                            :name="'name (in-game)'"
+                            :tooltip="'Server name displayed in the in-game server browser. This is what players see when searching for servers. Max 100 characters.'"
+                            :placeholder="'Server\'s name'"
+                            :length="100"
+                            :readonly="props.readonly || namesCoupled"
+                            :pasteValue="server.name"
+                            field-id="game.name"
+                            @violation="v => setViolation('game.name', 'settings', 'server', v)"
                         />
                     </div>
                 </div>
 
-                <!-- Network -->
-                <div class="form-section">
-                    <div class="form-section-head">
-                        <h2>Network — bind &amp; public</h2>
-                        <p>The interface ARS binds to locally, and the address advertised to the server browser.</p>
-                    </div>
-                    <div class="field-list">
-                        <FormIpAddressInput
-                            v-model="server.config.bindAddress"
-                            :name="'bindAddress'"
-                            :tooltip="'Local IP address the server binds to. Use 0.0.0.0 to listen on all interfaces, or a specific IP for one interface. Default: 0.0.0.0'"
-                            :readonly="props.readonly"
-                            field-id="network.bindAddress"
-                            @violation="v => setViolation('network.bindAddress', 'settings', 'server', v)"
-                        />
-                        <FormNumberInput
-                            v-model="server.config.bindPort"
-                            :name="'bindPort'"
-                            :tooltip="'Local UDP port the server binds to. Must be open in firewall and forwarded if behind NAT. Range: 1-65535, Default: 2001'"
-                            :minVal="1"
-                            :maxVal="65535"
-                            :readonly="props.readonly"
-                            field-id="network.bindPort"
-                            @violation="v => setViolation('network.bindPort', 'settings', 'server', v)"
-                        />
-                        <FormIpAddressInput
-                            v-model="server.config.publicAddress"
-                            :name="'publicAddress'"
-                            :tooltip="'Public IP address advertised to server browser and players. Leave empty for automatic detection. Required if behind NAT/firewall. Default: auto-detect'"
-                            :readonly="props.readonly"
-                            field-id="network.publicAddress"
-                            @violation="v => setViolation('network.publicAddress', 'settings', 'server', v)"
-                        />
-                        <FormNumberInput
-                            v-model="server.config.publicPort"
-                            :name="'publicPort'"
-                            :tooltip="'Public UDP port advertised to server browser and players. Should match bindPort or forwarded port if using NAT. Range: 1-65535, Default: 2001'"
-                            :minVal="1"
-                            :maxVal="65535"
-                            :readonly="props.readonly"
-                            field-id="network.publicPort"
-                            @violation="v => setViolation('network.publicPort', 'settings', 'server', v)"
-                        />
-                    </div>
-                </div>
-
-                <!-- A2S -->
-                <div class="form-section">
-                    <div class="form-section-head">
-                        <h2>A2S query</h2>
-                        <p>Endpoint exposed for Steam's A2S server query protocol.</p>
-                    </div>
-                    <div class="field-list">
-                        <FormIpAddressInput
-                            v-model="server.config.a2s.address"
-                            :name="'address'"
-                            :tooltip="'IP address for Steam A2S query protocol. Used by server browsers to fetch server info. Use 0.0.0.0 for all interfaces. Required.'"
-                            :readonly="props.readonly"
-                            field-id="a2s.address"
-                            @violation="v => setViolation('a2s.address', 'settings', 'server', v)"
-                        />
-                        <FormNumberInput
-                            v-model="server.config.a2s.port"
-                            :name="'port'"
-                            :tooltip="'UDP port for Steam A2S query protocol. Must be accessible from internet for server listing. Range: 1-65535, Default: 17777'"
-                            :minVal="1"
-                            :maxVal="65535"
-                            :readonly="props.readonly"
-                            field-id="a2s.port"
-                            @violation="v => setViolation('a2s.port', 'settings', 'server', v)"
-                        />
-                    </div>
-                </div>
-
-                <!-- RCON -->
-                <div class="form-section">
-                    <div class="form-section-head">
-                        <h2>RCON</h2>
-                        <p>Remote console for live administration. Leave disabled if not in use.</p>
-                    </div>
-                    <div class="field-list">
-                        <FormIpAddressInput
-                            v-model="server.config.rcon.address"
-                            :name="'address'"
-                            :tooltip="'IP address for RCON (Remote Console) access. Use 127.0.0.1 for localhost only, or 0.0.0.0 for external access. Required.'"
-                            :readonly="props.readonly"
-                            field-id="rcon.address"
-                            @violation="v => setViolation('rcon.address', 'settings', 'server', v)"
-                        />
-                        <FormNumberInput
-                            v-model="server.config.rcon.port"
-                            :name="'port'"
-                            :tooltip="'TCP port for RCON connections. Used by admin tools to remotely control the server. Range: 1-65535, Default: 19999'"
-                            :minVal="1"
-                            :maxVal="65535"
-                            :readonly="props.readonly"
-                            field-id="rcon.port"
-                            @violation="v => setViolation('rcon.port', 'settings', 'server', v)"
-                        />
-                        <FormPasswordInput
-                            v-model="server.config.rcon.password"
-                            :name="'password'"
-                            :tooltip="'RCON password for authentication. No spaces allowed, minimum 3 characters. Keep secure as it grants server control. Required.'"
-                            :policyWhitespace="true"
-                            :policyMinimum="3"
-                            :readonly="props.readonly"
-                            field-id="rcon.password"
-                            @violation="v => setViolation('rcon.password', 'settings', 'server', v)"
-                        />
-                        <FormNumberInput
-                            v-model="server.config.rcon.maxClients"
-                            :name="'maxClients'"
-                            :tooltip="'Maximum simultaneous RCON connections allowed. Limits how many admins can connect at once. Range: 1-16, Default: 16'"
-                            :minVal="1"
-                            :maxVal="16"
-                            :readonly="props.readonly"
-                            field-id="rcon.maxClients"
-                            @violation="v => setViolation('rcon.maxClients', 'settings', 'server', v)"
-                        />
-                        <FormSelectInput
-                            v-model="server.config.rcon.permission"
-                            :name="'permission'"
-                            :tooltip="'RCON permission level. Monitor: read-only access to view server state. Admin: full control including kick, ban, and config changes.'"
-                            :options="['monitor', 'admin']"
-                            :selectedIndex="0"
-                            :readonly="props.readonly"
-                        />
-                        <FormMultiSelectModInput
-                            v-model="server.config.rcon.blacklist"
-                            :name="'blacklist'"
-                            :tooltip="'List of IPs or identity IDs blocked from RCON access. Use to ban specific admins or addresses. Default: []'"
-                            :readonly="props.readonly"
-                        />
-                        <FormMultiSelectModInput
-                            v-model="server.config.rcon.whitelist"
-                            :name="'whitelist'"
-                            :tooltip="'List of IPs or identity IDs allowed RCON access. When set, only these can connect. Overrides blacklist. Default: []'"
-                            :readonly="props.readonly"
-                        />
-                    </div>
-                </div> </template
-            ><!-- end server sub-tab -->
-
-            <!-- ── Game sub-tab ── -->
-            <template v-if="settingsSubTab === 'game'">
                 <!-- Game -->
                 <div class="form-section">
                     <div class="form-section-head">
                         <h2>Game</h2>
-                        <p>Core game session settings. The name here is what players see in the in-game server browser.</p>
+                        <p>Core game session settings.</p>
                     </div>
                     <div class="field-list">
-                        <FormTextInput
-                            v-model="server.config.game.name"
-                            :name="'name'"
-                            :tooltip="'Server name displayed in the in-game server browser. This is what players see when searching for servers. Max 100 characters.'"
-                            :placeholder="'Server\'s name'"
-                            :length="100"
-                            :readonly="props.readonly"
-                            :pasteValue="server.name"
-                            field-id="game.name"
-                            @violation="v => setViolation('game.name', 'settings', 'game', v)"
-                        />
-                        <FormPasswordInput
-                            v-model="server.config.game.password"
-                            :name="'password'"
-                            :tooltip="'Server password required for players to join. Leave empty for public server. Players must enter this to connect.'"
-                            :readonly="props.readonly"
-                            field-id="game.password"
-                            @violation="v => setViolation('game.password', 'settings', 'game', v)"
-                        />
-                        <FormPasswordInput
-                            v-model="server.config.game.passwordAdmin"
-                            :name="'passwordAdmin'"
-                            :tooltip="'Admin password for in-game admin login. No spaces allowed. Grants access to admin commands and functions. Leave empty to disable.'"
-                            :policyWhitespace="true"
-                            :readonly="props.readonly"
-                            field-id="game.passwordAdmin"
-                            @violation="v => setViolation('game.passwordAdmin', 'settings', 'game', v)"
-                        />
                         <FormAdminInput
                             v-model="server.config.game.admins"
                             :name="'admins'"
@@ -313,13 +168,220 @@ defineExpose({
                             :maxVal="128"
                             :readonly="props.readonly"
                             field-id="game.maxPlayers"
-                            @violation="v => setViolation('game.maxPlayers', 'settings', 'game', v)"
+                            @violation="v => setViolation('game.maxPlayers', 'settings', 'server', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.visible"
                             :name="'visible'"
                             :tooltip="'Whether the server appears in the public server browser. Disable for private/unlisted servers. Default: true'"
                             :readonly="props.readonly"
+                        />
+                    </div>
+                </div>
+
+                <!-- Branch -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>Branch</h2>
+                        <p>Server branch</p>
+                    </div>
+                    <div class="field-list">
+                        <FormSelectInput
+                            v-model="server.branch"
+                            :options="Object.values(Branch)"
+                            :name="'branch'"
+                            :tooltip="'Server branch'"
+                            :readonly="props.readonly"
+                        />
+                    </div>
+                </div> </template
+            ><!-- end server sub-tab -->
+
+            <!-- ── Advanced sub-tab ── -->
+            <template v-if="settingsSubTab === 'advanced'">
+                <!-- Startup Parameters -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>Startup parameters</h2>
+                        <p>Command-line flags passed to the ARS process. Toggle a parameter to include it in the launch command.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormStartupParameterInput
+                            v-for="(_item, idx) in server.startupParameters"
+                            :key="idx"
+                            v-model="server.startupParameters[idx]"
+                            :readonly="props.readonly"
+                            :field-id="'startup.' + _item.parameter"
+                            @violation="v => setViolation('startup.' + _item.parameter, 'settings', 'advanced', v)"
+                        />
+                    </div>
+                </div>
+
+                <!-- Network -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>Network — bind &amp; public</h2>
+                        <p>The interface ARS binds to locally, and the address advertised to the server browser.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormIpAddressInput
+                            v-model="server.config.bindAddress"
+                            :name="'bindAddress'"
+                            :tooltip="'Local IP address the server binds to. Use 0.0.0.0 to listen on all interfaces, or a specific IP for one interface. Default: 0.0.0.0'"
+                            :readonly="props.readonly"
+                            field-id="network.bindAddress"
+                            @violation="v => setViolation('network.bindAddress', 'settings', 'advanced', v)"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.bindPort"
+                            :name="'bindPort'"
+                            :tooltip="'Local UDP port the server binds to. Must be open in firewall and forwarded if behind NAT. Range: 1-65535, Default: 2001'"
+                            :minVal="1"
+                            :maxVal="65535"
+                            :readonly="props.readonly"
+                            field-id="network.bindPort"
+                            @violation="v => setViolation('network.bindPort', 'settings', 'advanced', v)"
+                        />
+                        <FormIpAddressInput
+                            v-model="server.config.publicAddress"
+                            :name="'publicAddress'"
+                            :tooltip="'Public IP address advertised to server browser and players. Leave empty for automatic detection. Required if behind NAT/firewall. Default: auto-detect'"
+                            :readonly="props.readonly"
+                            field-id="network.publicAddress"
+                            @violation="v => setViolation('network.publicAddress', 'settings', 'advanced', v)"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.publicPort"
+                            :name="'publicPort'"
+                            :tooltip="'Public UDP port advertised to server browser and players. Should match bindPort or forwarded port if using NAT. Range: 1-65535, Default: 2001'"
+                            :minVal="1"
+                            :maxVal="65535"
+                            :readonly="props.readonly"
+                            field-id="network.publicPort"
+                            @violation="v => setViolation('network.publicPort', 'settings', 'advanced', v)"
+                        />
+                    </div>
+                </div>
+
+                <!-- A2S -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>A2S query</h2>
+                        <p>Endpoint exposed for Steam's A2S server query protocol.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormIpAddressInput
+                            v-model="server.config.a2s.address"
+                            :name="'address'"
+                            :tooltip="'IP address for Steam A2S query protocol. Used by server browsers to fetch server info. Use 0.0.0.0 for all interfaces. Required.'"
+                            :readonly="props.readonly"
+                            field-id="a2s.address"
+                            @violation="v => setViolation('a2s.address', 'settings', 'advanced', v)"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.a2s.port"
+                            :name="'port'"
+                            :tooltip="'UDP port for Steam A2S query protocol. Must be accessible from internet for server listing. Range: 1-65535, Default: 17777'"
+                            :minVal="1"
+                            :maxVal="65535"
+                            :readonly="props.readonly"
+                            field-id="a2s.port"
+                            @violation="v => setViolation('a2s.port', 'settings', 'advanced', v)"
+                        />
+                    </div>
+                </div>
+
+                <!-- RCON -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>RCON</h2>
+                        <p>Remote console for live administration. Leave disabled if not in use.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormIpAddressInput
+                            v-model="server.config.rcon.address"
+                            :name="'address'"
+                            :tooltip="'IP address for RCON (Remote Console) access. Use 127.0.0.1 for localhost only, or 0.0.0.0 for external access. Required.'"
+                            :readonly="props.readonly"
+                            field-id="rcon.address"
+                            @violation="v => setViolation('rcon.address', 'settings', 'advanced', v)"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.rcon.port"
+                            :name="'port'"
+                            :tooltip="'TCP port for RCON connections. Used by admin tools to remotely control the server. Range: 1-65535, Default: 19999'"
+                            :minVal="1"
+                            :maxVal="65535"
+                            :readonly="props.readonly"
+                            field-id="rcon.port"
+                            @violation="v => setViolation('rcon.port', 'settings', 'advanced', v)"
+                        />
+                        <FormPasswordInput
+                            v-model="server.config.rcon.password"
+                            :name="'password'"
+                            :tooltip="'RCON password for authentication. No spaces allowed, minimum 3 characters. Keep secure as it grants server control. Required.'"
+                            :policyWhitespace="true"
+                            :policyMinimum="3"
+                            :readonly="props.readonly"
+                            field-id="rcon.password"
+                            @violation="v => setViolation('rcon.password', 'settings', 'advanced', v)"
+                        />
+                        <FormNumberInput
+                            v-model="server.config.rcon.maxClients"
+                            :name="'maxClients'"
+                            :tooltip="'Maximum simultaneous RCON connections allowed. Limits how many admins can connect at once. Range: 1-16, Default: 16'"
+                            :minVal="1"
+                            :maxVal="16"
+                            :readonly="props.readonly"
+                            field-id="rcon.maxClients"
+                            @violation="v => setViolation('rcon.maxClients', 'settings', 'advanced', v)"
+                        />
+                        <FormSelectInput
+                            v-model="server.config.rcon.permission"
+                            :name="'permission'"
+                            :tooltip="'RCON permission level. Monitor: read-only access to view server state. Admin: full control including kick, ban, and config changes.'"
+                            :options="['monitor', 'admin']"
+                            :selectedIndex="0"
+                            :readonly="props.readonly"
+                        />
+                        <FormMultiSelectModInput
+                            v-model="server.config.rcon.blacklist"
+                            :name="'blacklist'"
+                            :tooltip="'List of IPs or identity IDs blocked from RCON access. Use to ban specific admins or addresses. Default: []'"
+                            :readonly="props.readonly"
+                        />
+                        <FormMultiSelectModInput
+                            v-model="server.config.rcon.whitelist"
+                            :name="'whitelist'"
+                            :tooltip="'List of IPs or identity IDs allowed RCON access. When set, only these can connect. Overrides blacklist. Default: []'"
+                            :readonly="props.readonly"
+                        />
+                    </div>
+                </div>
+
+                <!-- Passwords & platforms -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>Passwords &amp; platforms</h2>
+                        <p>Join/admin passwords and which platforms may connect.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormPasswordInput
+                            v-model="server.config.game.password"
+                            :name="'password'"
+                            :tooltip="'Server password required for players to join. Leave empty for public server. Players must enter this to connect.'"
+                            :readonly="props.readonly"
+                            field-id="game.password"
+                            @violation="v => setViolation('game.password', 'settings', 'advanced', v)"
+                        />
+                        <FormPasswordInput
+                            v-model="server.config.game.passwordAdmin"
+                            :name="'passwordAdmin'"
+                            :tooltip="'Admin password for in-game admin login. No spaces allowed. Grants access to admin commands and functions. Leave empty to disable.'"
+                            :policyWhitespace="true"
+                            :readonly="props.readonly"
+                            field-id="game.passwordAdmin"
+                            @violation="v => setViolation('game.passwordAdmin', 'settings', 'advanced', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.crossPlatform"
@@ -352,7 +414,7 @@ defineExpose({
                             :maxVal="10000"
                             :readonly="props.readonly"
                             field-id="gameProperties.serverMaxViewDistance"
-                            @violation="v => setViolation('gameProperties.serverMaxViewDistance', 'settings', 'game', v)"
+                            @violation="v => setViolation('gameProperties.serverMaxViewDistance', 'settings', 'advanced', v)"
                         />
                         <FormNumberInput
                             v-model="server.config.game.gameProperties.serverMinGrassDistance"
@@ -362,7 +424,7 @@ defineExpose({
                             :maxVal="150"
                             :readonly="props.readonly"
                             field-id="gameProperties.serverMinGrassDistance"
-                            @violation="v => setViolation('gameProperties.serverMinGrassDistance', 'settings', 'game', v)"
+                            @violation="v => setViolation('gameProperties.serverMinGrassDistance', 'settings', 'advanced', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.gameProperties.fastValidation"
@@ -378,7 +440,7 @@ defineExpose({
                             :maxVal="1500"
                             :readonly="props.readonly"
                             field-id="gameProperties.networkViewDistance"
-                            @violation="v => setViolation('gameProperties.networkViewDistance', 'settings', 'game', v)"
+                            @violation="v => setViolation('gameProperties.networkViewDistance', 'settings', 'advanced', v)"
                         />
                         <FormCheckboxInput
                             v-model="server.config.game.gameProperties.battlEye"
@@ -417,30 +479,11 @@ defineExpose({
                             :placeholder="'{}'"
                             :readonly="props.readonly"
                             field-id="gameProperties.missionHeader"
-                            @violation="v => setViolation('gameProperties.missionHeader', 'settings', 'game', v)"
-                        />
-                    </div>
-                </div> </template
-            ><!-- end game sub-tab -->
-
-            <!-- ── Advanced sub-tab ── -->
-            <template v-if="settingsSubTab === 'advanced'">
-                <!-- Branch -->
-                <div class="form-section">
-                    <div class="form-section-head">
-                        <h2>Branch</h2>
-                        <p>Server branch</p>
-                    </div>
-                    <div class="field-list">
-                        <FormSelectInput
-                            v-model="server.branch"
-                            :options="Object.values(Branch)"
-                            :name="'branch'"
-                            :tooltip="'Server branch'"
-                            :readonly="props.readonly"
+                            @violation="v => setViolation('gameProperties.missionHeader', 'settings', 'advanced', v)"
                         />
                     </div>
                 </div>
+
                 <!-- Operating -->
                 <div class="form-section">
                     <div class="form-section-head">

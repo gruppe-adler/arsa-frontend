@@ -24,10 +24,12 @@ import type {
     PostServerBody,
     ProfileFileListResponse,
     PullLog,
+    PutDefaultsBody,
     PutServerBody,
     ResultLogs,
     ResultSize,
     Server,
+    ServerDefaults,
     SuccessResponse,
     UuidResponse,
     WorkshopResponse
@@ -129,6 +131,50 @@ export const getServers = async (options?: RequestInit): Promise<getServersRespo
     return customFetch<getServersResponse>(getGetServersUrl(), {
         ...options,
         method: 'GET'
+    });
+};
+
+export type getDefaultsResponse200 = {
+    data: ServerDefaults;
+    status: 200;
+};
+
+export type getDefaultsResponseSuccess = getDefaultsResponse200 & {
+    headers: Headers;
+};
+export type getDefaultsResponse = getDefaultsResponseSuccess;
+
+export const getGetDefaultsUrl = () => {
+    return `http://localhost:3000/api/v2/defaults`;
+};
+
+export const getDefaults = async (options?: RequestInit): Promise<getDefaultsResponse> => {
+    return customFetch<getDefaultsResponse>(getGetDefaultsUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type putDefaultsResponse200 = {
+    data: ServerDefaults;
+    status: 200;
+};
+
+export type putDefaultsResponseSuccess = putDefaultsResponse200 & {
+    headers: Headers;
+};
+export type putDefaultsResponse = putDefaultsResponseSuccess;
+
+export const getPutDefaultsUrl = () => {
+    return `http://localhost:3000/api/v2/defaults`;
+};
+
+export const putDefaults = async (putDefaultsBody: PutDefaultsBody, options?: RequestInit): Promise<putDefaultsResponse> => {
+    return customFetch<putDefaultsResponse>(getPutDefaultsUrl(), {
+        ...options,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        body: JSON.stringify(putDefaultsBody)
     });
 };
 

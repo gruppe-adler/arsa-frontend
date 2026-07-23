@@ -6,6 +6,7 @@
         <RouterLink class="nav-link" to="/known-players">Known Players</RouterLink>
         <RouterLink class="nav-link" to="/workshop">Workshop</RouterLink>
         <RouterLink class="nav-link" to="/ars-service">ARS Service</RouterLink>
+        <RouterLink class="nav-link" to="/defaults">Defaults</RouterLink>
     </nav>
 </template>
 

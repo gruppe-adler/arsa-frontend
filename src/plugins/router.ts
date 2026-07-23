@@ -14,12 +14,14 @@ import ServerSize from '../views/ServerSize.vue';
 import PageNotFound from '../views/PageNotFound.vue';
 import KnownPlayers from '../views/KnownPlayers.vue';
 import WorkshopSearch from '../views/WorkshopSearch.vue';
+import ServerDefaults from '../views/ServerDefaults.vue';
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: PageNotFound },
     { path: '/servers-list', component: ServersList },
     { path: '/known-players', component: KnownPlayers },
     { path: '/workshop', component: WorkshopSearch },
+    { path: '/defaults', component: ServerDefaults },
     { path: '/add-server', component: AddServer },
     { path: '/ars-service', component: ArsService },
     { path: '/edit-server/:id', component: EditServer },
