@@ -427,7 +427,7 @@ onMounted(() => selectAll());
                             </DialogClose>
                         </div>
                         <div class="workshop-panel-body">
-                            <WorkshopBrowser selectable @select="addFromWorkshop" @set-mission="onSetMission" />
+                            <WorkshopBrowser selectable mission-selectable @select="addFromWorkshop" @set-mission="onSetMission" />
                         </div>
                     </DialogContent>
                 </DialogPortal>

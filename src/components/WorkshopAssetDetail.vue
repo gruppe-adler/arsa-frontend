@@ -7,6 +7,7 @@ import { useWorkshopStore } from '../stores/workshop';
 const props = defineProps<{
     asset: Asset;
     selectable?: boolean;
+    missionSelectable?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -85,7 +86,7 @@ function formatNumber(n: number): string {
             </button>
             <div class="detail-head-actions">
                 <button
-                    v-if="scenarioEntries.length === 1"
+                    v-if="missionSelectable && scenarioEntries.length === 1"
                     type="button"
                     class="btn btn-sm"
                     @click="emit('setMission', { asset, scenario: scenarioEntries[0] })"
@@ -96,7 +97,7 @@ function formatNumber(n: number): string {
                     </svg>
                     Set as mission
                 </button>
-                <PopoverRoot v-else-if="scenarioEntries.length > 1">
+                <PopoverRoot v-else-if="missionSelectable && scenarioEntries.length > 1">
                     <PopoverTrigger class="btn btn-sm">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 11l3 3L22 4" />
@@ -249,6 +250,7 @@ function formatNumber(n: number): string {
                     <li v-for="(s, idx) in detail.version_detail.scenarios" :key="idx" class="scenario-item">
                         <span>{{ s.name }} <span v-if="s.gameMode" class="muted">— {{ s.gameMode }}</span></span>
                         <button
+                            v-if="missionSelectable"
                             type="button"
                             class="btn btn-sm"
                             @click="emit('setMission', { asset, scenario: { name: s.name, path: s.gameId } })"

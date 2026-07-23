@@ -6,8 +6,9 @@ import { useWorkshopStore } from '../stores/workshop';
 import { useScenarioStore } from '../stores/scenarios';
 import WorkshopAssetDetail from './WorkshopAssetDetail.vue';
 
-defineProps<{
+const props = defineProps<{
     selectable?: boolean;
+    missionSelectable?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -70,6 +71,10 @@ const scenarioCheck = reactive(new Map<string, ScenarioEntry[]>());
 const SCENARIO_CHECK_BATCH_SIZE = 5;
 
 async function checkScenarios(assets: Asset[]) {
+    if (!props.missionSelectable) {
+        return;
+    }
+
     const pending = assets.filter(asset => !scenarioCheck.has(asset.id));
     for (let i = 0; i < pending.length; i += SCENARIO_CHECK_BATCH_SIZE) {
         const batch = pending.slice(i, i + SCENARIO_CHECK_BATCH_SIZE);
@@ -111,6 +116,7 @@ onMounted(() => {
             v-if="selectedAsset"
             :asset="selectedAsset"
             :selectable="selectable"
+            :mission-selectable="missionSelectable"
             @back="closeDetail"
             @select="emit('select', $event)"
             @set-mission="emit('setMission', $event)"
@@ -208,7 +214,7 @@ onMounted(() => {
                         </button>
 
                         <button
-                            v-if="scenariosFor(asset).length === 1"
+                            v-if="missionSelectable && scenariosFor(asset).length === 1"
                             type="button"
                             class="btn btn-sm card-mission"
                             @click.stop="emit('setMission', { asset, scenario: scenariosFor(asset)[0] })"
@@ -219,7 +225,7 @@ onMounted(() => {
                             </svg>
                             Set as mission
                         </button>
-                        <PopoverRoot v-else-if="scenariosFor(asset).length > 1">
+                        <PopoverRoot v-else-if="missionSelectable && scenariosFor(asset).length > 1">
                             <PopoverTrigger class="btn btn-sm card-mission" @click.stop>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M9 11l3 3L22 4" />

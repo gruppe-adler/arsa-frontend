@@ -29,7 +29,7 @@ function refresh() {
     <NotFound v-else-if="!found" />
     <main v-else class="page-main">
         <div class="breadcrumb">
-            <a @click="router.push(`/server-logs-list/${route.params.id}`)">Logs</a>
+            <a @click="router.push(`/edit-server/${route.params.id}?tab=logs`)">Logs</a>
             <span class="sep">/</span>
             <span>CrashReports.log</span>
         </div>
