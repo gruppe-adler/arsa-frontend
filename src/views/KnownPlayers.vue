@@ -47,7 +47,7 @@ const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
         <div class="page-header">
             <div>
                 <h1>Known Players</h1>
-                <p>All player identities seen on this server.</p>
+                <p>All player identities seen across all servers.</p>
             </div>
             <div>
                 <input v-model="searchText" class="input search-box" type="text" placeholder="Search players or ids..." />

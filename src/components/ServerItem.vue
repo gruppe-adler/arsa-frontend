@@ -62,9 +62,6 @@ function onClickSize() {
 function onClickStats() {
     router.push(serverRoute('stats'));
 }
-function onClickPlayers() {
-    router.push(serverRoute('players'));
-}
 function onClickName() {
     router.push(serverRoute());
 }
@@ -83,9 +80,19 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 
         <!-- meta -->
         <div class="server-meta">
-            <a class="server-name" @click="onClickName">{{ model!.name }} (Players: {{ model!.playerCount }}) [{{ model!.branch }}]</a>
+            <a class="server-name" @click="onClickName">{{ model!.name }}</a>
             <div class="server-info">
                 <span class="port-tag">:{{ model!.config.bindPort }}</span>
+                <span class="players-tag" :title="`${model!.playerCount} player${model!.playerCount === 1 ? '' : 's'} online`">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    {{ model!.playerCount }}
+                </span>
+                <span class="branch-tag" :class="model!.branch">{{ model!.branch }}</span>
                 <button
                     class="id-chip"
                     :class="{ copied: copyState === 'copied' }"
@@ -138,7 +145,6 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
             <span class="divider-v"></span>
 
             <div class="btn-group">
-                <button class="btn" @click="onClickPlayers">Players</button>
                 <button class="btn" :disabled="!model!.isRunning" @click="onClickStats">Stats</button>
                 <button class="btn" @click="onClickSize">Size</button>
                 <button class="btn" @click="onClickLogs">Logs</button>
@@ -201,10 +207,39 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 .server-info {
     margin-top: 4px;
     display: flex;
-    gap: 14px;
+    gap: 8px;
     align-items: center;
     font-size: 12px;
     color: var(--ink-3);
+}
+
+.players-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    padding: 2px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    color: var(--ink-2);
+    background: var(--bg-soft);
+}
+
+.branch-tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--ink-3);
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+}
+.branch-tag.experimental {
+    color: var(--amber);
+    background: color-mix(in oklab, var(--amber), transparent 88%);
+    border-color: color-mix(in oklab, var(--amber), transparent 65%);
 }
 
 .server-actions {

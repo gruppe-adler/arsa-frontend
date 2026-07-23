@@ -20,7 +20,7 @@ const found = ref(false);
 const inputViolationCounter = ref(0);
 const serversStore = useServersStore();
 const server = ref<Server>(defaultServer);
-const validTabs = ['settings', 'mods', 'players', 'stats', 'size', 'logs', 'profiles'];
+const validTabs = ['settings', 'mods', 'stats', 'size', 'logs', 'profiles'];
 const activeTab = ref<string>(validTabs.includes(route.query.tab as string) ? (route.query.tab as string) : 'settings');
 
 serversStore.getAll().then(() => {
