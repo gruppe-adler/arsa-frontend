@@ -331,7 +331,6 @@ onMounted(() => selectAll());
                 </div>
 
                 <!-- Workshop search -->
-                <div class="btn-group">
                     <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="7" />
@@ -339,7 +338,6 @@ onMounted(() => selectAll());
                         </svg>
                         Search workshop
                     </button>
-                </div>
 
                 <!-- Import / Export modset -->
                 <div class="btn-group">
