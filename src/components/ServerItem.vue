@@ -2,15 +2,37 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
+import { useServerOrganization } from '../composables/useServerOrganization';
 import { ArsStatus, Server } from '../api/model';
 
 const model = defineModel<Server>();
 const emit = defineEmits(['serverDeleted', 'serverCloned']);
 const router = useRouter();
 const serversStore = useServersStore();
+const { moveServer } = useServerOrganization();
 
 const copyState = ref<'idle' | 'copied'>('idle');
 let copyTimer: ReturnType<typeof setTimeout>;
+
+const isDragOver = ref(false);
+
+function onDragStart(event: DragEvent) {
+    if (!model?.value?.uuid) {
+        return;
+    }
+    event.dataTransfer?.setData('text/plain', model.value.uuid);
+    if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+    }
+}
+function onDrop(event: DragEvent) {
+    isDragOver.value = false;
+    const draggedUuid = event.dataTransfer?.getData('text/plain');
+    if (!draggedUuid || !model?.value?.uuid) {
+        return;
+    }
+    moveServer(draggedUuid, model.value.uuid);
+}
 
 async function copyUuid() {
     if (!model?.value?.uuid) {
@@ -68,7 +90,26 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 </script>
 
 <template>
-    <div class="server-row" @click="onClickName">
+    <div
+        class="server-row"
+        :class="{ 'drag-over': isDragOver }"
+        @click="onClickName"
+        @dragover.prevent
+        @dragenter.prevent="isDragOver = true"
+        @dragleave="isDragOver = false"
+        @drop.prevent="onDrop"
+    >
+        <button class="drag-handle" type="button" draggable="true" title="Drag to reorder or cluster" @dragstart="onDragStart" @click.stop>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="6" r="1.6" />
+                <circle cx="15" cy="6" r="1.6" />
+                <circle cx="9" cy="12" r="1.6" />
+                <circle cx="15" cy="12" r="1.6" />
+                <circle cx="9" cy="18" r="1.6" />
+                <circle cx="15" cy="18" r="1.6" />
+            </svg>
+        </button>
+
         <!-- status -->
         <div class="server-status" :class="{ online: model!.isRunning }">
             <span class="dot" :class="model!.isRunning ? 'green' : ''"></span>
@@ -159,7 +200,7 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 <style scoped>
 .server-row {
     display: grid;
-    grid-template-columns: 110px 1fr auto;
+    grid-template-columns: 20px 110px 1fr auto;
     align-items: center;
     gap: 24px;
     padding: 20px 24px;
@@ -171,6 +212,29 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 }
 .server-row:hover {
     background: var(--bg-soft);
+}
+.server-row.drag-over {
+    background: var(--indigo-soft);
+    outline: 1px dashed var(--indigo);
+    outline-offset: -1px;
+}
+
+.drag-handle {
+    appearance: none;
+    border: none;
+    background: none;
+    padding: 4px;
+    margin: -4px;
+    color: var(--ink-4);
+    cursor: grab;
+    display: grid;
+    place-items: center;
+}
+.drag-handle:hover {
+    color: var(--ink-2);
+}
+.drag-handle:active {
+    cursor: grabbing;
 }
 
 .server-status {
@@ -258,9 +322,14 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
 
 @media (max-width: 480px) {
     .server-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 20px 1fr;
         gap: 10px;
         padding: 16px;
+    }
+    .server-status,
+    .server-meta,
+    .server-actions {
+        grid-column: 2;
     }
     .server-info {
         flex-wrap: wrap;
