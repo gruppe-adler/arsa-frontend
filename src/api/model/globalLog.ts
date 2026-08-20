@@ -8,7 +8,9 @@ import type { LogAction } from './logAction';
 
 export interface GlobalLog {
     action: LogAction;
-    id?: string;
+    actor: string;
+    actor_id: string;
+    id: string;
     /** @nullable */
     target?: string | null;
     timestamp: string;

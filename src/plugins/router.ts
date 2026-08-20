@@ -15,6 +15,7 @@ import PageNotFound from '../views/PageNotFound.vue';
 import KnownPlayers from '../views/KnownPlayers.vue';
 import WorkshopSearch from '../views/WorkshopSearch.vue';
 import ServerDefaults from '../views/ServerDefaults.vue';
+import ServerErrorView from '../views/ServerErrorView.vue';
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: PageNotFound },
@@ -23,7 +24,7 @@ const routes = [
     { path: '/workshop', component: WorkshopSearch },
     { path: '/defaults', component: ServerDefaults },
     { path: '/add-server', component: AddServer },
-    { path: '/ars-service', component: ArsService },
+    { path: '/ars-service', component: ArsService, meta: { role: import.meta.env.VITE_API_ADMIN_ROLE } },
     { path: '/edit-server/:id', component: EditServer },
     { path: '/view-server/:id', component: ViewServer },
     { path: '/server-logs-list/:id', component: ServerLogsList },
@@ -32,7 +33,8 @@ const routes = [
     { path: '/players-list/:id', component: PlayersList },
     { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
     { path: '/view-crash-reports-log/:id', component: ViewCrashReportsLog },
-    { path: '/', redirect: '/servers-list' }
+    { path: '/', redirect: '/servers-list' },
+    { path: '/error', name: 'Error', component: ServerErrorView, meta: { accessibleUnauthorized: true } }
 ];
 
 const router = createRouter({

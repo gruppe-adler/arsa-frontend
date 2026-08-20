@@ -18,9 +18,14 @@ import {
     putServer,
     getPullLogs,
     getDefaults as apiGetDefaults,
-    putDefaults as apiPutDefaults
+    putDefaults as apiPutDefaults,
+    userClaims,
+    getLoginUrl,
+    getLogoutUrl,
+    getProfileFiles,
+    getProfileFile,
+    putProfileFile
 } from '../api/backend';
-import { getProfileFiles, getProfileFile, putProfileFile } from '../api/backend';
 import {
     type PostServerBody,
     type ResultLogs,
@@ -28,17 +33,19 @@ import {
     type DockerStats,
     type PlayerIdentityId,
     type Server,
-    type ArsStatus,
     type LogType,
     type FileContentResponse,
     type ProfileFileListResponse,
     type PutServerBody,
     type ServerDefaults,
     type PutDefaultsBody,
+    ArsStatus,
     PullLog,
     UuidResponse,
-    EditProfileFileRequest
+    EditProfileFileRequest,
+    Claims
 } from '../api/model';
+import { API_URL } from './fetcher';
 
 // TODO:
 // const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
@@ -193,4 +200,22 @@ export async function editProfileFile(id: string, path: string, contents: string
     const body = { fileContent: contents } as EditProfileFileRequest;
     const response = await putProfileFile(id, path, body);
     return response.status === 200;
+}
+
+export async function getUserClaims(): Promise<Claims | null> {
+    const response = await userClaims();
+    if (response.status === 200) {
+        return response.data;
+    }
+    return null;
+}
+
+export async function performLogin(): Promise<void> {
+    window.location.assign(API_URL + getLoginUrl());
+    return;
+}
+
+export async function performLogout(): Promise<void> {
+    window.location.assign(API_URL + getLogoutUrl());
+    return;
 }

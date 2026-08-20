@@ -9,6 +9,7 @@ import type {
     AssetDetailResponse,
     AssetScenariosResponse,
     Branch,
+    Claims,
     DockerStats,
     EditProfileFileRequest,
     ErrorResponse,
@@ -61,7 +62,7 @@ export type getProfileFileResponseError = (getProfileFileResponse400 | getProfil
 export type getProfileFileResponse = getProfileFileResponseSuccess | getProfileFileResponseError;
 
 export const getGetProfileFileUrl = (id: string, path: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/profile/${path}`;
+    return `/api/v2/server/${id}/profile/${path}`;
 };
 
 export const getProfileFile = async (id: string, path: string, options?: RequestInit): Promise<getProfileFileResponse> => {
@@ -96,7 +97,7 @@ export type putProfileFileResponseError = (putProfileFileResponse400 | putProfil
 export type putProfileFileResponse = putProfileFileResponseSuccess | putProfileFileResponseError;
 
 export const getPutProfileFileUrl = (id: string, path: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/profile/${path}`;
+    return `/api/v2/server/${id}/profile/${path}`;
 };
 
 export const putProfileFile = async (
@@ -124,11 +125,95 @@ export type getServersResponseSuccess = getServersResponse200 & {
 export type getServersResponse = getServersResponseSuccess;
 
 export const getGetServersUrl = () => {
-    return `http://localhost:3000/api/v2`;
+    return `/api/v2`;
 };
 
 export const getServers = async (options?: RequestInit): Promise<getServersResponse> => {
     return customFetch<getServersResponse>(getGetServersUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type callbackResponse303 = {
+    data: void;
+    status: 303;
+};
+export type callbackResponseError = callbackResponse303 & {
+    headers: Headers;
+};
+
+export type callbackResponse = callbackResponseError;
+
+export const getCallbackUrl = () => {
+    return `/api/v2/auth/callback`;
+};
+
+export const callback = async (options?: RequestInit): Promise<callbackResponse> => {
+    return customFetch<callbackResponse>(getCallbackUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type loginResponse303 = {
+    data: void;
+    status: 303;
+};
+export type loginResponseError = loginResponse303 & {
+    headers: Headers;
+};
+
+export type loginResponse = loginResponseError;
+
+export const getLoginUrl = () => {
+    return `/api/v2/auth/login`;
+};
+
+export const login = async (options?: RequestInit): Promise<loginResponse> => {
+    return customFetch<loginResponse>(getLoginUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type logoutResponse303 = {
+    data: void;
+    status: 303;
+};
+export type logoutResponseError = logoutResponse303 & {
+    headers: Headers;
+};
+
+export type logoutResponse = logoutResponseError;
+
+export const getLogoutUrl = () => {
+    return `/api/v2/auth/logout`;
+};
+
+export const logout = async (options?: RequestInit): Promise<logoutResponse> => {
+    return customFetch<logoutResponse>(getLogoutUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type userClaimsResponse200 = {
+    data: Claims;
+    status: 200;
+};
+
+export type userClaimsResponseSuccess = userClaimsResponse200 & {
+    headers: Headers;
+};
+export type userClaimsResponse = userClaimsResponseSuccess;
+
+export const getUserClaimsUrl = () => {
+    return `/api/v2/auth/userclaims`;
+};
+
+export const userClaims = async (options?: RequestInit): Promise<userClaimsResponse> => {
+    return customFetch<userClaimsResponse>(getUserClaimsUrl(), {
         ...options,
         method: 'GET'
     });
@@ -145,7 +230,7 @@ export type getDefaultsResponseSuccess = getDefaultsResponse200 & {
 export type getDefaultsResponse = getDefaultsResponseSuccess;
 
 export const getGetDefaultsUrl = () => {
-    return `http://localhost:3000/api/v2/defaults`;
+    return `/api/v2/defaults`;
 };
 
 export const getDefaults = async (options?: RequestInit): Promise<getDefaultsResponse> => {
@@ -166,7 +251,7 @@ export type putDefaultsResponseSuccess = putDefaultsResponse200 & {
 export type putDefaultsResponse = putDefaultsResponseSuccess;
 
 export const getPutDefaultsUrl = () => {
-    return `http://localhost:3000/api/v2/defaults`;
+    return `/api/v2/defaults`;
 };
 
 export const putDefaults = async (putDefaultsBody: PutDefaultsBody, options?: RequestInit): Promise<putDefaultsResponse> => {
@@ -189,7 +274,7 @@ export type getImageVersionResponseSuccess = getImageVersionResponse200 & {
 export type getImageVersionResponse = getImageVersionResponseSuccess;
 
 export const getGetImageVersionUrl = (branch: Branch) => {
-    return `http://localhost:3000/api/v2/image-version/${branch}`;
+    return `/api/v2/image-version/${branch}`;
 };
 
 export const getImageVersion = async (branch: Branch, options?: RequestInit): Promise<getImageVersionResponse> => {
@@ -229,7 +314,7 @@ export const getGetGlobalLogsUrl = (params?: GetGlobalLogsParams) => {
 
     const stringifiedParams = normalizedParams.toString();
 
-    return stringifiedParams.length > 0 ? `http://localhost:3000/api/v2/logs?${stringifiedParams}` : `http://localhost:3000/api/v2/logs`;
+    return stringifiedParams.length > 0 ? `/api/v2/logs?${stringifiedParams}` : `/api/v2/logs`;
 };
 
 export const getGlobalLogs = async (params?: GetGlobalLogsParams, options?: RequestInit): Promise<getGlobalLogsResponse> => {
@@ -250,7 +335,7 @@ export type getPublicIpResponseSuccess = getPublicIpResponse200 & {
 export type getPublicIpResponse = getPublicIpResponseSuccess;
 
 export const getGetPublicIpUrl = () => {
-    return `http://localhost:3000/api/v2/public-ip`;
+    return `/api/v2/public-ip`;
 };
 
 export const getPublicIp = async (options?: RequestInit): Promise<getPublicIpResponse> => {
@@ -271,7 +356,7 @@ export type getPullImageResponseSuccess = getPullImageResponse200 & {
 export type getPullImageResponse = getPullImageResponseSuccess;
 
 export const getGetPullImageUrl = (branch: Branch) => {
-    return `http://localhost:3000/api/v2/pull/image/${branch}`;
+    return `/api/v2/pull/image/${branch}`;
 };
 
 export const getPullImage = async (branch: Branch, options?: RequestInit): Promise<getPullImageResponse> => {
@@ -292,7 +377,7 @@ export type getPullLogsResponseSuccess = getPullLogsResponse200 & {
 export type getPullLogsResponse = getPullLogsResponseSuccess;
 
 export const getGetPullLogsUrl = () => {
-    return `http://localhost:3000/api/v2/pull/logs`;
+    return `/api/v2/pull/logs`;
 };
 
 export const getPullLogs = async (options?: RequestInit): Promise<getPullLogsResponse> => {
@@ -322,7 +407,7 @@ export type getScenariosFromBranchResponseError = getScenariosFromBranchResponse
 export type getScenariosFromBranchResponse = getScenariosFromBranchResponseSuccess | getScenariosFromBranchResponseError;
 
 export const getGetScenariosFromBranchUrl = (branch: Branch) => {
-    return `http://localhost:3000/api/v2/scenarios/${branch}`;
+    return `/api/v2/scenarios/${branch}`;
 };
 
 export const getScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<getScenariosFromBranchResponse> => {
@@ -357,7 +442,7 @@ export type updateScenariosFromBranchResponseError = (updateScenariosFromBranchR
 export type updateScenariosFromBranchResponse = updateScenariosFromBranchResponseSuccess | updateScenariosFromBranchResponseError;
 
 export const getUpdateScenariosFromBranchUrl = (branch: Branch) => {
-    return `http://localhost:3000/api/v2/scenarios/${branch}`;
+    return `/api/v2/scenarios/${branch}`;
 };
 
 export const updateScenariosFromBranch = async (branch: Branch, options?: RequestInit): Promise<updateScenariosFromBranchResponse> => {
@@ -387,7 +472,7 @@ export type putServerResponseError = putServerResponse400 & {
 export type putServerResponse = putServerResponseSuccess | putServerResponseError;
 
 export const getPutServerUrl = () => {
-    return `http://localhost:3000/api/v2/server`;
+    return `/api/v2/server`;
 };
 
 export const putServer = async (putServerBody: PutServerBody, options?: RequestInit): Promise<putServerResponse> => {
@@ -419,7 +504,7 @@ export type postServerResponseError = postServerResponse400 & {
 export type postServerResponse = postServerResponseSuccess | postServerResponseError;
 
 export const getPostServerUrl = () => {
-    return `http://localhost:3000/api/v2/server`;
+    return `/api/v2/server`;
 };
 
 export const postServer = async (postServerBody: PostServerBody, options?: RequestInit): Promise<postServerResponse> => {
@@ -451,7 +536,7 @@ export type getPlayerLogResponseError = getPlayerLogResponse404 & {
 export type getPlayerLogResponse = getPlayerLogResponseSuccess | getPlayerLogResponseError;
 
 export const getGetPlayerLogUrl = () => {
-    return `http://localhost:3000/api/v2/server/known-players`;
+    return `/api/v2/server/known-players`;
 };
 
 export const getPlayerLog = async (options?: RequestInit): Promise<getPlayerLogResponse> => {
@@ -481,7 +566,7 @@ export type getServerResponseError = getServerResponse404 & {
 export type getServerResponse = getServerResponseSuccess | getServerResponseError;
 
 export const getGetServerUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}`;
+    return `/api/v2/server/${id}`;
 };
 
 export const getServer = async (id: string, options?: RequestInit): Promise<getServerResponse> => {
@@ -511,7 +596,7 @@ export type deleteServerResponseError = deleteServerResponse404 & {
 export type deleteServerResponse = deleteServerResponseSuccess | deleteServerResponseError;
 
 export const getDeleteServerUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}`;
+    return `/api/v2/server/${id}`;
 };
 
 export const deleteServer = async (id: string, options?: RequestInit): Promise<deleteServerResponse> => {
@@ -541,7 +626,7 @@ export type getCrashLogResponseError = getCrashLogResponse404 & {
 export type getCrashLogResponse = getCrashLogResponseSuccess | getCrashLogResponseError;
 
 export const getGetCrashLogUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/crash-reports-log`;
+    return `/api/v2/server/${id}/crash-reports-log`;
 };
 
 export const getCrashLog = async (id: string, options?: RequestInit): Promise<getCrashLogResponse> => {
@@ -571,7 +656,7 @@ export type isServerRunningResponseError = isServerRunningResponse404 & {
 export type isServerRunningResponse = isServerRunningResponseSuccess | isServerRunningResponseError;
 
 export const getIsServerRunningUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/is-running`;
+    return `/api/v2/server/${id}/is-running`;
 };
 
 export const isServerRunning = async (id: string, options?: RequestInit): Promise<isServerRunningResponse> => {
@@ -601,7 +686,7 @@ export type getLogsResponseError = getLogsResponse404 & {
 export type getLogsResponse = getLogsResponseSuccess | getLogsResponseError;
 
 export const getGetLogsUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/logs`;
+    return `/api/v2/server/${id}/logs`;
 };
 
 export const getLogs = async (id: string, options?: RequestInit): Promise<getLogsResponse> => {
@@ -636,7 +721,7 @@ export type deleteLogResponseError = (deleteLogResponse400 | deleteLogResponse40
 export type deleteLogResponse = deleteLogResponseSuccess | deleteLogResponseError;
 
 export const getDeleteLogUrl = (id: string, log: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/logs/${log}`;
+    return `/api/v2/server/${id}/logs/${log}`;
 };
 
 export const deleteLog = async (id: string, log: string, options?: RequestInit): Promise<deleteLogResponse> => {
@@ -671,7 +756,7 @@ export type getLogFileResponseError = (getLogFileResponse400 | getLogFileRespons
 export type getLogFileResponse = getLogFileResponseSuccess | getLogFileResponseError;
 
 export const getGetLogFileUrl = (id: string, log: string, logType: LogType) => {
-    return `http://localhost:3000/api/v2/server/${id}/logs/${log}/${logType}`;
+    return `/api/v2/server/${id}/logs/${log}/${logType}`;
 };
 
 export const getLogFile = async (id: string, log: string, logType: LogType, options?: RequestInit): Promise<getLogFileResponse> => {
@@ -701,7 +786,7 @@ export type getProfileFilesResponseError = getProfileFilesResponse404 & {
 export type getProfileFilesResponse = getProfileFilesResponseSuccess | getProfileFilesResponseError;
 
 export const getGetProfileFilesUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/profile`;
+    return `/api/v2/server/${id}/profile`;
 };
 
 export const getProfileFiles = async (id: string, options?: RequestInit): Promise<getProfileFilesResponse> => {
@@ -722,7 +807,7 @@ export type getSizeMethodResponseSuccess = getSizeMethodResponse200 & {
 export type getSizeMethodResponse = getSizeMethodResponseSuccess;
 
 export const getGetSizeMethodUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/size`;
+    return `/api/v2/server/${id}/size`;
 };
 
 export const getSizeMethod = async (id: string, options?: RequestInit): Promise<getSizeMethodResponse> => {
@@ -752,7 +837,7 @@ export type startServerResponseError = startServerResponse404 & {
 export type startServerResponse = startServerResponseSuccess | startServerResponseError;
 
 export const getStartServerUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/start`;
+    return `/api/v2/server/${id}/start`;
 };
 
 export const startServer = async (id: string, options?: RequestInit): Promise<startServerResponse> => {
@@ -782,7 +867,7 @@ export type getStatsResponseError = getStatsResponse404 & {
 export type getStatsResponse = getStatsResponseSuccess | getStatsResponseError;
 
 export const getGetStatsUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/stats`;
+    return `/api/v2/server/${id}/stats`;
 };
 
 export const getStats = async (id: string, options?: RequestInit): Promise<getStatsResponse> => {
@@ -812,7 +897,7 @@ export type stopServerResponseError = stopServerResponse404 & {
 export type stopServerResponse = stopServerResponseSuccess | stopServerResponseError;
 
 export const getStopServerUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/server/${id}/stop`;
+    return `/api/v2/server/${id}/stop`;
 };
 
 export const stopServer = async (id: string, options?: RequestInit): Promise<stopServerResponse> => {
@@ -833,7 +918,7 @@ export type getStatusResponseSuccess = getStatusResponse200 & {
 export type getStatusResponse = getStatusResponseSuccess;
 
 export const getGetStatusUrl = () => {
-    return `http://localhost:3000/api/v2/status`;
+    return `/api/v2/status`;
 };
 
 export const getStatus = async (options?: RequestInit): Promise<getStatusResponse> => {
@@ -873,9 +958,7 @@ export const getGetWorkshopUrl = (params?: GetWorkshopParams) => {
 
     const stringifiedParams = normalizedParams.toString();
 
-    return stringifiedParams.length > 0
-        ? `http://localhost:3000/api/v2/workshop?${stringifiedParams}`
-        : `http://localhost:3000/api/v2/workshop`;
+    return stringifiedParams.length > 0 ? `/api/v2/workshop?${stringifiedParams}` : `/api/v2/workshop`;
 };
 
 /**
@@ -915,7 +998,7 @@ export type getWorkshopDetailResponseError = (getWorkshopDetailResponse404 | get
 export type getWorkshopDetailResponse = getWorkshopDetailResponseSuccess | getWorkshopDetailResponseError;
 
 export const getGetWorkshopDetailUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/workshop/${id}`;
+    return `/api/v2/workshop/${id}`;
 };
 
 /**
@@ -956,7 +1039,7 @@ export type getWorkshopScenariosResponseError = (getWorkshopScenariosResponse404
 export type getWorkshopScenariosResponse = getWorkshopScenariosResponseSuccess | getWorkshopScenariosResponseError;
 
 export const getGetWorkshopScenariosUrl = (id: string) => {
-    return `http://localhost:3000/api/v2/workshop/${id}/scenarios`;
+    return `/api/v2/workshop/${id}/scenarios`;
 };
 
 /**

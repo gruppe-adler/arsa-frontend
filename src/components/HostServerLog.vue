@@ -44,24 +44,24 @@ function resolveServerName(uuid: string): string {
     return serversStore.servers.find(s => s.uuid === uuid)?.name ?? uuid.slice(0, 8);
 }
 
-function actionToLabel(action: LogAction): string {
-    switch (action) {
+function actionToLabel(log: GlobalLog): string {
+    switch (log.action) {
         case LogAction.ServerAdded:
-            return 'Server added by [todo] ';
+            return `Server added by ${log.actor} `;
         case LogAction.ServerDeleted:
-            return 'Server deleted by [todo] ';
+            return `Server deleted by ${log.actor} `;
         case LogAction.ServerStarted:
-            return 'Server started by [todo] ';
+            return `Server started by ${log.actor} `;
         case LogAction.ServerUpdated:
-            return 'Server updated by [todo] ';
+            return `Server updated by ${log.actor} `;
         case LogAction.ServerStopped:
-            return 'Server stopped by [todo] ';
+            return `Server stopped by  ${log.actor} `;
         case LogAction.ServerLogDeleted:
-            return 'Server log deleted by [todo] ';
+            return `Server log deleted by ${log.actor} `;
         case LogAction.ImagePullStarted:
-            return 'Image pull started by [todo] ';
+            return `Image pull started by ${log.actor} `;
         default:
-            return action;
+            return log.action;
     }
 }
 
@@ -70,7 +70,7 @@ function parseEntry(log: GlobalLog): ParsedEntry {
     const timestampLocal = timestamp.toLocaleString();
     const timestampRelative = getRelativeTime(timestamp);
 
-    const parts: Part[] = [{ kind: 'text', text: actionToLabel(log.action) }];
+    const parts: Part[] = [{ kind: 'text', text: actionToLabel(log) }];
 
     if (log.target) {
         parts.push({ kind: 'chip', uuid: log.target ?? '', serverName: resolveServerName(log.target) });

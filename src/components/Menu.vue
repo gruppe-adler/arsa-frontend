@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { useAuthStore } from '../stores/auth';
+
+const ADMIN_ROLE = import.meta.env.VITE_API_ADMIN_ROLE;
+
+const auth = useAuthStore();
 
 const navEl = ref<HTMLElement | null>(null);
 const showStartFade = ref(false);
@@ -29,8 +34,10 @@ onUnmounted(() => {
             <RouterLink class="nav-link" to="/servers-list">Servers</RouterLink>
             <RouterLink class="nav-link" to="/known-players">Known Players</RouterLink>
             <RouterLink class="nav-link" to="/workshop">Workshop</RouterLink>
-            <RouterLink class="nav-link" to="/ars-service">ARS Service</RouterLink>
             <RouterLink class="nav-link" to="/defaults">Defaults</RouterLink>
+            <RouterLink v-if="auth.isAuthenticated && auth.hasRole(ADMIN_ROLE)" class="nav-link" to="/ars-service">
+                ARS Service
+            </RouterLink>
         </nav>
         <div class="nav-fade nav-fade-start" :class="{ visible: showStartFade }" aria-hidden="true"></div>
         <div class="nav-fade nav-fade-end" :class="{ visible: showEndFade }" aria-hidden="true"></div>
