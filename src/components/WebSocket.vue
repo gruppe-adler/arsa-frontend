@@ -13,10 +13,12 @@ import {
     ServerStatusUpdate
 } from '../utils/interfaces';
 import { useAuthStore } from '../stores/auth';
+import { useToast } from '../composables/useToast';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const authStore = useAuthStore();
+const { toast } = useToast();
 
 async function updateArsStatus() {
     if (!authStore.isAuthenticated) {
@@ -89,6 +91,9 @@ async function connectWebSocket() {
             } else if (update.type === 'createImageProgress') {
                 const createImageProgress: CreateImageProgress = update as CreateImageProgress;
                 logsStore.updatePullLog(createImageProgress.info);
+                if (createImageProgress.info.errorDetailMessage) {
+                    toast.error(createImageProgress.info.errorDetailMessage);
+                }
             } else if (update.type === 'createImageFinished') {
                 const createImageFinished: CreateImageFinished = update as CreateImageFinished;
                 logsStore.clearPullLog(createImageFinished.pullId);
