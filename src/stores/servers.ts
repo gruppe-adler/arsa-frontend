@@ -13,14 +13,27 @@ import {
     deleteLog,
     getPublicIp,
     getArsStatus,
-    recreateArsDockerImage,
-    getPlayersFromLog,
     getKnownPlayers,
+    editProfileFile,
     getStats,
     getSize,
-    getCrashReportsLog
+    getCrashReportsLog,
+    getProfileFilesForServer,
+    getProfileFileForServer
 } from '../utils/api';
-import { PlayerIdentityId, Server, DockerStats, Result, LogFile, ArsStatus, ResultSize, ResultLogs } from '../utils/interfaces';
+import {
+    ArsStatus,
+    Branch,
+    DockerStats,
+    FileContentResponse,
+    ProfileFileListResponse,
+    LogType,
+    PlayerIdentityId,
+    ResultLogs,
+    ResultSize,
+    Server
+} from '../api/model';
+import { getImageVersion, getPullImage } from '../api/backend';
 
 interface State {
     servers: Server[];
@@ -33,7 +46,7 @@ export const useServersStore = defineStore('servers', {
         return {
             servers: [],
             publicIp: '',
-            arsStatus: ArsStatus.UNKNOWN
+            arsStatus: ArsStatus.Unknown
         };
     },
     actions: {
@@ -71,59 +84,36 @@ export const useServersStore = defineStore('servers', {
         async isRunning(uuid: string): Promise<boolean> {
             return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<ResultLogs | null> {
-            const result: ResultLogs = await getLogs(uuid);
-            if (!result.success) {
-                return null;
-            } else {
-                return result;
-            }
+        async getLogs(uuid: string): Promise<ResultLogs> {
+            return await getLogs(uuid);
         },
-        async getLog(uuid: string, log: string, file: string): Promise<string | null> {
-            const result: LogFile = await getLog(uuid, log, file);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result.logFile;
-            }
+        async getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
+            return await getLog(uuid, log, file);
         },
-        async getCrashReportsLog(uuid: string): Promise<string | null> {
-            const result: LogFile = await getCrashReportsLog(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result.logFile;
-            }
+        async getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
+            return await getCrashReportsLog(uuid);
         },
         async deleteLog(uuid: string, log: string): Promise<boolean> {
             return await deleteLog(uuid, log);
         },
-        async getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
-            return await getPlayersFromLog(uuid, log);
+        async getKnownPlayers(): Promise<PlayerIdentityId[] | null> {
+            return await getKnownPlayers();
         },
-        async getKnownPlayers(uuid: string): Promise<PlayerIdentityId[] | null> {
-            const result: PlayerIdentityId[] | Result = await getKnownPlayers(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+        async getProfileFiles(uuid: string): Promise<ProfileFileListResponse | null> {
+            return await getProfileFilesForServer(uuid);
+        },
+        async getProfileFile(uuid: string, path: string): Promise<FileContentResponse | null> {
+            return await getProfileFileForServer(uuid, path);
+        },
+        async editProfileFile(uuid: string, path: string, contents: string): Promise<boolean> {
+            return await editProfileFile(uuid, path, contents);
         },
         async getStats(uuid: string): Promise<DockerStats | null> {
-            const result: DockerStats | Result = await getStats(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+            return await getStats(uuid);
         },
         async getSize(uuid: string): Promise<ResultSize | null> {
-            const result: ResultSize | Result = await getSize(uuid);
-            if ((result as unknown as Result).value === false) {
-                return null;
-            } else {
-                return result;
-            }
+            const result: ResultSize = await getSize(uuid);
+            return result;
         },
         async getPublicIp(): Promise<string> {
             if (this.publicIp === '') {
@@ -132,18 +122,29 @@ export const useServersStore = defineStore('servers', {
             return this.publicIp;
         },
         async getArsStatus(): Promise<ArsStatus> {
-            if (this.arsStatus === ArsStatus.UNKNOWN) {
+            if (this.arsStatus === ArsStatus.Unknown) {
                 this.arsStatus = await getArsStatus();
             }
             return this.arsStatus;
         },
-        async recreateArsDockerImage(): Promise<boolean> {
-            const result = await recreateArsDockerImage();
-            return result;
+        async pullImage(branch: Branch): Promise<boolean> {
+            const result = await getPullImage(branch);
+            return result.status === 200;
         },
         async isRunningUpdate(uuid: string, isRunning: boolean): Promise<void> {
             const server = this.servers.find(i => i.uuid === uuid);
             if (server) server.isRunning = isRunning;
+        },
+        async playerCountUpdate(uuid: string, playerCount: number): Promise<void> {
+            const server = this.servers.find(i => i.uuid === uuid);
+            if (server) server.playerCount = playerCount;
+        },
+        async getImageVersion(branch: Branch): Promise<string | null> {
+            const result = await getImageVersion(branch);
+            if (result.status === 200) {
+                return result.data.version;
+            }
+            return null;
         }
     }
 });

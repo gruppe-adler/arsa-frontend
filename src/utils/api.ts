@@ -1,183 +1,221 @@
 import {
-    IpAddress,
-    Result,
-    Server,
-    ServerId,
-    PlayerIdentityId,
-    DockerStats,
-    LogFile,
-    ArsStatusResult,
+    getServers as apiGetServers,
+    getServer as apiGetServer,
+    startServer as apiStartServer,
+    stopServer as apiStopServer,
+    deleteServer as apiDeleteServer,
+    isServerRunning as apiIsServerRunning,
+    getLogs as apiGetLogs,
+    getLogFile as apiGetLogFile,
+    getCrashLog as apiGetCrashLog,
+    deleteLog as apiDeleteLog,
+    getPlayerLog as apiGetPlayerLog,
+    getStats as apiGetStats,
+    getSizeMethod as apiGetSize,
+    postServer as apiPostServer,
+    getPublicIp as apiGetPublicIp,
+    getStatus as apiGetStatus,
+    putServer,
+    getPullLogs,
+    getDefaults as apiGetDefaults,
+    putDefaults as apiPutDefaults,
+    userClaims,
+    getLoginUrl,
+    getLogoutUrl,
+    getProfileFiles,
+    getProfileFile,
+    putProfileFile
+} from '../api/backend';
+import {
+    type PostServerBody,
+    type ResultLogs,
+    type ResultSize,
+    type DockerStats,
+    type PlayerIdentityId,
+    type Server,
+    type LogType,
+    type FileContentResponse,
+    type ProfileFileListResponse,
+    type PutServerBody,
+    type ServerDefaults,
+    type PutDefaultsBody,
     ArsStatus,
-    ResultSize,
-    ResultLogs
-} from './interfaces';
-import { useLogsStore } from '../stores/logs';
+    PullLog,
+    UuidResponse,
+    EditProfileFileRequest,
+    Claims
+} from '../api/model';
+import { API_URL } from './fetcher';
 
-const api = import.meta.env.VITE_API_URL;
-const apiProtocol = import.meta.env.VITE_API_PROTOCOL;
+// TODO:
+// const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
+// const protocol = import.meta.env.VITE_API_PROTOCOL || 'http';
+
+// const apiBaseUrl = `${protocol}://${baseUrl}`;
 
 export async function getServers(): Promise<Server[]> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/get-servers`);
-    //const logsStore = useLogsStore();
-    //logsStore.add(`Server list retrieved: ${jsonResponse}`);
-    return (await jsonResponse.json()) as Server[];
+    const response = await apiGetServers();
+    return (response.data || []) as unknown as Server[];
 }
 
 export async function getServer(uuid: string): Promise<Server> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}`);
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} retrieved: ${jsonResponse}`);
-    return (await jsonResponse.json()) as Server;
+    const response = await apiGetServer(uuid);
+    return response.data as unknown as Server;
 }
 
 export async function startServer(uuid: string): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/start`);
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} started: ${result.value}`);
-    return result.value;
+    const response = await apiStartServer(uuid);
+    return response.status === 200;
 }
 
 export async function stopServer(uuid: string): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/stop`);
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} stopped: ${result.value}`);
-    return result.value;
+    const response = await apiStopServer(uuid);
+    return response.status === 200;
 }
 
 export async function deleteServer(uuid: string): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}`, {
-        method: 'DELETE',
-        mode: 'cors'
-    });
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${uuid} deleted: ${result.value}`);
-    return result.value;
+    const response = await apiDeleteServer(uuid);
+    return response.status === 200;
 }
 
 export async function isRunning(uuid: string): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/isRunning`);
-    const result = (await jsonResponse.json()) as Result;
-    //const logsStore = useLogsStore();
-    //logsStore.add(`Server with UUID ${id} is running: ${result.value}`);
-    return result.value;
+    const response = await apiIsServerRunning(uuid);
+    return response.status === 200;
 }
 
 export async function getLogs(uuid: string): Promise<ResultLogs> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/logs`);
-    const result = (await jsonResponse.json()) as ResultLogs;
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Logs for Server with UUID ${uuid}`);
-    return result;
+    const response = await apiGetLogs(uuid);
+    if (response.status === 200) {
+        return response.data as ResultLogs;
+    }
+    throw new Error('Failed to get logs');
 }
 
-export async function getLog(uuid: string, log: string, file: string): Promise<LogFile> {
-    const textResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/log/${log}/${file}`);
-    const result = (await textResponse.json()) as LogFile;
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Log ${log}/${file} for Server with UUID: ${uuid}`);
-    return result;
+export async function getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
+    const response = await apiGetLogFile(uuid, log, file);
+    if (response.status === 200) {
+        return response.data;
+    }
+    throw new Error(`Failed to get Log ${log}/${file} for Server with UUID: ${uuid}`);
 }
 
-export async function getCrashReportsLog(uuid: string): Promise<LogFile> {
-    const textResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/crash-reports-log`);
-    const result = (await textResponse.json()) as LogFile;
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting CrashReports.log for Server with UUID: ${uuid}`);
-    return result;
+export async function getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
+    const response = await apiGetCrashLog(uuid);
+    if (response.status === 200) {
+        return response.data;
+    }
+    throw new Error(`FailedCrashReports.log for Server with UUID: ${uuid}`);
 }
 
 export async function deleteLog(uuid: string, log: string): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/log/${log}`, {
-        method: 'DELETE',
-        mode: 'cors'
-    });
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`Deleting Log ${log} for Server with UUID: ${uuid}`);
-    return result.value;
+    const response = await apiDeleteLog(uuid, log);
+    return response.status === 200;
 }
 
-export async function getPlayersFromLog(uuid: string, log: string): Promise<PlayerIdentityId[]> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/log-players/${log}`);
-    const result = (await jsonResponse.json()) as PlayerIdentityId[];
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Players from Log ${log} for Server with UUID: ${uuid}`);
-    return result;
-}
-
-export async function getKnownPlayers(uuid: string): Promise<PlayerIdentityId[]> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/known-players`);
-    const result = (await jsonResponse.json()) as PlayerIdentityId[];
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting known Players for Server with UUID: ${uuid}`);
-    return result;
+export async function getKnownPlayers(): Promise<PlayerIdentityId[]> {
+    const response = await apiGetPlayerLog();
+    if (response.status === 200) {
+        return response.data as PlayerIdentityId[];
+    }
+    return [];
 }
 
 export async function getStats(uuid: string): Promise<DockerStats> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/stats`);
-    const result = (await jsonResponse.json()) as DockerStats;
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Stats for Server with UUID: ${uuid}`);
-    return result;
+    const response = await apiGetStats(uuid);
+    if (response.status === 200) {
+        return response.data as DockerStats;
+    }
+    throw new Error('Failed to get stats');
 }
 
 export async function getSize(uuid: string): Promise<ResultSize> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${uuid}/size`);
-    const result = (await jsonResponse.json()) as ResultSize;
-    const logsStore = useLogsStore();
-    logsStore.add(`Getting Size for Server with UUID: ${uuid}`);
-    return result;
+    const response = await apiGetSize(uuid);
+    if (response.status === 200) {
+        return response.data as ResultSize;
+    }
+    throw new Error('Failed to get size');
 }
 
 export async function addServer(server: Server): Promise<string> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/add-server`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(server),
-        mode: 'cors'
-    });
-    const serverId = (await jsonResponse.json()) as ServerId;
-    const logsStore = useLogsStore();
-    logsStore.add(`New Server added with UUID: ${serverId.uuid}`);
-    return serverId.uuid;
+    const response = await apiPostServer(server as PostServerBody);
+    if (response.status === 200) {
+        return (response.data as UuidResponse)?.uuid || '';
+    }
+    return '';
 }
 
 export async function updateServer(server: Server): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/server/${server.uuid}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(server),
-        mode: 'cors'
-    });
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`Server with UUID ${server.uuid} updated: ${result.value}`);
-    return result.value;
+    const response = await putServer(server as PutServerBody);
+    if (response.status === 200 && response.data.success) {
+        return response.data.success;
+    }
+    return false;
+}
+
+export async function getDefaults(): Promise<ServerDefaults> {
+    const response = await apiGetDefaults();
+    return response.data as unknown as ServerDefaults;
+}
+
+export async function updateDefaults(defaults: ServerDefaults): Promise<ServerDefaults> {
+    const response = await apiPutDefaults(defaults as PutDefaultsBody);
+    return response.data as unknown as ServerDefaults;
 }
 
 export async function getPublicIp(): Promise<string> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/get-public-ip`);
-    const ipAddress = (await jsonResponse.json()) as IpAddress;
-    const logsStore = useLogsStore();
-    logsStore.add(`Public IPv4 address retrieved: ${ipAddress.ipv4}`);
-    return ipAddress.ipv4;
+    const response = await apiGetPublicIp();
+    if (response.status === 200) {
+        return response.data.ipv4;
+    }
+    return '';
 }
 
 export async function getArsStatus(): Promise<ArsStatus> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/get-ars-status`);
-    const result = (await jsonResponse.json()) as ArsStatusResult;
-    const logsStore = useLogsStore();
-    logsStore.add(`ARS status fetched`);
-    return result.status;
+    const response = await apiGetStatus();
+    return response.data;
 }
 
-export async function recreateArsDockerImage(): Promise<boolean> {
-    const jsonResponse = await fetch(`${apiProtocol}://${api}/api/recreate-ars-docker-image`);
-    const result = (await jsonResponse.json()) as Result;
-    const logsStore = useLogsStore();
-    logsStore.add(`ARS docker image recreation started`);
-    return result.value;
+export async function getAllPullLogs(): Promise<PullLog[]> {
+    const response = await getPullLogs();
+    return (response.data || []) as unknown as PullLog[];
+}
+
+export async function getProfileFilesForServer(id: string): Promise<ProfileFileListResponse> {
+    const response = await getProfileFiles(id);
+    if (response.status === 200) {
+        return response.data as ProfileFileListResponse;
+    }
+    throw new Error(`Failed to get profile files for ${id}`);
+}
+
+export async function getProfileFileForServer(id: string, path: string): Promise<FileContentResponse> {
+    const response = await getProfileFile(id, path);
+    if (response.status === 200) {
+        return response.data as FileContentResponse;
+    }
+    throw new Error(`Failed to get profile file ${path} for ${id}`);
+}
+
+export async function editProfileFile(id: string, path: string, contents: string): Promise<boolean> {
+    const body = { fileContent: contents } as EditProfileFileRequest;
+    const response = await putProfileFile(id, path, body);
+    return response.status === 200;
+}
+
+export async function getUserClaims(): Promise<Claims | null> {
+    const response = await userClaims();
+    if (response.status === 200) {
+        return response.data;
+    }
+    return null;
+}
+
+export async function performLogin(): Promise<void> {
+    window.location.assign(API_URL + getLoginUrl());
+    return;
+}
+
+export async function performLogout(): Promise<void> {
+    window.location.assign(API_URL + getLogoutUrl());
+    return;
 }

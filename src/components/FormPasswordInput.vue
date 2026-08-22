@@ -1,17 +1,19 @@
 <script setup lang="ts">
 
 import { v4 as uuidv4 } from 'uuid';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
     policyWhitespace: Boolean,
-    policyMinimum: Number
+    policyMinimum: Number,
+    fieldId: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<string>({ required: true });
 
@@ -29,9 +31,9 @@ function togglePasswordVisibility(event: Event) {
     }
 }
 
-let violation = false;
+const violation = ref(false);
 
-let style = "";
+const style = ref("");
 
 watch(
     model,
@@ -40,16 +42,16 @@ watch(
         if (props.policyWhitespace && (value.split(' ').length > 1)) { policyViolation = true; }
         if (props.policyMinimum && (value.length < props.policyMinimum)) { policyViolation = true; }
         if (policyViolation) {
-            style = "background: rgba(255,0,0,0.5);";
-            if (!violation) {
-                violation = true;
-                emit('violIncr');
+            style.value = "background: rgba(255,0,0,0.5);";
+            if (!violation.value) {
+                violation.value = true;
+                emit('violation', true);
             }
         } else {
-            style = "";
-            if (violation) {
-                violation = false;
-                emit('violDecr');
+            style.value = "";
+            if (violation.value) {
+                violation.value = false;
+                emit('violation', false);
             }
         }
     },
@@ -59,10 +61,13 @@ watch(
 </script>
 
 <template>
-    <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
+    <div class="form-input-container" :data-field-id="fieldId">
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
         <div class="form-custom-input">
-            <input :title="tooltip" class="password-input" :id="inputId" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly" v-model="model">
+            <input :id="inputId" v-model="model" class="password-input" type="password" autocomplete="off" data-1p-ignore data-lpignore="true" :style="style" :disabled="props.readonly">
             <button class="form-input-button" type="button" @click="togglePasswordVisibility($event)">Show</button>
         </div>
     </div>

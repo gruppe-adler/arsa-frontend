@@ -1,4 +1,4 @@
-import { Server, ServerConfig, StartupParameter } from './interfaces';
+import { Branch, Server, ServerConfig, StartupParameter } from '../api/model';
 
 export const defaultConfig: ServerConfig = {
     bindAddress: '0.0.0.0',
@@ -164,8 +164,10 @@ export const StartupParameters: StartupParameter[] = [
 
 export const defaultServer: Server = {
     uuid: '',
+    branch: Branch.stable,
     name: "my server's name",
     isRunning: false,
     config: defaultConfig,
-    startupParameters: StartupParameters
+    startupParameters: StartupParameters,
+    playerCount: 0
 };

@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
-import { PlayerIdentityId } from '../utils/interfaces';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
-import EmptyState from '../components/EmptyState.vue';
+import { PlayerIdentityId } from '../api/model';
 
-const route = useRoute();
-
+const router = useRouter();
 const loading = ref(true);
 const found = ref(false);
-
 const serversStore = useServersStore();
 
 const knownPlayers = ref<PlayerIdentityId[]>([]);
-serversStore.getKnownPlayers(route.params.id as string).then(players => {
+serversStore.getKnownPlayers().then(players => {
     if (players) {
         knownPlayers.value = players;
         found.value = true;
@@ -24,30 +21,134 @@ serversStore.getKnownPlayers(route.params.id as string).then(players => {
 });
 
 const sortedKnownPlayers = computed((): PlayerIdentityId[] => {
-    const clonedKnownPlayers = Object.assign([], knownPlayers.value); // clone array
-    return clonedKnownPlayers.sort((a: PlayerIdentityId, b: PlayerIdentityId) => (a.name < b.name ? -1 : 1));
+    const cloned = Object.assign([], knownPlayers.value) as PlayerIdentityId[];
+    return cloned.sort((a, b) => (a.name < b.name ? -1 : 1));
 });
 </script>
 
 <template>
     <Loading v-if="loading" />
     <NotFound v-else-if="!found" />
-    <div v-else>
-        <h1>Known Players List</h1>
-        <ul id="logs" v-if="sortedKnownPlayers.length > 0">
-            <li v-for="knownPlayer in sortedKnownPlayers">{{ knownPlayer.name }} ({{ knownPlayer.identityId }})</li>
-        </ul>
-        <EmptyState v-else />
-    </div>
+    <main v-else class="page-main">
+        <div class="breadcrumb">
+            <a @click="router.back()">Server</a>
+            <span class="sep">/</span>
+            <span>Players</span>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <h1>Known Players</h1>
+                <p>All player identities seen on this server.</p>
+            </div>
+        </div>
+
+        <div v-if="sortedKnownPlayers.length > 0" class="data-table">
+            <div class="table-row table-head">
+                <span>Name</span>
+                <span>Identity ID</span>
+            </div>
+            <div v-for="player in sortedKnownPlayers" :key="player.identityId" class="table-row">
+                <span class="player-name">{{ player.name }}</span>
+                <span class="mono player-id">{{ player.identityId }}</span>
+            </div>
+        </div>
+        <div v-else class="empty-box">No players recorded yet.</div>
+    </main>
 </template>
 
 <style scoped>
-#logs {
-    list-style-type: none;
-    padding: 0px;
+.page-main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 48px var(--gutter) 96px;
+}
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+}
+.breadcrumb a {
+    color: var(--ink-3);
+    text-decoration: none;
+    cursor: pointer;
+}
+.breadcrumb a:hover {
+    color: var(--ink);
+}
+.breadcrumb .sep {
+    color: var(--ink-4);
+}
+.page-header {
+    margin-bottom: 32px;
+}
+.page-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+}
+.page-header p {
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 14px;
 }
 
-.links {
-    margin-left: 10px;
+.data-table {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg);
+}
+.table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+}
+.table-row:last-child {
+    border-bottom: none;
+}
+.table-row:not(.table-head):hover {
+    background: var(--bg-soft);
+}
+.table-head {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: var(--bg-soft);
+}
+.player-name {
+    font-weight: 500;
+    color: var(--ink);
+}
+.player-id {
+    color: var(--ink-2);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.empty-box {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 14px;
+    background: var(--bg);
+}
+
+@media (max-width: 480px) {
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
 }
 </style>

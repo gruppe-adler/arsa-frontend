@@ -1,15 +1,16 @@
 <script setup lang="ts">
-
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue';
+import InfoTooltip from './InfoTooltip.vue';
 
 const props = defineProps({
     readonly: Boolean,
     name: String,
     tooltip: String,
-    placeholder: String
+    placeholder: String,
+    fieldId: String
 });
 
-const emit = defineEmits(['violIncr', 'violDecr'])
+const emit = defineEmits<{ violation: [isViolating: boolean] }>();
 
 const model = defineModel<object>({ required: true });
 
@@ -23,32 +24,33 @@ const style = computed<string>(() => {
         model.value = JSON.parse(missionHeader.value);
         if (violation) {
             violation = false;
-            emit('violDecr');
+            emit('violation', false);
         }
-    }
-    catch (e) {
-        style = "background: rgba(255,0,0,0.5);";
+    } catch {
+        style = 'background: rgba(255,0,0,0.5);';
         if (!violation) {
             violation = true;
-            emit('violIncr');
+            emit('violation', true);
         }
     }
 
     return style;
 });
-
 </script>
 
 <template>
-    <div class="form-input-container">
-        <label class="form-input-label">{{ name }}</label>
-        <textarea :title="tooltip" class="json-input" rows="5" :style="style" :disabled="props.readonly" v-model="missionHeader" />
+    <div class="form-input-container" :data-field-id="fieldId">
+        <label class="form-input-label">
+            {{ name }}
+            <InfoTooltip v-if="tooltip" :content="tooltip" />
+        </label>
+        <textarea v-model="missionHeader" class="json-input" rows="5" :style="style" :disabled="props.readonly" />
     </div>
 </template>
 
 <style scoped>
-    .json-input {
-        resize: none;
-        overflow-y: scroll;
-    }
+.json-input {
+    resize: none;
+    overflow-y: scroll;
+}
 </style>
