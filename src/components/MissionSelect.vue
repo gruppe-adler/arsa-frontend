@@ -42,19 +42,18 @@ async function loadMissions() {
 
     const assetIds = Array.from(new Set(props.mods.map(mod => extractAssetId(mod.modId)).filter((id): id is string => Boolean(id))));
 
-    if (assetIds.length === 0) {
-        return;
-    }
-
     loading.value = true;
     try {
-        const allScenarios = (
-            await Promise.all(
-                assetIds.map(async assetId => {
-                    return await scenarioStore.getModScenarios(assetId);
-                })
-            )
-        ).flat();
+        const allScenarios =
+            assetIds.length === 0
+                ? []
+                : (
+                      await Promise.all(
+                          assetIds.map(async assetId => {
+                              return await scenarioStore.getModScenarios(assetId);
+                          })
+                      )
+                  ).flat();
 
         const missionsTemp = Array.from(allScenarios.values()).sort((a, b) => a.name.localeCompare(b.name));
 
