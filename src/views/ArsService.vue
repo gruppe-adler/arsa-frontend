@@ -8,13 +8,13 @@ import ImagePullLog from '../components/ImagePullLog.vue';
 import { useRoute } from 'vue-router';
 import Dialog from '../components/Dialog.vue';
 import { useScenarioStore } from '../stores/scenarios.ts';
-import { useToast } from '../composables/useToast.ts';
+// import { useToast } from '../composables/useToast.ts';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const scenarioStore = useScenarioStore();
 const route = useRoute();
-const { toast } = useToast();
+// const { toast } = useToast();
 
 function parsePositiveInteger(value: unknown): number | undefined {
     const parsed = Number(value);
@@ -29,10 +29,10 @@ async function updateArsStatus() {
     serversStore.arsStatus = result;
 }
 
-async function updateScenarios(branch: Branch) {
-    toast.info('Updating Scenarios...', 'Takes about 30s');
-    await scenarioStore.updateScenarios(branch);
-}
+// async function updateScenarios(branch: Branch) {
+//     toast.info('Updating Scenarios...', 'Takes about 30s');
+//     await scenarioStore.updateScenarios(branch);
+// }
 
 async function pullImage(branch: Branch) {
     await serversStore.pullImage(branch);
@@ -130,7 +130,17 @@ updateArsStatus();
                     minutes.
                 </p>
                 <div class="warning-banner">
-                    <svg width="24px" height="24px" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.5 10V14M12.5 17V15.5M14.2483 5.64697L20.8493 17.5287C21.5899 18.8618 20.6259 20.5 19.101 20.5H5.89903C4.37406 20.5 3.41013 18.8618 4.15072 17.5287L10.7517 5.64697C11.5137 4.27535 13.4863 4.27535 14.2483 5.64697Z" stroke="currentColor" stroke-width="1.5"></path> </g></svg>
+                    <svg width="24px" height="24px" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path
+                                d="M12.5 10V14M12.5 17V15.5M14.2483 5.64697L20.8493 17.5287C21.5899 18.8618 20.6259 20.5 19.101 20.5H5.89903C4.37406 20.5 3.41013 18.8618 4.15072 17.5287L10.7517 5.64697C11.5137 4.27535 13.4863 4.27535 14.2483 5.64697Z"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                            ></path>
+                        </g>
+                    </svg>
                     <span>Destructive — do not run unless you know what you're doing.</span>
                 </div>
                 <div v-for="[branch, version] in branchVersions" :key="branch" class="card-foot">
@@ -145,7 +155,8 @@ updateArsStatus();
                         :handleLabel="'Start pull'"
                         :handleFunction="() => pullImage(branch)"
                     ></Dialog>
-                    <button class="btn btn-danger" :disabled="recreateDisabled" @click="updateScenarios(branch)">
+                    <button class="btn btn-danger" :disabled="recreateDisabled || true">
+                        <!-- @click="updateScenarios(branch)"-->
                         Update vanilla scenarios (Current count: {{ scenarioCounts.get(branch) ?? 0 }})
                     </button>
                 </div>
