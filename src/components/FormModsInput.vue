@@ -458,6 +458,7 @@ onMounted(() => selectAll());
     font-size: 12.5px;
     font-family: 'Geist Mono', ui-monospace, monospace;
     padding: 4px;
+    resize: vertical;
 }
 
 /* Add-mod fields */
