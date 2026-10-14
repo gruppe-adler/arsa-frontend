@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui';
 import InfoTooltip from './InfoTooltip.vue';
 
@@ -33,13 +33,15 @@ const showWorkshopPanel = ref(false);
 const importText = ref('');
 const exportText = ref('');
 
-const selectId = uuidv4();
 const modIdInputId = uuidv4();
 const nameInputId = uuidv4();
 const versionInputId = uuidv4();
 const requiredInputId = uuidv4();
 
 const localMods = ref<Mod[]>(Array.from(model.value));
+const checkedIds = ref<Set<string>>(new Set());
+const selectedModId = ref<string | null>(null);
+const highlightedDepIds = ref<Set<string>>(new Set());
 
 watch(
     model,
@@ -48,6 +50,75 @@ watch(
     },
     { immediate: true }
 );
+
+function isLocked(mod: Mod): boolean {
+    return !!mod.version;
+}
+
+function isRequired(mod: Mod): boolean {
+    return mod.required !== false;
+}
+
+function toggleRequired(mod: Mod) {
+    if (props.readonly) return;
+    mod.required = !isRequired(mod);
+    model.value = localMods.value;
+}
+
+function isChecked(modId: string): boolean {
+    return checkedIds.value.has(modId);
+}
+
+function toggleChecked(modId: string) {
+    const next = new Set(checkedIds.value);
+    if (next.has(modId)) next.delete(modId);
+    else next.add(modId);
+    checkedIds.value = next;
+}
+
+async function toggleLock(mod: Mod) {
+    if (props.readonly) return;
+
+    if (mod.version) {
+        mod.version = undefined;
+        model.value = localMods.value;
+        return;
+    }
+
+    try {
+        const detail = await workshopStore.getDetail(mod.modId);
+        const version = detail?.asset.currentVersionNumber;
+        if (!version) {
+            toast.error('Cannot lock version', `No workshop version info found for ${mod.name}.`);
+            return;
+        }
+        mod.version = version;
+        model.value = localMods.value;
+    } catch {
+        toast.error('Cannot lock version', `Could not look up the current version for ${mod.name}.`);
+    }
+}
+
+// Dependency links aren't persisted on Mod, so this is resolved on demand from
+// the (cached) workshop detail and matched against mods already in the list.
+async function selectMod(mod: Mod) {
+    if (selectedModId.value === mod.modId) {
+        selectedModId.value = null;
+        highlightedDepIds.value = new Set();
+        return;
+    }
+
+    selectedModId.value = mod.modId;
+    highlightedDepIds.value = new Set();
+
+    try {
+        const detail = await workshopStore.getDetail(mod.modId);
+        const depIds = (detail?.version_detail.dependencies ?? []).map(d => d.asset?.id).filter((id): id is string => !!id);
+        highlightedDepIds.value = new Set(depIds.filter(id => localMods.value.some(m => m.modId === id)));
+    } catch {
+        // Not a resolvable workshop mod (manually added/local) — nothing to highlight.
+    }
+}
 
 function addMod() {
     const modIdInput = document.getElementById(modIdInputId) as HTMLInputElement;
@@ -79,22 +150,31 @@ function addMod() {
     versionInput.value = '';
     requiredInput.checked = true;
 
-    setTimeout(() => {
-        selectAll();
-        model.value = localMods.value;
-    }, 0);
+    model.value = localMods.value;
 }
 
-function removeMod() {
-    const select = document.getElementById(selectId) as HTMLSelectElement;
-    const indices = Array.from(select.selectedOptions)
-        .map(o => o.index)
-        .reverse();
-    indices.forEach(i => localMods.value.splice(i, 1));
-    setTimeout(() => {
-        selectAll();
-        model.value = localMods.value;
-    }, 0);
+function removeMod(modId: string) {
+    localMods.value = localMods.value.filter(m => m.modId !== modId);
+
+    if (checkedIds.value.has(modId)) {
+        const next = new Set(checkedIds.value);
+        next.delete(modId);
+        checkedIds.value = next;
+    }
+    if (selectedModId.value === modId) {
+        selectedModId.value = null;
+        highlightedDepIds.value = new Set();
+    }
+
+    model.value = localMods.value;
+}
+
+function removeChecked() {
+    localMods.value = localMods.value.filter(m => !checkedIds.value.has(m.modId));
+    checkedIds.value = new Set();
+    selectedModId.value = null;
+    highlightedDepIds.value = new Set();
+    model.value = localMods.value;
 }
 
 function importModset() {
@@ -122,10 +202,7 @@ function importModset() {
     });
     importText.value = '';
     showImportPanel.value = false;
-    setTimeout(() => {
-        selectAll();
-        model.value = localMods.value;
-    }, 0);
+    model.value = localMods.value;
 }
 
 function openExport() {
@@ -153,18 +230,16 @@ function ensureModPresent(asset: Asset): boolean {
         return false;
     }
 
+    // Mods added from the workshop track the latest version by default — the
+    // user opts in to locking via the per-row toggle.
     const mod: Mod = {
         modId: asset.id,
         name: asset.name,
-        version: asset.currentVersionNumber || undefined,
         required: true
     };
 
     localMods.value.push(mod);
-    setTimeout(() => {
-        selectAll();
-        model.value = localMods.value;
-    }, 0);
+    model.value = localMods.value;
     return true;
 }
 
@@ -173,7 +248,6 @@ function depToMod(dep: Dependency): Mod | undefined {
     return {
         modId: dep.asset.id,
         name: dep.asset.name,
-        version: dep.version || undefined,
         required: true
     };
 }
@@ -220,10 +294,7 @@ async function addDependenciesFor(asset: Asset): Promise<number> {
             }
         });
         if (addedCount > 0) {
-            setTimeout(() => {
-                selectAll();
-                model.value = localMods.value;
-            }, 0);
+            model.value = localMods.value;
         }
     } catch {
         toast.error('Dependency lookup failed', `Could not resolve dependencies for ${asset.name}. Add them manually if needed.`);
@@ -263,21 +334,6 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
         toast.info('Mission set', `${scenario.name} is now the mission scenario.`);
     }
 }
-
-function selectAll() {
-    const select = document.getElementById(selectId) as HTMLSelectElement;
-    Array.from(select.options).forEach(o => (o.selected = true));
-}
-
-function focusout() {
-    setTimeout(() => selectAll(), 1_000);
-}
-
-function mod2string(mod: Mod) {
-    return `${mod.name}${mod.version ? ' v' + mod.version : ''} (${mod.modId}) ${mod.required ? 'required' : 'optional'}`;
-}
-
-onMounted(() => selectAll());
 </script>
 
 <template>
@@ -288,9 +344,76 @@ onMounted(() => selectAll());
         </label>
         <div class="mods-wrap">
             <!-- Mod list -->
-            <select :id="selectId" class="mods-select" size="8" :disabled="props.readonly" multiple @focusout="focusout">
-                <option v-for="mod in localMods" :key="mod.modId" :value="mod">{{ mod2string(mod) }}</option>
-            </select>
+            <div class="mods-list">
+                <div class="mods-list-head">
+                    <span class="col-check"></span>
+                    <span class="col-name">Mod</span>
+                    <span class="col-required">Required</span>
+                    <span class="col-version">Version</span>
+                    <span class="col-actions"></span>
+                </div>
+                <div v-if="localMods.length === 0" class="mods-list-empty">No mods added yet.</div>
+                <div
+                    v-for="mod in localMods"
+                    :key="mod.modId"
+                    class="mods-list-row"
+                    :class="{ selected: selectedModId === mod.modId, 'is-dependency': highlightedDepIds.has(mod.modId) }"
+                    :title="mod.modId"
+                    @click="selectMod(mod)"
+                >
+                    <span v-if="!props.readonly" class="col-check">
+                        <input type="checkbox" class="checkbox" :checked="isChecked(mod.modId)" @click.stop @change="toggleChecked(mod.modId)" />
+                    </span>
+                    <span v-else class="col-check"></span>
+                    <span class="col-name">
+                        <span class="mod-name">{{ mod.name }}</span>
+                        <span class="id-chip">{{ mod.modId }}</span>
+                    </span>
+                    <span class="col-required">
+                        <input
+                            type="checkbox"
+                            class="checkbox"
+                            :checked="isRequired(mod)"
+                            :disabled="props.readonly"
+                            @click.stop
+                            @change="toggleRequired(mod)"
+                        />
+                    </span>
+                    <span class="col-version">
+                        <span class="badge" :class="isLocked(mod) ? 'locked' : 'latest'">{{ isLocked(mod) ? `v${mod.version}` : 'Latest' }}</span>
+                        <button
+                            v-if="!props.readonly"
+                            type="button"
+                            class="btn-icon"
+                            :class="{ active: isLocked(mod) }"
+                            :title="isLocked(mod) ? 'Unlock version (always use latest)' : 'Lock to current version'"
+                            @click.stop="toggleLock(mod)"
+                        >
+                            <svg v-if="isLocked(mod)" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="5" y="11" width="14" height="10" rx="2" />
+                                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                            </svg>
+                            <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="5" y="11" width="14" height="10" rx="2" />
+                                <path d="M8 11V7a4 4 0 0 1 7.5-2" />
+                            </svg>
+                        </button>
+                    </span>
+                    <span class="col-actions">
+                        <button
+                            v-if="!props.readonly"
+                            type="button"
+                            class="btn-icon btn-icon-danger"
+                            title="Remove mod"
+                            @click.stop="removeMod(mod.modId)"
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                            </svg>
+                        </button>
+                    </span>
+                </div>
+            </div>
 
             <!-- Add mod fields -->
             <div v-if="!props.readonly" class="add-mod-fields">
@@ -322,7 +445,7 @@ onMounted(() => selectAll());
                         </svg>
                         Add mod
                     </button>
-                    <button class="btn btn-danger" type="button" @click="removeMod">
+                    <button class="btn btn-danger" type="button" :disabled="checkedIds.size === 0" @click="removeChecked">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
                         </svg>
@@ -448,17 +571,123 @@ onMounted(() => selectAll());
     width: 100%;
 }
 
-.mods-select {
+/* Mod list */
+.mods-list {
     width: 100%;
+    height: 240px;
+    min-height: 120px;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
     background: var(--bg);
-    color: var(--ink);
-    font: inherit;
-    font-size: 12.5px;
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    padding: 4px;
+    overflow-y: auto;
     resize: vertical;
+}
+
+.mods-list-head,
+.mods-list-row {
+    display: grid;
+    grid-template-columns: 24px 1fr 70px 150px 28px;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+}
+
+.mods-list-head {
+    position: sticky;
+    top: 0;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-4);
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--line);
+}
+
+.mods-list-row {
+    font-size: 12.5px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+}
+.mods-list-row:last-child {
+    border-bottom: none;
+}
+.mods-list-row:hover {
+    background: var(--bg-soft);
+}
+.mods-list-row.selected {
+    background: color-mix(in oklab, var(--indigo), transparent 85%);
+}
+.mods-list-row.is-dependency {
+    background: color-mix(in oklab, var(--amber), transparent 88%);
+}
+
+.mods-list-empty {
+    padding: 20px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--ink-4);
+}
+
+.col-check,
+.col-actions {
+    display: flex;
+    justify-content: center;
+}
+.col-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.mod-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.col-required {
+    display: flex;
+    justify-content: center;
+}
+.col-version {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge.locked {
+    color: var(--amber);
+    background: color-mix(in oklab, var(--amber), transparent 85%);
+}
+.badge.latest {
+    color: var(--ink-3);
+    background: var(--bg-soft);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+}
+.btn-icon:hover {
+    background: var(--bg-soft);
+    color: var(--ink);
+}
+.btn-icon.active {
+    color: var(--amber);
+}
+.btn-icon-danger:hover {
+    color: var(--red);
+    background: color-mix(in oklab, var(--red), transparent 90%);
 }
 
 /* Add-mod fields */
@@ -603,6 +832,10 @@ onMounted(() => selectAll());
 }
 
 @media (max-width: 480px) {
+    .mods-list-head,
+    .mods-list-row {
+        grid-template-columns: 20px 1fr 56px 120px 24px;
+    }
     .add-mod-row {
         grid-template-columns: 1fr;
         gap: 4px;
