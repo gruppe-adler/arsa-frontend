@@ -42,6 +42,10 @@ const localMods = ref<Mod[]>(Array.from(model.value));
 const checkedIds = ref<Set<string>>(new Set());
 const selectedModId = ref<string | null>(null);
 const highlightedDepIds = ref<Set<string>>(new Set());
+// Full dependency count for the selected mod (not just the ones already in
+// the list, unlike highlightedDepIds). Null while nothing is selected or the
+// lookup hasn't resolved.
+const selectedModDepCount = ref<number | null>(null);
 
 watch(
     model,
@@ -76,6 +80,14 @@ function toggleChecked(modId: string) {
     checkedIds.value = next;
 }
 
+function selectAllMods() {
+    checkedIds.value = new Set(localMods.value.map(m => m.modId));
+}
+
+function clearSelection() {
+    checkedIds.value = new Set();
+}
+
 async function toggleLock(mod: Mod) {
     if (props.readonly) return;
 
@@ -105,18 +117,63 @@ async function selectMod(mod: Mod) {
     if (selectedModId.value === mod.modId) {
         selectedModId.value = null;
         highlightedDepIds.value = new Set();
+        selectedModDepCount.value = null;
         return;
     }
 
     selectedModId.value = mod.modId;
     highlightedDepIds.value = new Set();
+    selectedModDepCount.value = null;
 
     try {
         const detail = await workshopStore.getDetail(mod.modId);
         const depIds = (detail?.version_detail.dependencies ?? []).map(d => d.asset?.id).filter((id): id is string => !!id);
         highlightedDepIds.value = new Set(depIds.filter(id => localMods.value.some(m => m.modId === id)));
+        selectedModDepCount.value = depIds.length;
     } catch {
         // Not a resolvable workshop mod (manually added/local) — nothing to highlight.
+    }
+}
+
+// Finds mods in `candidates` whose own dependency list includes one of
+// `targetIds`, so a removal can warn before orphaning a dependant.
+// Candidates that fail to resolve (manually added/local mods) are skipped.
+async function findDependents(targetIds: Set<string>, candidates: Mod[]): Promise<Mod[]> {
+    const dependents: Mod[] = [];
+    await Promise.all(
+        candidates.map(async mod => {
+            try {
+                const detail = await workshopStore.getDetail(mod.modId);
+                const depIds = (detail?.version_detail.dependencies ?? []).map(d => d.asset?.id);
+                if (depIds.some(id => id && targetIds.has(id))) {
+                    dependents.push(mod);
+                }
+            } catch {
+                // Not a resolvable workshop mod — can't tell, skip.
+            }
+        })
+    );
+    return dependents;
+}
+
+// Resolving a pasted modId reads straight off the clipboard event rather than
+// the input's value: the 'paste' event fires before the browser applies the
+// paste to the field, so event.target.value would still be the old content.
+async function onModIdPaste(event: ClipboardEvent) {
+    const pasted = event.clipboardData?.getData('text')?.trim();
+    if (!pasted) return;
+
+    try {
+        const detail = await workshopStore.getDetail(pasted);
+        if (detail?.asset.name) {
+            const nameInput = document.getElementById(nameInputId) as HTMLInputElement;
+            if (nameInput) nameInput.value = detail.asset.name;
+        }
+    } catch {
+        // Could be a non-workshop id, or the lookup itself failed (network/CORS
+        // errors reject here without customFetch's own toast ever firing) —
+        // either way, let the user know rather than silently doing nothing.
+        toast.error('Could not resolve mod name', `Could not look up a name for ${pasted}. Enter it manually.`);
     }
 }
 
@@ -143,6 +200,11 @@ function addMod() {
         return;
     }
 
+    if (localMods.value.some(m => m.modId === mod.modId)) {
+        toast.error('Mod already added', `${mod.name || mod.modId} is already in the list.`);
+        return;
+    }
+
     if (mod.version === '') mod.version = undefined;
     localMods.value.push(mod);
     modIdInput.value = '';
@@ -153,8 +215,19 @@ function addMod() {
     model.value = localMods.value;
 }
 
-function removeMod(modId: string) {
-    localMods.value = localMods.value.filter(m => m.modId !== modId);
+async function removeMod(modId: string) {
+    const mod = localMods.value.find(m => m.modId === modId);
+    const remaining = localMods.value.filter(m => m.modId !== modId);
+
+    const dependents = await findDependents(new Set([modId]), remaining);
+    if (dependents.length > 0) {
+        const names = dependents.map(d => d.name).join(', ');
+        if (!confirm(`${mod?.name ?? modId} is a dependency of ${names}. Delete it anyway?`)) {
+            return;
+        }
+    }
+
+    localMods.value = remaining;
 
     if (checkedIds.value.has(modId)) {
         const next = new Set(checkedIds.value);
@@ -169,8 +242,19 @@ function removeMod(modId: string) {
     model.value = localMods.value;
 }
 
-function removeChecked() {
-    localMods.value = localMods.value.filter(m => !checkedIds.value.has(m.modId));
+async function removeChecked() {
+    const targetIds = new Set(checkedIds.value);
+    const remaining = localMods.value.filter(m => !targetIds.has(m.modId));
+
+    const dependents = await findDependents(targetIds, remaining);
+    if (dependents.length > 0) {
+        const names = dependents.map(d => d.name).join(', ');
+        if (!confirm(`One or more selected mods are a dependency of ${names}. Delete them anyway?`)) {
+            return;
+        }
+    }
+
+    localMods.value = remaining;
     checkedIds.value = new Set();
     selectedModId.value = null;
     highlightedDepIds.value = new Set();
@@ -196,12 +280,22 @@ function importModset() {
         return;
     }
 
+    const existingIds = new Set(localMods.value.map(m => m.modId));
+    let skippedCount = 0;
     modset.forEach(mod => {
+        if (existingIds.has(mod.modId)) {
+            skippedCount++;
+            return;
+        }
+        existingIds.add(mod.modId);
         if (!mod.required) mod.required = true;
         localMods.value.push(mod);
     });
     importText.value = '';
     showImportPanel.value = false;
+    if (skippedCount > 0) {
+        toast.info('Some mods skipped', `${skippedCount} mod${skippedCount === 1 ? '' : 's'} already in the list.`);
+    }
     model.value = localMods.value;
 }
 
@@ -344,6 +438,19 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
         </label>
         <div class="mods-wrap">
             <!-- Mod list -->
+            <div v-if="!props.readonly || (selectedModId && selectedModDepCount !== null)" class="mods-list-toolbar">
+                <div v-if="!props.readonly" class="toolbar-actions">
+                    <button type="button" class="btn btn-ghost" :disabled="localMods.length === 0" @click="selectAllMods">Select all</button>
+                    <button type="button" class="btn btn-ghost" :disabled="checkedIds.size === 0" @click="clearSelection">Clear selection</button>
+                </div>
+                <span v-if="selectedModId && selectedModDepCount !== null" class="dep-count">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
+                        <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5" />
+                    </svg>
+                    {{ selectedModDepCount }} dependenc{{ selectedModDepCount === 1 ? 'y' : 'ies' }}
+                </span>
+            </div>
             <div class="mods-list">
                 <div class="mods-list-head">
                     <span class="col-check"></span>
@@ -362,22 +469,41 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                     @click="selectMod(mod)"
                 >
                     <span v-if="!props.readonly" class="col-check">
-                        <input type="checkbox" class="checkbox" :checked="isChecked(mod.modId)" @click.stop @change="toggleChecked(mod.modId)" />
-                    </span>
-                    <span v-else class="col-check"></span>
-                    <span class="col-name">
-                        <span class="mod-name">{{ mod.name }}</span>
-                        <span class="id-chip">{{ mod.modId }}</span>
-                    </span>
-                    <span class="col-required">
                         <input
                             type="checkbox"
                             class="checkbox"
-                            :checked="isRequired(mod)"
-                            :disabled="props.readonly"
+                            title="Select mod"
+                            :checked="isChecked(mod.modId)"
                             @click.stop
-                            @change="toggleRequired(mod)"
+                            @change="toggleChecked(mod.modId)"
                         />
+                    </span>
+                    <span v-else class="col-check"></span>
+                    <span class="col-name">
+                        <span class="mod-name-line">
+                            <svg
+                                v-if="highlightedDepIds.has(mod.modId)"
+                                class="dep-icon"
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                title="This mod is a dependency of the selected mod"
+                            >
+                                <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
+                                <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5" />
+                            </svg>
+                            <span class="mod-name">{{ mod.name }}</span>
+                        </span>
+                        <span class="id-chip">{{ mod.modId }}</span>
+                    </span>
+                    <span class="col-required">
+                        <label class="switch" :title="isRequired(mod) ? 'Required (click to make optional)' : 'Optional (click to make required)'">
+                            <input type="checkbox" :checked="isRequired(mod)" :disabled="props.readonly" @click.stop @change="toggleRequired(mod)" />
+                            <span class="switch-track"><span class="switch-thumb"></span></span>
+                        </label>
                     </span>
                     <span class="col-version">
                         <span class="badge" :class="isLocked(mod) ? 'locked' : 'latest'">{{ isLocked(mod) ? `v${mod.version}` : 'Latest' }}</span>
@@ -419,7 +545,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
             <div v-if="!props.readonly" class="add-mod-fields">
                 <div class="add-mod-row">
                     <label class="add-mod-label">modId</label>
-                    <input :id="modIdInputId" class="input" type="text" />
+                    <input :id="modIdInputId" class="input" type="text" @paste="onModIdPaste" />
                 </div>
                 <div class="add-mod-row">
                     <label class="add-mod-label">name</label>
@@ -571,6 +697,30 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     width: 100%;
 }
 
+.mods-list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: -2px;
+}
+.toolbar-actions {
+    display: flex;
+    gap: 6px;
+}
+.mods-list-toolbar .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+.dep-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--amber);
+    margin-left: auto;
+}
+
 /* Mod list */
 .mods-list {
     width: 100%;
@@ -586,7 +736,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-head,
 .mods-list-row {
     display: grid;
-    grid-template-columns: 24px 1fr 70px 150px 28px;
+    grid-template-columns: 24px 1fr 70px 108px 28px;
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
@@ -595,6 +745,9 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-head {
     position: sticky;
     top: 0;
+    /* Explicit z-index: rows contain positioned (.switch) elements, which
+       would otherwise paint over the sticky header per DOM order. */
+    z-index: 2;
     font-family: 'Geist Mono', ui-monospace, monospace;
     font-size: 11px;
     text-transform: uppercase;
@@ -637,11 +790,40 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 }
 .col-name {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: center;
+    gap: 2px 8px;
+    min-width: 0;
+}
+/* Name and id always stack on their own line (not just on narrow screens) so
+   the id-chip never has to fight the name for horizontal space and overflow
+   into neighbouring columns. */
+.mod-name-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    flex: 1 1 100%;
     min-width: 0;
 }
 .mod-name {
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.dep-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--amber);
+}
+.col-name :deep(.id-chip) {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -654,6 +836,13 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+}
+.col-version .badge {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .badge.locked {
@@ -688,6 +877,57 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .btn-icon-danger:hover {
     color: var(--red);
     background: color-mix(in oklab, var(--red), transparent 90%);
+}
+
+/* Toggle switch (used for row select + required) */
+.switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 30px;
+    height: 17px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.switch input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: var(--line-strong);
+    transition: background 120ms ease;
+}
+.switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 120ms ease;
+}
+.switch:hover .switch-track {
+    background: var(--ink-3);
+}
+.switch input:checked + .switch-track {
+    background: var(--ink);
+}
+.switch input:checked + .switch-track .switch-thumb {
+    transform: translateX(13px);
+}
+.switch input:disabled {
+    cursor: not-allowed;
+}
+.switch input:disabled + .switch-track {
+    opacity: 0.45;
 }
 
 /* Add-mod fields */
@@ -834,7 +1074,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 @media (max-width: 480px) {
     .mods-list-head,
     .mods-list-row {
-        grid-template-columns: 20px 1fr 56px 120px 24px;
+        grid-template-columns: 20px 1fr 56px 92px 24px;
     }
     .add-mod-row {
         grid-template-columns: 1fr;
