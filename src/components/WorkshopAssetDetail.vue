@@ -8,6 +8,8 @@ const props = defineProps<{
     asset: Asset;
     selectable?: boolean;
     missionSelectable?: boolean;
+    /** modIds already configured on the server this detail view was opened from, used to mark dependencies as already installed. */
+    installedModIds?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -62,6 +64,16 @@ const images = computed(() => {
     // Prefer screenshots, fall back to previews.
     return d.screenshots.length > 0 ? d.screenshots : d.previews;
 });
+
+const installedSet = computed(() => new Set(props.installedModIds ?? []));
+
+function isDepInstalled(dep: { asset?: { id: string } }): boolean {
+    return !!dep.asset && installedSet.value.has(dep.asset.id);
+}
+
+// One bullet per dependency so the main thumbnail gives an at-a-glance
+// installed-vs-missing count without opening the dependency list.
+const dependencyBullets = computed(() => (detail.value?.version_detail.dependencies ?? []).map(dep => isDepInstalled(dep)));
 
 function formatBytes(bytes: number): string {
     if (!bytes) return '0 B';
@@ -174,14 +186,18 @@ function formatNumber(n: number): string {
         <template v-else>
             <!-- Image gallery -->
             <div v-if="images.length > 0" class="gallery">
-                <img
-                    v-for="(img, idx) in images"
-                    :key="idx"
-                    :src="img.url"
-                    :alt="`${asset.name} preview ${idx + 1}`"
-                    class="gallery-img"
-                    loading="lazy"
-                />
+                <div v-for="(img, idx) in images" :key="idx" class="gallery-item">
+                    <img :src="img.url" :alt="`${asset.name} preview ${idx + 1}`" class="gallery-img" loading="lazy" />
+                    <div v-if="idx === 0 && dependencyBullets.length > 0" class="dep-bullets">
+                        <span
+                            v-for="(installed, dIdx) in dependencyBullets"
+                            :key="dIdx"
+                            class="dep-bullet"
+                            :class="installed ? 'installed' : 'todo'"
+                            :title="installed ? 'Dependency already installed' : 'Dependency not yet installed'"
+                        ></span>
+                    </div>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -269,9 +285,14 @@ function formatNumber(n: number): string {
             <div v-if="detail && detail.version_detail.dependencies.length > 0" class="section">
                 <h3 class="section-title">Dependencies</h3>
                 <ul class="plain-list">
-                    <li v-for="(dep, idx) in detail.version_detail.dependencies" :key="idx">
+                    <li
+                        v-for="(dep, idx) in detail.version_detail.dependencies"
+                        :key="idx"
+                        :class="{ 'dep-installed': isDepInstalled(dep) }"
+                    >
                         {{ dep.asset?.name ?? dep.asset?.id ?? 'Unknown' }}
                         <span v-if="dep.version" class="muted">v{{ dep.version }}</span>
+                        <span v-if="isDepInstalled(dep)" class="dep-installed-label">— already installed</span>
                     </li>
                 </ul>
             </div>
@@ -354,12 +375,39 @@ function formatNumber(n: number): string {
     overflow-x: auto;
     padding-bottom: 6px;
 }
+.gallery-item {
+    position: relative;
+    flex-shrink: 0;
+}
 .gallery-img {
     height: 200px;
     border-radius: var(--radius);
     border: 1px solid var(--line);
     object-fit: cover;
     flex-shrink: 0;
+    display: block;
+}
+.dep-bullets {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 16px);
+}
+.dep-bullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1.5px color-mix(in oklab, black, transparent 40%);
+    flex-shrink: 0;
+}
+.dep-bullet.installed {
+    background: var(--green);
+}
+.dep-bullet.todo {
+    background: var(--amber);
 }
 
 .stats {
@@ -419,6 +467,13 @@ function formatNumber(n: number): string {
     color: var(--ink-2);
     font-size: 14px;
     line-height: 1.7;
+}
+.plain-list .dep-installed {
+    color: var(--green);
+}
+.dep-installed-label {
+    font-size: 12.5px;
+    color: var(--green);
 }
 
 .scenario-list {

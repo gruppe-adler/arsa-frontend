@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui';
 import InfoTooltip from './InfoTooltip.vue';
 
@@ -30,6 +30,7 @@ const emit = defineEmits<{ 'set-scenario': [path: string] }>();
 const showImportPanel = ref(false);
 const showExportPanel = ref(false);
 const showWorkshopPanel = ref(false);
+const expanded = ref(false);
 const importText = ref('');
 const exportText = ref('');
 
@@ -58,6 +59,9 @@ watch(
 function isLocked(mod: Mod): boolean {
     return !!mod.version;
 }
+
+const allLocked = computed(() => localMods.value.length > 0 && localMods.value.every(isLocked));
+const localModIds = computed(() => localMods.value.map(m => m.modId));
 
 function isRequired(mod: Mod): boolean {
     return mod.required !== false;
@@ -108,6 +112,40 @@ async function toggleLock(mod: Mod) {
         model.value = localMods.value;
     } catch {
         toast.error('Cannot lock version', `Could not look up the current version for ${mod.name}.`);
+    }
+}
+
+async function toggleLockAll() {
+    if (props.readonly || localMods.value.length === 0) return;
+
+    if (allLocked.value) {
+        localMods.value.forEach(mod => {
+            mod.version = undefined;
+        });
+        model.value = localMods.value;
+        return;
+    }
+
+    let failedCount = 0;
+    await Promise.all(
+        localMods.value.map(async mod => {
+            if (mod.version) return;
+            try {
+                const detail = await workshopStore.getDetail(mod.modId);
+                const version = detail?.asset.currentVersionNumber;
+                if (version) {
+                    mod.version = version;
+                } else {
+                    failedCount++;
+                }
+            } catch {
+                failedCount++;
+            }
+        })
+    );
+    model.value = localMods.value;
+    if (failedCount > 0) {
+        toast.error('Some mods could not be locked', `${failedCount} mod${failedCount === 1 ? '' : 's'} had no workshop version info.`);
     }
 }
 
@@ -436,20 +474,48 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
             {{ name }}
             <InfoTooltip v-if="tooltip" :content="tooltip" />
         </label>
-        <div class="mods-wrap">
+        <Teleport to="body" :disabled="!expanded">
+        <div v-if="expanded" class="mods-overlay-backdrop" @click="expanded = false"></div>
+        <div class="mods-wrap" :class="{ 'mods-wrap-expanded': expanded }">
             <!-- Mod list -->
-            <div v-if="!props.readonly || (selectedModId && selectedModDepCount !== null)" class="mods-list-toolbar">
+            <div class="mods-list-toolbar">
                 <div v-if="!props.readonly" class="toolbar-actions">
                     <button type="button" class="btn btn-ghost" :disabled="localMods.length === 0" @click="selectAllMods">Select all</button>
-                    <button type="button" class="btn btn-ghost" :disabled="checkedIds.size === 0" @click="clearSelection">Clear selection</button>
+                    <button type="button" class="btn btn-ghost" :disabled="checkedIds.size === 0" @click="clearSelection">Deselect all</button>
+                    <button
+                        type="button"
+                        class="btn btn-ghost"
+                        :disabled="localMods.length === 0"
+                        :title="allLocked ? 'Unlock all versions (always use latest)' : 'Lock all versions to their current release'"
+                        @click="toggleLockAll"
+                    >
+                        {{ allLocked ? 'Unlock all versions' : 'Lock all versions' }}
+                    </button>
                 </div>
-                <span v-if="selectedModId && selectedModDepCount !== null" class="dep-count">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
-                        <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5" />
-                    </svg>
-                    {{ selectedModDepCount }} dependenc{{ selectedModDepCount === 1 ? 'y' : 'ies' }}
-                </span>
+                <div class="toolbar-right">
+                    <span v-if="selectedModId && selectedModDepCount !== null" class="dep-count">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
+                            <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5" />
+                        </svg>
+                        {{ selectedModDepCount }} dependenc{{ selectedModDepCount === 1 ? 'y' : 'ies' }}
+                    </span>
+                    <button
+                        type="button"
+                        class="btn-icon expand-btn"
+                        :title="expanded ? 'Collapse' : 'Expand mods table'"
+                        @click="expanded = !expanded"
+                    >
+                        <svg v-if="!expanded" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"
+                            />
+                        </svg>
+                        <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="mods-list">
                 <div class="mods-list-head">
@@ -676,12 +742,19 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                             </DialogClose>
                         </div>
                         <div class="workshop-panel-body">
-                            <WorkshopBrowser selectable mission-selectable @select="addFromWorkshop" @set-mission="onSetMission" />
+                            <WorkshopBrowser
+                                selectable
+                                mission-selectable
+                                :installed-mod-ids="localModIds"
+                                @select="addFromWorkshop"
+                                @set-mission="onSetMission"
+                            />
                         </div>
                     </DialogContent>
                 </DialogPortal>
             </DialogRoot>
         </div>
+        </Teleport>
     </div>
 </template>
 
@@ -712,13 +785,53 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     padding: 4px 8px;
     font-size: 12px;
 }
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
 .dep-count {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-size: 12px;
     color: var(--amber);
-    margin-left: auto;
+}
+.expand-btn {
+    flex-shrink: 0;
+}
+
+/* Mods-table expand overlay */
+.mods-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: var(--bg-sunken);
+    animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mods-wrap-expanded {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    width: 96vw;
+    max-width: 1100px;
+    height: 92vh;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg);
+    box-shadow:
+        hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
+        hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+    overflow-y: auto;
+    animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mods-wrap-expanded .mods-list {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 320px;
 }
 
 /* Mod list */

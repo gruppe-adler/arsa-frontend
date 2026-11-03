@@ -16,6 +16,9 @@ interface State {
     /** Set when the last search failed (e.g. backend unreachable); cleared on a successful search. */
     error: boolean;
     detailCache: Map<string, AssetDetailResponse>;
+    /** Dev-only override (see DebugServer.vue / mockWorkshop.ts) that serves fixtures instead of hitting the real API. */
+    mockAssets: Asset[] | null;
+    mockDetails: Map<string, AssetDetailResponse> | null;
 }
 
 export const useWorkshopStore = defineStore('workshop', {
@@ -29,7 +32,9 @@ export const useWorkshopStore = defineStore('workshop', {
             loading: false,
             hasSearched: false,
             error: false,
-            detailCache: new Map<string, AssetDetailResponse>()
+            detailCache: new Map<string, AssetDetailResponse>(),
+            mockAssets: null,
+            mockDetails: null
         };
     },
 
@@ -41,7 +46,26 @@ export const useWorkshopStore = defineStore('workshop', {
     },
 
     actions: {
+        /** Dev-only: see mockWorkshop.ts. Makes runSearch/getDetail serve fixtures instead of calling the real API. */
+        useMockData(assets: Asset[], details: Map<string, AssetDetailResponse>) {
+            this.mockAssets = assets;
+            this.mockDetails = details;
+        },
+
         async runSearch(params: GetWorkshopParams): Promise<void> {
+            if (this.mockAssets) {
+                const term = (params.search ?? '').toLowerCase();
+                const filtered = term ? this.mockAssets.filter(a => a.name.toLowerCase().includes(term)) : this.mockAssets;
+                this.assets = filtered;
+                this.totalCount = filtered.length;
+                this.searchTerm = params.search ?? '';
+                this.sort = params.sort ?? 'newest';
+                this.page = params.page ?? 1;
+                this.hasSearched = true;
+                this.error = false;
+                return;
+            }
+
             this.loading = true;
             this.error = false;
             try {
@@ -66,6 +90,10 @@ export const useWorkshopStore = defineStore('workshop', {
         },
 
         async getDetail(id: string): Promise<AssetDetailResponse | undefined> {
+            if (this.mockDetails) {
+                return this.mockDetails.get(id);
+            }
+
             const cached = this.detailCache.get(id);
             if (cached) {
                 return cached;

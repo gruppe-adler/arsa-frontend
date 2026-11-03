@@ -3,6 +3,7 @@ import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 
 const ADMIN_ROLE = import.meta.env.VITE_API_ADMIN_ROLE;
+const isDev = import.meta.env.DEV;
 
 const auth = useAuthStore();
 
@@ -38,6 +39,7 @@ onUnmounted(() => {
             <RouterLink v-if="auth.isAuthenticated && auth.hasRole(ADMIN_ROLE)" class="nav-link" to="/ars-service">
                 ARS Service
             </RouterLink>
+            <RouterLink v-if="isDev" class="nav-link" to="/debug-server">Debug</RouterLink>
         </nav>
         <div class="nav-fade nav-fade-start" :class="{ visible: showStartFade }" aria-hidden="true"></div>
         <div class="nav-fade nav-fade-end" :class="{ visible: showEndFade }" aria-hidden="true"></div>

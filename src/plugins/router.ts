@@ -16,6 +16,7 @@ import KnownPlayers from '../views/KnownPlayers.vue';
 import WorkshopSearch from '../views/WorkshopSearch.vue';
 import ServerDefaults from '../views/ServerDefaults.vue';
 import ServerErrorView from '../views/ServerErrorView.vue';
+import DebugServer from '../views/DebugServer.vue';
 
 const routes = [
     { path: '/:pathMatch(.*)*', component: PageNotFound },
@@ -34,7 +35,8 @@ const routes = [
     { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
     { path: '/view-crash-reports-log/:id', component: ViewCrashReportsLog },
     { path: '/', redirect: '/servers-list' },
-    { path: '/error', name: 'Error', component: ServerErrorView, meta: { accessibleUnauthorized: true } }
+    { path: '/error', name: 'Error', component: ServerErrorView, meta: { accessibleUnauthorized: true } },
+    ...(import.meta.env.DEV ? [{ path: '/debug-server', component: DebugServer }] : [])
 ];
 
 const router = createRouter({
