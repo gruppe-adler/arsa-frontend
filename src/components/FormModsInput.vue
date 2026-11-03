@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui';
 import InfoTooltip from './InfoTooltip.vue';
 
@@ -31,8 +31,61 @@ const showImportPanel = ref(false);
 const showExportPanel = ref(false);
 const showWorkshopPanel = ref(false);
 const expanded = ref(false);
+const modsWrapEl = ref<HTMLElement | null>(null);
+const expandBtnEl = ref<HTMLButtonElement | null>(null);
 const importText = ref('');
 const exportText = ref('');
+
+function getFocusable(container: HTMLElement): HTMLElement[] {
+    return Array.from(
+        container.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+    ).filter(el => el.offsetParent !== null);
+}
+
+// Lightweight modal behavior for the expanded overlay (Escape + a Tab focus
+// trap), since it's a hand-built Teleport/backdrop rather than reka-ui's
+// Dialog — the same content needs to render inline when collapsed, which a
+// Dialog's open-gated portal can't do without duplicating the whole template.
+function onExpandedKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+        expanded.value = false;
+        return;
+    }
+    if (e.key === 'Tab' && modsWrapEl.value) {
+        const focusable = getFocusable(modsWrapEl.value);
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+}
+
+watch(expanded, async value => {
+    if (value) {
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', onExpandedKeydown);
+        await nextTick();
+        modsWrapEl.value?.focus();
+    } else {
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', onExpandedKeydown);
+        await nextTick();
+        expandBtnEl.value?.focus();
+    }
+});
+
+onUnmounted(() => {
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onExpandedKeydown);
+});
 
 const modIdInputId = uuidv4();
 const nameInputId = uuidv4();
@@ -40,6 +93,13 @@ const versionInputId = uuidv4();
 const requiredInputId = uuidv4();
 
 const localMods = ref<Mod[]>(Array.from(model.value));
+const modSearchQuery = ref('');
+const filteredMods = computed(() => {
+    const q = modSearchQuery.value.trim().toLowerCase();
+    if (!q) return localMods.value;
+    return localMods.value.filter(m => m.name.toLowerCase().includes(q) || m.modId.toLowerCase().includes(q));
+});
+const headListTop = computed(() => (localMods.value.length > 0 ? '48.5px' : '0'));
 const checkedIds = ref<Set<string>>(new Set());
 const selectedModId = ref<string | null>(null);
 const highlightedDepIds = ref<Set<string>>(new Set());
@@ -60,7 +120,11 @@ function isLocked(mod: Mod): boolean {
     return !!mod.version;
 }
 
-const allLocked = computed(() => localMods.value.length > 0 && localMods.value.every(isLocked));
+// "Any" rather than "every" — a mod that can't be resolved on the workshop
+// (added by hand, local, or removed upstream) would otherwise never let
+// allLocked become true, permanently stranding the toggle on "Lock all".
+const anyLocked = computed(() => localMods.value.some(isLocked));
+const lockingAll = ref(false);
 const localModIds = computed(() => localMods.value.map(m => m.modId));
 
 function isRequired(mod: Mod): boolean {
@@ -115,10 +179,12 @@ async function toggleLock(mod: Mod) {
     }
 }
 
-async function toggleLockAll() {
-    if (props.readonly || localMods.value.length === 0) return;
+const LOCK_ALL_BATCH_SIZE = 5;
 
-    if (allLocked.value) {
+async function toggleLockAll() {
+    if (props.readonly || localMods.value.length === 0 || lockingAll.value) return;
+
+    if (anyLocked.value) {
         localMods.value.forEach(mod => {
             mod.version = undefined;
         });
@@ -126,26 +192,39 @@ async function toggleLockAll() {
         return;
     }
 
-    let failedCount = 0;
-    await Promise.all(
-        localMods.value.map(async mod => {
-            if (mod.version) return;
-            try {
-                const detail = await workshopStore.getDetail(mod.modId);
-                const version = detail?.asset.currentVersionNumber;
-                if (version) {
-                    mod.version = version;
-                } else {
-                    failedCount++;
-                }
-            } catch {
-                failedCount++;
-            }
-        })
-    );
+    lockingAll.value = true;
+    let noVersionCount = 0;
+    let errorCount = 0;
+    try {
+        const pending = localMods.value.filter(mod => !mod.version);
+        for (let i = 0; i < pending.length; i += LOCK_ALL_BATCH_SIZE) {
+            const batch = pending.slice(i, i + LOCK_ALL_BATCH_SIZE);
+            await Promise.all(
+                batch.map(async mod => {
+                    try {
+                        const detail = await workshopStore.getDetail(mod.modId);
+                        const version = detail?.asset.currentVersionNumber;
+                        if (version) {
+                            mod.version = version;
+                        } else {
+                            noVersionCount++;
+                        }
+                    } catch {
+                        errorCount++;
+                    }
+                })
+            );
+        }
+    } finally {
+        lockingAll.value = false;
+    }
+
     model.value = localMods.value;
-    if (failedCount > 0) {
-        toast.error('Some mods could not be locked', `${failedCount} mod${failedCount === 1 ? '' : 's'} had no workshop version info.`);
+    const parts: string[] = [];
+    if (noVersionCount > 0) parts.push(`${noVersionCount} had no workshop version info`);
+    if (errorCount > 0) parts.push(`${errorCount} failed to look up`);
+    if (parts.length > 0) {
+        toast.error('Some mods could not be locked', `${parts.join(', ')}.`);
     }
 }
 
@@ -476,7 +555,14 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
         </label>
         <Teleport to="body" :disabled="!expanded">
         <div v-if="expanded" class="mods-overlay-backdrop" @click="expanded = false"></div>
-        <div class="mods-wrap" :class="{ 'mods-wrap-expanded': expanded }">
+        <div
+            ref="modsWrapEl"
+            class="mods-wrap"
+            :class="{ 'mods-wrap-expanded': expanded }"
+            :role="expanded ? 'dialog' : undefined"
+            :aria-modal="expanded ? 'true' : undefined"
+            :tabindex="expanded ? -1 : undefined"
+        >
             <!-- Mod list -->
             <div class="mods-list-toolbar">
                 <div v-if="!props.readonly" class="toolbar-actions">
@@ -485,11 +571,11 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                     <button
                         type="button"
                         class="btn btn-ghost"
-                        :disabled="localMods.length === 0"
-                        :title="allLocked ? 'Unlock all versions (always use latest)' : 'Lock all versions to their current release'"
+                        :disabled="localMods.length === 0 || lockingAll"
+                        :title="anyLocked ? 'Unlock all versions (always use latest)' : 'Lock all versions to their current release'"
                         @click="toggleLockAll"
                     >
-                        {{ allLocked ? 'Unlock all versions' : 'Lock all versions' }}
+                        {{ anyLocked ? 'Unlock all versions' : 'Lock all versions' }}
                     </button>
                 </div>
                 <div class="toolbar-right">
@@ -498,9 +584,10 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                             <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5" />
                             <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5" />
                         </svg>
-                        {{ selectedModDepCount }} dependenc{{ selectedModDepCount === 1 ? 'y' : 'ies' }}
+                        {{ selectedModDepCount }} deps.
                     </span>
                     <button
+                        ref="expandBtnEl"
                         type="button"
                         class="btn-icon expand-btn"
                         :title="expanded ? 'Collapse' : 'Expand mods table'"
@@ -518,16 +605,36 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                 </div>
             </div>
             <div class="mods-list">
+                <div v-if="localMods.length > 0" class="mods-search">
+                    <svg class="mods-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input v-model="modSearchQuery" type="text" class="mods-search-input" placeholder="Filter by name or modId…" />
+                    <button
+                        v-if="modSearchQuery"
+                        type="button"
+                        class="mods-search-clear"
+                        aria-label="Clear filter"
+                        @click="modSearchQuery = ''"
+                    >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <span v-if="modSearchQuery" class="mods-search-count">{{ filteredMods.length }} / {{ localMods.length }}</span>
+                </div>
                 <div class="mods-list-head">
                     <span class="col-check"></span>
                     <span class="col-name">Mod</span>
-                    <span class="col-required">Required</span>
+                    <span class="col-required" title="Required">Req.</span>
                     <span class="col-version">Version</span>
                     <span class="col-actions"></span>
                 </div>
                 <div v-if="localMods.length === 0" class="mods-list-empty">No mods added yet.</div>
+                <div v-else-if="filteredMods.length === 0" class="mods-list-empty">No mods match "{{ modSearchQuery }}".</div>
                 <div
-                    v-for="mod in localMods"
+                    v-for="mod in filteredMods"
                     :key="mod.modId"
                     class="mods-list-row"
                     :class="{ selected: selectedModId === mod.modId, 'is-dependency': highlightedDepIds.has(mod.modId) }"
@@ -539,7 +646,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                             type="checkbox"
                             class="checkbox"
                             title="Select mod"
-                            :checked="isChecked(mod.modId)"
+                            :checked="isChecked(mod.modId) || selectedModId === mod.modId"
                             @click.stop
                             @change="toggleChecked(mod.modId)"
                         />
@@ -576,7 +683,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                         <button
                             v-if="!props.readonly"
                             type="button"
-                            class="btn-icon"
+                            class="btn-icon btn-icon-lock"
                             :class="{ active: isLocked(mod) }"
                             :title="isLocked(mod) ? 'Unlock version (always use latest)' : 'Lock to current version'"
                             @click.stop="toggleLock(mod)"
@@ -773,27 +880,32 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-toolbar {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 6px;
     margin-bottom: -2px;
 }
 .toolbar-actions {
     display: flex;
+    flex-shrink: 0;
     gap: 6px;
 }
 .mods-list-toolbar .btn {
     padding: 4px 8px;
     font-size: 12px;
+    white-space: nowrap;
 }
 .toolbar-right {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     gap: 10px;
     margin-left: auto;
 }
 .dep-count {
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
     gap: 4px;
     font-size: 12px;
     color: var(--amber);
@@ -849,15 +961,67 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-head,
 .mods-list-row {
     display: grid;
-    grid-template-columns: 24px 1fr 70px 108px 28px;
+    grid-template-columns: 24px 1fr 38px 90px 28px;
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
 }
 
-.mods-list-head {
+.mods-search {
     position: sticky;
     top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+}
+.mods-search-icon {
+    flex-shrink: 0;
+    color: var(--ink-4);
+}
+.mods-search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12.5px;
+    outline: none;
+}
+.mods-search-input::placeholder {
+    color: var(--ink-4);
+}
+.mods-search-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink-4);
+    cursor: pointer;
+}
+.mods-search-clear:hover {
+    background: var(--bg-soft);
+    color: var(--ink);
+}
+.mods-search-count {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    color: var(--ink-4);
+}
+
+.mods-list-head {
+    position: sticky;
+    top: v-bind(headListTop);
     /* Explicit z-index: rows contain positioned (.switch) elements, which
        would otherwise paint over the sticky header per DOM order. */
     z-index: 2;
@@ -882,9 +1046,6 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-row:hover {
     background: var(--bg-soft);
 }
-.mods-list-row.selected {
-    background: color-mix(in oklab, var(--indigo), transparent 85%);
-}
 .mods-list-row.is-dependency {
     background: color-mix(in oklab, var(--amber), transparent 88%);
 }
@@ -900,6 +1061,9 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .col-actions {
     display: flex;
     justify-content: center;
+}
+.col-actions {
+    margin-left: -4px;
 }
 .col-name {
     display: flex;
@@ -990,6 +1154,10 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .btn-icon-danger:hover {
     color: var(--red);
     background: color-mix(in oklab, var(--red), transparent 90%);
+}
+.btn-icon-lock:hover {
+    color: var(--amber);
+    background: color-mix(in oklab, var(--amber), transparent 90%);
 }
 
 /* Toggle switch (used for row select + required) */
@@ -1187,7 +1355,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 @media (max-width: 480px) {
     .mods-list-head,
     .mods-list-row {
-        grid-template-columns: 20px 1fr 56px 92px 24px;
+        grid-template-columns: 20px 1fr 38px 92px 24px;
     }
     .add-mod-row {
         grid-template-columns: 1fr;

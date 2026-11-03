@@ -3,8 +3,9 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, GetWorkshopSort, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
-import { useScenarioStore } from '../stores/scenarios';
+import { depIdsOf } from '../utils/workshop';
 import WorkshopAssetDetail from './WorkshopAssetDetail.vue';
+import DependencyBullets from './DependencyBullets.vue';
 
 const props = defineProps<{
     selectable?: boolean;
@@ -19,7 +20,6 @@ const emit = defineEmits<{
 }>();
 
 const store = useWorkshopStore();
-const scenarioStore = useScenarioStore();
 
 const searchInput = ref('');
 const sort = ref<GetWorkshopSort>('newest');
@@ -66,81 +66,53 @@ function formatNumber(n: number): string {
     return n.toLocaleString();
 }
 
-// Which assets in the current grid bundle a scenario, keyed by asset id.
-// Populated progressively (in small concurrent batches) since each check is
-// a live upstream workshop-detail fetch, not a cheap local lookup.
+// Which assets in the current grid bundle a scenario and/or have dependency
+// data, keyed by asset id. Both checks are fetched from a single detail
+// request per asset (populated progressively in small concurrent batches,
+// since each is a live upstream workshop-detail fetch) so a grid that's both
+// mission-selectable and dependency-aware doesn't fetch each asset twice.
 const scenarioCheck = reactive(new Map<string, ScenarioEntry[]>());
-const SCENARIO_CHECK_BATCH_SIZE = 5;
+const depIdsCache = reactive(new Map<string, string[]>());
+const checkedAssetIds = new Set<string>();
+const CHECK_BATCH_SIZE = 5;
+const installedSet = computed(() => new Set(props.installedModIds ?? []));
 
-async function checkScenarios(assets: Asset[]) {
-    if (!props.missionSelectable) {
+async function checkAssets(assets: Asset[]) {
+    const needsScenarios = !!props.missionSelectable;
+    const needsDeps = props.installedModIds !== undefined;
+    if (!needsScenarios && !needsDeps) {
         return;
     }
 
-    const pending = assets.filter(asset => !scenarioCheck.has(asset.id));
-    for (let i = 0; i < pending.length; i += SCENARIO_CHECK_BATCH_SIZE) {
-        const batch = pending.slice(i, i + SCENARIO_CHECK_BATCH_SIZE);
+    const pending = assets.filter(asset => !checkedAssetIds.has(asset.id));
+    for (let i = 0; i < pending.length; i += CHECK_BATCH_SIZE) {
+        const batch = pending.slice(i, i + CHECK_BATCH_SIZE);
         await Promise.all(
             batch.map(async asset => {
+                checkedAssetIds.add(asset.id);
                 try {
-                    const scenarios = await scenarioStore.getModScenarios(asset.id);
-                    scenarioCheck.set(asset.id, scenarios);
+                    const detail = await store.getDetail(asset.id);
+                    if (needsScenarios) {
+                        scenarioCheck.set(asset.id, (detail?.version_detail.scenarios ?? []).map(s => ({ name: s.name, path: s.gameId })));
+                    }
+                    if (needsDeps) {
+                        depIdsCache.set(asset.id, depIdsOf(detail));
+                    }
                 } catch {
                     // One asset's upstream data being broken/unreachable shouldn't
-                    // block the "set as mission" check for the rest of the batch.
-                    scenarioCheck.set(asset.id, []);
+                    // block the checks for the rest of the batch.
+                    if (needsScenarios) scenarioCheck.set(asset.id, []);
+                    if (needsDeps) depIdsCache.set(asset.id, []);
                 }
             })
         );
     }
 }
 
-watch(() => store.assets, checkScenarios, { immediate: true });
+watch(() => store.assets, checkAssets, { immediate: true });
 
 function scenariosFor(asset: Asset): ScenarioEntry[] {
     return scenarioCheck.get(asset.id) ?? [];
-}
-
-// Which dependency ids each asset has, keyed by asset id. Only fetched when
-// there's an `installedModIds` context to compare against — plain browsing
-// (no server attached) has nothing meaningful to flag.
-const depIdsCache = reactive(new Map<string, string[]>());
-const DEP_CHECK_BATCH_SIZE = 5;
-const installedSet = computed(() => new Set(props.installedModIds ?? []));
-
-async function checkDependencies(assets: Asset[]) {
-    if (props.installedModIds === undefined) {
-        return;
-    }
-
-    const pending = assets.filter(asset => !depIdsCache.has(asset.id));
-    for (let i = 0; i < pending.length; i += DEP_CHECK_BATCH_SIZE) {
-        const batch = pending.slice(i, i + DEP_CHECK_BATCH_SIZE);
-        await Promise.all(
-            batch.map(async asset => {
-                try {
-                    const detail = await store.getDetail(asset.id);
-                    const depIds = (detail?.version_detail.dependencies ?? [])
-                        .map(d => d.asset?.id)
-                        .filter((id): id is string => !!id);
-                    depIdsCache.set(asset.id, depIds);
-                } catch {
-                    // One asset's upstream data being broken/unreachable shouldn't
-                    // block the dependency check for the rest of the batch.
-                    depIdsCache.set(asset.id, []);
-                }
-            })
-        );
-    }
-}
-
-watch(() => store.assets, checkDependencies, { immediate: true });
-
-// One bullet per dependency, green if it's already in the installed set.
-function dependencyBullets(asset: Asset): boolean[] {
-    const depIds = depIdsCache.get(asset.id);
-    if (!depIds) return [];
-    return depIds.map(id => installedSet.value.has(id));
 }
 
 onMounted(() => {
@@ -234,15 +206,7 @@ onMounted(() => {
                         <div class="card-thumb">
                             <img v-if="thumbnail(asset)" :src="thumbnail(asset)" :alt="asset.name" loading="lazy" />
                             <div v-else class="card-thumb-empty"></div>
-                            <div v-if="dependencyBullets(asset).length > 0" class="dep-bullets">
-                                <span
-                                    v-for="(installed, idx) in dependencyBullets(asset)"
-                                    :key="idx"
-                                    class="dep-bullet"
-                                    :class="installed ? 'installed' : 'todo'"
-                                    :title="installed ? 'Dependency already installed' : 'Dependency not yet installed'"
-                                ></span>
-                            </div>
+                            <DependencyBullets :dep-ids="depIdsCache.get(asset.id) ?? []" :installed-ids="installedSet" />
                         </div>
                         <div class="card-body">
                             <h3 class="card-name">{{ asset.name }}</h3>
@@ -487,29 +451,6 @@ onMounted(() => {
     width: 100%;
     height: 100%;
 }
-.dep-bullets {
-    position: absolute;
-    bottom: 6px;
-    left: 6px;
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    max-width: calc(100% - 12px);
-}
-.dep-bullet {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    box-shadow: 0 0 0 1.5px color-mix(in oklab, black, transparent 40%);
-    flex-shrink: 0;
-}
-.dep-bullet.installed {
-    background: var(--green);
-}
-.dep-bullet.todo {
-    background: var(--amber);
-}
-
 .card-body {
     display: flex;
     flex-direction: column;

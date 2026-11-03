@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
-import { AssetDetailResponse, Branch, ScenarioEntry } from '../api/model';
-import { getScenariosFromBranch, getWorkshopDetail, updateScenariosFromBranch } from '../api/backend';
+import { Branch, ScenarioEntry } from '../api/model';
+import { getScenariosFromBranch, updateScenariosFromBranch } from '../api/backend';
+import { useWorkshopStore } from './workshop';
 
 interface State {
     scenarios: Map<Branch, ScenarioEntry[]>;
@@ -38,11 +39,10 @@ export const useScenarioStore = defineStore('scenarios', {
                 return scenarioEntries;
             }
 
-            const assetDetail = (await getWorkshopDetail(assetID)).data as AssetDetailResponse;
-
-            const scenarios = assetDetail.version_detail.scenarios.map(x => {
-                return { name: x.name, path: x.gameId } as ScenarioEntry;
-            });
+            // Routed through workshopStore so this shares its detail cache
+            // instead of re-fetching the same asset a second time.
+            const detail = await useWorkshopStore().getDetail(assetID);
+            const scenarios = (detail?.version_detail.scenarios ?? []).map(x => ({ name: x.name, path: x.gameId }) as ScenarioEntry);
 
             this.customScenarios.set(assetID, scenarios);
             return scenarios;

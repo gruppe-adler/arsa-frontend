@@ -528,10 +528,8 @@ ul { padding-inline-start: 0; }
 .row { display: flex; gap: 8px; align-items: center; }
 .stretch { flex: 1; }
 
-/* ---------- mobile ---------- */
-@media (max-width: 480px) {
-  :root { --gutter: 16px; }
-
+/* ---------- narrow: stack label columns before content overflows ---------- */
+@media (max-width: 880px) {
   .form-section {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -549,4 +547,9 @@ ul { padding-inline-start: 0; }
     grid-template-columns: 1fr;
     gap: 8px;
   }
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 480px) {
+  :root { --gutter: 16px; }
 }

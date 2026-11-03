@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "files": [
+          "src/components/FormModsInput.vue"
+        ],
+        "createdAt": "2026-11-03T18:47:48.325Z",
+        "reason": "pre-existing project-wide font choice, confirmed untouched by git diff across 4 consecutive edit rounds in this session; out of scope for the mods-table polish work"
+      }
+    ]
+  }
+}

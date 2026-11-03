@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ConfigForm from '../components/ConfigForm.vue';
 import { defaultConfig, StartupParameters } from '../utils/defaults';
@@ -7,7 +7,9 @@ import { Branch, Server } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
 import { mockWorkshopAssets, mockWorkshopDetails } from '../utils/mockWorkshop';
 
-useWorkshopStore().useMockData(mockWorkshopAssets, mockWorkshopDetails);
+const workshopStore = useWorkshopStore();
+onMounted(() => workshopStore.useMockData(mockWorkshopAssets, mockWorkshopDetails));
+onUnmounted(() => workshopStore.clearMockData());
 
 // Dev-only sandbox for the server-config/mods UI: builds a fully populated
 // `Server` in-memory instead of fetching one, so this view works with the

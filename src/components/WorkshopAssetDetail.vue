@@ -3,6 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, AssetDetailResponse, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
+import { depIdsOf } from '../utils/workshop';
+import DependencyBullets from './DependencyBullets.vue';
 
 const props = defineProps<{
     asset: Asset;
@@ -71,9 +73,9 @@ function isDepInstalled(dep: { asset?: { id: string } }): boolean {
     return !!dep.asset && installedSet.value.has(dep.asset.id);
 }
 
-// One bullet per dependency so the main thumbnail gives an at-a-glance
-// installed-vs-missing count without opening the dependency list.
-const dependencyBullets = computed(() => (detail.value?.version_detail.dependencies ?? []).map(dep => isDepInstalled(dep)));
+// No server context (e.g. the standalone /workshop page) means there's
+// nothing to compare against — don't claim every dependency is "missing".
+const dependencyIds = computed(() => (props.installedModIds === undefined ? [] : depIdsOf(detail.value)));
 
 function formatBytes(bytes: number): string {
     if (!bytes) return '0 B';
@@ -188,15 +190,7 @@ function formatNumber(n: number): string {
             <div v-if="images.length > 0" class="gallery">
                 <div v-for="(img, idx) in images" :key="idx" class="gallery-item">
                     <img :src="img.url" :alt="`${asset.name} preview ${idx + 1}`" class="gallery-img" loading="lazy" />
-                    <div v-if="idx === 0 && dependencyBullets.length > 0" class="dep-bullets">
-                        <span
-                            v-for="(installed, dIdx) in dependencyBullets"
-                            :key="dIdx"
-                            class="dep-bullet"
-                            :class="installed ? 'installed' : 'todo'"
-                            :title="installed ? 'Dependency already installed' : 'Dependency not yet installed'"
-                        ></span>
-                    </div>
+                    <DependencyBullets v-if="idx === 0" :dep-ids="dependencyIds" :installed-ids="installedSet" />
                 </div>
             </div>
 
@@ -387,29 +381,6 @@ function formatNumber(n: number): string {
     flex-shrink: 0;
     display: block;
 }
-.dep-bullets {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    max-width: calc(100% - 16px);
-}
-.dep-bullet {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    box-shadow: 0 0 0 1.5px color-mix(in oklab, black, transparent 40%);
-    flex-shrink: 0;
-}
-.dep-bullet.installed {
-    background: var(--green);
-}
-.dep-bullet.todo {
-    background: var(--amber);
-}
-
 .stats {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

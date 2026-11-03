@@ -50,6 +50,18 @@ export const useWorkshopStore = defineStore('workshop', {
         useMockData(assets: Asset[], details: Map<string, AssetDetailResponse>) {
             this.mockAssets = assets;
             this.mockDetails = details;
+            this.assets = [];
+            this.totalCount = 0;
+            this.hasSearched = false;
+        },
+
+        /** Dev-only: reverts useMockData so other pages go back to hitting the real API. Call on unmount of the dev-only view that enabled it. */
+        clearMockData() {
+            this.mockAssets = null;
+            this.mockDetails = null;
+            this.assets = [];
+            this.totalCount = 0;
+            this.hasSearched = false;
         },
 
         async runSearch(params: GetWorkshopParams): Promise<void> {
