@@ -11,6 +11,7 @@ import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
 import { Asset, Dependency, Mod, ScenarioEntry } from '../api/model';
 import { useToast } from '../composables/useToast.ts';
 import { useWorkshopStore } from '../stores/workshop';
+import { depIdsOf } from '../utils/workshop';
 import WorkshopBrowser from './WorkshopBrowser.vue';
 
 const { toast } = useToast();
@@ -50,6 +51,10 @@ function getFocusable(container: HTMLElement): HTMLElement[] {
 // Dialog's open-gated portal can't do without duplicating the whole template.
 function onExpandedKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
+        // reka-ui's own DismissableLayer handles Escape for the nested
+        // "Search workshop" dialog but doesn't stop propagation, so without
+        // this guard both it and the outer overlay would close on one press.
+        if (showWorkshopPanel.value) return;
         expanded.value = false;
         return;
     }
@@ -123,7 +128,9 @@ function isLocked(mod: Mod): boolean {
 // "Any" rather than "every" — a mod that can't be resolved on the workshop
 // (added by hand, local, or removed upstream) would otherwise never let
 // allLocked become true, permanently stranding the toggle on "Lock all".
-const anyLocked = computed(() => localMods.value.some(isLocked));
+// Scoped to filteredMods so the label/action stay in sync with what a search
+// filter is currently showing.
+const anyLocked = computed(() => filteredMods.value.some(isLocked));
 const lockingAll = ref(false);
 const localModIds = computed(() => localMods.value.map(m => m.modId));
 
@@ -148,8 +155,10 @@ function toggleChecked(modId: string) {
     checkedIds.value = next;
 }
 
+// Scoped to filteredMods rather than localMods: with a search filter active,
+// "select all" should only select what's visible, not hidden rows too.
 function selectAllMods() {
-    checkedIds.value = new Set(localMods.value.map(m => m.modId));
+    checkedIds.value = new Set(filteredMods.value.map(m => m.modId));
 }
 
 function clearSelection() {
@@ -182,10 +191,10 @@ async function toggleLock(mod: Mod) {
 const LOCK_ALL_BATCH_SIZE = 5;
 
 async function toggleLockAll() {
-    if (props.readonly || localMods.value.length === 0 || lockingAll.value) return;
+    if (props.readonly || filteredMods.value.length === 0 || lockingAll.value) return;
 
     if (anyLocked.value) {
-        localMods.value.forEach(mod => {
+        filteredMods.value.forEach(mod => {
             mod.version = undefined;
         });
         model.value = localMods.value;
@@ -196,7 +205,7 @@ async function toggleLockAll() {
     let noVersionCount = 0;
     let errorCount = 0;
     try {
-        const pending = localMods.value.filter(mod => !mod.version);
+        const pending = filteredMods.value.filter(mod => !mod.version);
         for (let i = 0; i < pending.length; i += LOCK_ALL_BATCH_SIZE) {
             const batch = pending.slice(i, i + LOCK_ALL_BATCH_SIZE);
             await Promise.all(
@@ -241,10 +250,16 @@ async function selectMod(mod: Mod) {
     selectedModId.value = mod.modId;
     highlightedDepIds.value = new Set();
     selectedModDepCount.value = null;
+    // Give the row's own checkbox a real, independently-toggleable checked
+    // state as a side effect of selecting it, rather than faking "checked"
+    // purely off selectedModId (which couldn't then be unchecked by the user).
+    if (!props.readonly && !checkedIds.value.has(mod.modId)) {
+        toggleChecked(mod.modId);
+    }
 
     try {
         const detail = await workshopStore.getDetail(mod.modId);
-        const depIds = (detail?.version_detail.dependencies ?? []).map(d => d.asset?.id).filter((id): id is string => !!id);
+        const depIds = depIdsOf(detail);
         highlightedDepIds.value = new Set(depIds.filter(id => localMods.value.some(m => m.modId === id)));
         selectedModDepCount.value = depIds.length;
     } catch {
@@ -566,12 +581,12 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
             <!-- Mod list -->
             <div class="mods-list-toolbar">
                 <div v-if="!props.readonly" class="toolbar-actions">
-                    <button type="button" class="btn btn-ghost" :disabled="localMods.length === 0" @click="selectAllMods">Select all</button>
+                    <button type="button" class="btn btn-ghost" :disabled="filteredMods.length === 0" @click="selectAllMods">Select all</button>
                     <button type="button" class="btn btn-ghost" :disabled="checkedIds.size === 0" @click="clearSelection">Deselect all</button>
                     <button
                         type="button"
                         class="btn btn-ghost"
-                        :disabled="localMods.length === 0 || lockingAll"
+                        :disabled="filteredMods.length === 0 || lockingAll"
                         :title="anyLocked ? 'Unlock all versions (always use latest)' : 'Lock all versions to their current release'"
                         @click="toggleLockAll"
                     >
@@ -646,7 +661,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                             type="checkbox"
                             class="checkbox"
                             title="Select mod"
-                            :checked="isChecked(mod.modId) || selectedModId === mod.modId"
+                            :checked="isChecked(mod.modId)"
                             @click.stop
                             @change="toggleChecked(mod.modId)"
                         />
