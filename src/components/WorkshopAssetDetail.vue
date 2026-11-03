@@ -3,11 +3,15 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, AssetDetailResponse, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
+import { depIdsOf } from '../utils/workshop';
+import DependencyBullets from './DependencyBullets.vue';
 
 const props = defineProps<{
     asset: Asset;
     selectable?: boolean;
     missionSelectable?: boolean;
+    /** modIds already configured on the server this detail view was opened from, used to mark dependencies as already installed. */
+    installedModIds?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -62,6 +66,16 @@ const images = computed(() => {
     // Prefer screenshots, fall back to previews.
     return d.screenshots.length > 0 ? d.screenshots : d.previews;
 });
+
+const installedSet = computed(() => new Set(props.installedModIds ?? []));
+
+function isDepInstalled(dep: { asset?: { id: string } }): boolean {
+    return !!dep.asset && installedSet.value.has(dep.asset.id);
+}
+
+// No server context (e.g. the standalone /workshop page) means there's
+// nothing to compare against — don't claim every dependency is "missing".
+const dependencyIds = computed(() => (props.installedModIds === undefined ? [] : depIdsOf(detail.value)));
 
 function formatBytes(bytes: number): string {
     if (!bytes) return '0 B';
@@ -174,14 +188,10 @@ function formatNumber(n: number): string {
         <template v-else>
             <!-- Image gallery -->
             <div v-if="images.length > 0" class="gallery">
-                <img
-                    v-for="(img, idx) in images"
-                    :key="idx"
-                    :src="img.url"
-                    :alt="`${asset.name} preview ${idx + 1}`"
-                    class="gallery-img"
-                    loading="lazy"
-                />
+                <div v-for="(img, idx) in images" :key="idx" class="gallery-item">
+                    <img :src="img.url" :alt="`${asset.name} preview ${idx + 1}`" class="gallery-img" loading="lazy" />
+                    <DependencyBullets v-if="idx === 0" :dep-ids="dependencyIds" :installed-ids="installedSet" />
+                </div>
             </div>
 
             <!-- Stats -->
@@ -269,9 +279,14 @@ function formatNumber(n: number): string {
             <div v-if="detail && detail.version_detail.dependencies.length > 0" class="section">
                 <h3 class="section-title">Dependencies</h3>
                 <ul class="plain-list">
-                    <li v-for="(dep, idx) in detail.version_detail.dependencies" :key="idx">
+                    <li
+                        v-for="(dep, idx) in detail.version_detail.dependencies"
+                        :key="idx"
+                        :class="{ 'dep-installed': isDepInstalled(dep) }"
+                    >
                         {{ dep.asset?.name ?? dep.asset?.id ?? 'Unknown' }}
                         <span v-if="dep.version" class="muted">v{{ dep.version }}</span>
+                        <span v-if="isDepInstalled(dep)" class="dep-installed-label">— already installed</span>
                     </li>
                 </ul>
             </div>
@@ -354,14 +369,18 @@ function formatNumber(n: number): string {
     overflow-x: auto;
     padding-bottom: 6px;
 }
+.gallery-item {
+    position: relative;
+    flex-shrink: 0;
+}
 .gallery-img {
     height: 200px;
     border-radius: var(--radius);
     border: 1px solid var(--line);
     object-fit: cover;
     flex-shrink: 0;
+    display: block;
 }
-
 .stats {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -419,6 +438,13 @@ function formatNumber(n: number): string {
     color: var(--ink-2);
     font-size: 14px;
     line-height: 1.7;
+}
+.plain-list .dep-installed {
+    color: var(--green);
+}
+.dep-installed-label {
+    font-size: 12.5px;
+    color: var(--green);
 }
 
 .scenario-list {

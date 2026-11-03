@@ -14,6 +14,8 @@ import { useRoute } from 'vue-router';
 
 const auth = useAuthStore();
 const route = useRoute();
+const isDev = import.meta.env.DEV;
+const isDebugRoute = computed(() => route.path === '/debug-server');
 
 const { toast } = useToast();
 
@@ -48,7 +50,7 @@ onMounted(() => {
     const accessibleUnauthorized = route.meta['accessibleUnauthorized'];
     const requiresAuth = accessibleUnauthorized === undefined || !accessibleUnauthorized;
 
-    if (!auth.isAuthenticated && requiresAuth) {
+    if (!auth.isAuthenticated && requiresAuth && !(isDev && isDebugRoute.value)) {
         auth.login();
     }
 });
@@ -106,6 +108,14 @@ onUnmounted(() => window.removeEventListener('app:toast', handleToast));
                     </div>
                 </div>
             </header>
+            <RouterView />
+            <ToastProvider />
+        </TooltipProvider>
+    </template>
+    <!-- Dev-only escape hatch: the debug route works with mock data and no backend,
+         so it can't rely on the real login redirect above. -->
+    <template v-else-if="isDev && isDebugRoute">
+        <TooltipProvider>
             <RouterView />
             <ToastProvider />
         </TooltipProvider>

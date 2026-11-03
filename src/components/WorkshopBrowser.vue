@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, GetWorkshopSort, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
-import { useScenarioStore } from '../stores/scenarios';
+import { depIdsOf } from '../utils/workshop';
 import WorkshopAssetDetail from './WorkshopAssetDetail.vue';
+import DependencyBullets from './DependencyBullets.vue';
 
 const props = defineProps<{
     selectable?: boolean;
     missionSelectable?: boolean;
+    /** modIds already configured on the server this browser was opened from, used to flag dependencies as already installed. */
+    installedModIds?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -17,7 +20,6 @@ const emit = defineEmits<{
 }>();
 
 const store = useWorkshopStore();
-const scenarioStore = useScenarioStore();
 
 const searchInput = ref('');
 const sort = ref<GetWorkshopSort>('newest');
@@ -64,36 +66,50 @@ function formatNumber(n: number): string {
     return n.toLocaleString();
 }
 
-// Which assets in the current grid bundle a scenario, keyed by asset id.
-// Populated progressively (in small concurrent batches) since each check is
-// a live upstream workshop-detail fetch, not a cheap local lookup.
+// Which assets in the current grid bundle a scenario and/or have dependency
+// data, keyed by asset id. Both checks are fetched from a single detail
+// request per asset (populated progressively in small concurrent batches,
+// since each is a live upstream workshop-detail fetch) so a grid that's both
+// mission-selectable and dependency-aware doesn't fetch each asset twice.
 const scenarioCheck = reactive(new Map<string, ScenarioEntry[]>());
-const SCENARIO_CHECK_BATCH_SIZE = 5;
+const depIdsCache = reactive(new Map<string, string[]>());
+const checkedAssetIds = new Set<string>();
+const CHECK_BATCH_SIZE = 5;
+const installedSet = computed(() => new Set(props.installedModIds ?? []));
 
-async function checkScenarios(assets: Asset[]) {
-    if (!props.missionSelectable) {
+async function checkAssets(assets: Asset[]) {
+    const needsScenarios = !!props.missionSelectable;
+    const needsDeps = props.installedModIds !== undefined;
+    if (!needsScenarios && !needsDeps) {
         return;
     }
 
-    const pending = assets.filter(asset => !scenarioCheck.has(asset.id));
-    for (let i = 0; i < pending.length; i += SCENARIO_CHECK_BATCH_SIZE) {
-        const batch = pending.slice(i, i + SCENARIO_CHECK_BATCH_SIZE);
+    const pending = assets.filter(asset => !checkedAssetIds.has(asset.id));
+    for (let i = 0; i < pending.length; i += CHECK_BATCH_SIZE) {
+        const batch = pending.slice(i, i + CHECK_BATCH_SIZE);
         await Promise.all(
             batch.map(async asset => {
+                checkedAssetIds.add(asset.id);
                 try {
-                    const scenarios = await scenarioStore.getModScenarios(asset.id);
-                    scenarioCheck.set(asset.id, scenarios);
+                    const detail = await store.getDetail(asset.id);
+                    if (needsScenarios) {
+                        scenarioCheck.set(asset.id, (detail?.version_detail.scenarios ?? []).map(s => ({ name: s.name, path: s.gameId })));
+                    }
+                    if (needsDeps) {
+                        depIdsCache.set(asset.id, depIdsOf(detail));
+                    }
                 } catch {
                     // One asset's upstream data being broken/unreachable shouldn't
-                    // block the "set as mission" check for the rest of the batch.
-                    scenarioCheck.set(asset.id, []);
+                    // block the checks for the rest of the batch.
+                    if (needsScenarios) scenarioCheck.set(asset.id, []);
+                    if (needsDeps) depIdsCache.set(asset.id, []);
                 }
             })
         );
     }
 }
 
-watch(() => store.assets, checkScenarios, { immediate: true });
+watch(() => store.assets, checkAssets, { immediate: true });
 
 function scenariosFor(asset: Asset): ScenarioEntry[] {
     return scenarioCheck.get(asset.id) ?? [];
@@ -117,6 +133,7 @@ onMounted(() => {
             :asset="selectedAsset"
             :selectable="selectable"
             :mission-selectable="missionSelectable"
+            :installed-mod-ids="installedModIds"
             @back="closeDetail"
             @select="emit('select', $event)"
             @set-mission="emit('setMission', $event)"
@@ -189,6 +206,7 @@ onMounted(() => {
                         <div class="card-thumb">
                             <img v-if="thumbnail(asset)" :src="thumbnail(asset)" :alt="asset.name" loading="lazy" />
                             <div v-else class="card-thumb-empty"></div>
+                            <DependencyBullets :dep-ids="depIdsCache.get(asset.id) ?? []" :installed-ids="installedSet" />
                         </div>
                         <div class="card-body">
                             <h3 class="card-name">{{ asset.name }}</h3>
@@ -419,6 +437,7 @@ onMounted(() => {
 }
 
 .card-thumb {
+    position: relative;
     aspect-ratio: 16 / 9;
     background: var(--bg-sunken);
 }
@@ -432,7 +451,6 @@ onMounted(() => {
     width: 100%;
     height: 100%;
 }
-
 .card-body {
     display: flex;
     flex-direction: column;

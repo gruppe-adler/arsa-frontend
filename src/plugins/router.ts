@@ -34,7 +34,8 @@ const routes = [
     { path: '/view-server-log/:id/:log/:file', component: ViewServerLog },
     { path: '/view-crash-reports-log/:id', component: ViewCrashReportsLog },
     { path: '/', redirect: '/servers-list' },
-    { path: '/error', name: 'Error', component: ServerErrorView, meta: { accessibleUnauthorized: true } }
+    { path: '/error', name: 'Error', component: ServerErrorView, meta: { accessibleUnauthorized: true } },
+    ...(import.meta.env.DEV ? [{ path: '/debug-server', component: () => import('../views/DebugServer.vue') }] : [])
 ];
 
 const router = createRouter({
