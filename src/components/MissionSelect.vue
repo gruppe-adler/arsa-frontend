@@ -19,6 +19,8 @@ const emit = defineEmits(['update:modelValue']);
 const missions = ref<ScenarioEntry[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+/** Names of mods whose scenarios couldn't be loaded (e.g. no longer on the workshop). */
+const unresolvedMods = ref<string[]>([]);
 
 const selectedMission = computed({
     get: () => props.modelValue,
@@ -39,27 +41,34 @@ function extractAssetId(modId: string): string | null {
 async function loadMissions() {
     missions.value = [];
     error.value = null;
+    unresolvedMods.value = [];
 
-    const assetIds = Array.from(new Set(props.mods.map(mod => extractAssetId(mod.modId)).filter((id): id is string => Boolean(id))));
+    // asset id -> display name of the first mod that references it
+    const assets = new Map<string, string>();
+    for (const mod of props.mods) {
+        const id = extractAssetId(mod.modId);
+        if (id && !assets.has(id)) assets.set(id, mod.name || id);
+    }
 
     loading.value = true;
     try {
-        const allScenarios =
-            assetIds.length === 0
-                ? []
-                : (
-                      await Promise.all(
-                          assetIds.map(async assetId => {
-                              return await scenarioStore.getModScenarios(assetId);
-                          })
-                      )
-                  ).flat();
+        // Settle each mod on its own: one asset the workshop doesn't know (deleted, private, typo)
+        // must not hide the scenarios of every other mod and the vanilla ones.
+        const results = await Promise.allSettled([...assets.keys()].map(assetId => scenarioStore.getModScenarios(assetId)));
 
-        const missionsTemp = Array.from(allScenarios.values()).sort((a, b) => a.name.localeCompare(b.name));
+        const modScenarios: ScenarioEntry[] = [];
+        const unresolved: string[] = [];
+        [...assets.values()].forEach((name, i) => {
+            const result = results[i];
+            if (result.status === 'fulfilled') modScenarios.push(...result.value);
+            else unresolved.push(name);
+        });
+        modScenarios.sort((a, b) => a.name.localeCompare(b.name));
+        unresolvedMods.value = unresolved;
 
         const vanillaScenarios = await scenarioStore.getScenarios(props.branch as Branch);
 
-        missions.value = [...missionsTemp, ...vanillaScenarios];
+        missions.value = [...modScenarios, ...vanillaScenarios];
     } catch (err) {
         error.value = err instanceof Error ? err.message : String(err);
     } finally {
@@ -97,6 +106,9 @@ onMounted(loadMissions);
                 </select>
                 <p v-if="selectedMissionEntry" class="mission-select-path">{{ selectedMissionEntry.path }}</p>
                 <p v-if="!available" class="mission-select-hint">No mission scenarios found for the current mod list.</p>
+                <p v-if="unresolvedMods.length > 0" class="mission-select-warning">
+                    Couldn't load scenarios for {{ unresolvedMods.join(', ') }}. The mod may have been removed from the workshop.
+                </p>
             </div>
         </div>
     </div>
@@ -121,6 +133,12 @@ onMounted(loadMissions);
 .mission-select-hint {
     margin: 0;
     color: var(--ink);
+    font-size: 0.9rem;
+}
+
+.mission-select-warning {
+    margin: 0;
+    color: var(--amber);
     font-size: 0.9rem;
 }
 
