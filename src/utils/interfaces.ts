@@ -1,4 +1,4 @@
-import { ArsStatus, GlobalLog, PullLog } from '../api/model';
+import { ArsStatus, Branch, GlobalLog, PullLog } from '../api/model';
 
 export interface ServerStatusUpdate {
     type:
@@ -7,6 +7,7 @@ export interface ServerStatusUpdate {
         | 'message'
         | 'createImageProgress'
         | 'createImageFinished'
+        | 'scenariosUpdateFinished'
         | 'error'
         | 'playerCountUpdate'
         | 'logUpdate';
@@ -36,6 +37,14 @@ export interface CreateImageProgress extends ServerStatusUpdate {
 export interface CreateImageFinished extends ServerStatusUpdate {
     type: 'createImageFinished';
     pullId: string;
+}
+
+export interface ScenariosUpdateFinished extends ServerStatusUpdate {
+    type: 'scenariosUpdateFinished';
+    branch: Branch;
+    success: boolean;
+    count: number;
+    error: string | null;
 }
 
 export interface PlayerCountUpdate extends ServerStatusUpdate {

@@ -417,9 +417,9 @@ export const getScenariosFromBranch = async (branch: Branch, options?: RequestIn
     });
 };
 
-export type updateScenariosFromBranchResponse200 = {
+export type updateScenariosFromBranchResponse202 = {
     data: SuccessResponse;
-    status: 200;
+    status: 202;
 };
 
 export type updateScenariosFromBranchResponse404 = {
@@ -427,15 +427,24 @@ export type updateScenariosFromBranchResponse404 = {
     status: 404;
 };
 
+export type updateScenariosFromBranchResponse409 = {
+    data: ErrorResponse;
+    status: 409;
+};
+
 export type updateScenariosFromBranchResponse500 = {
     data: ErrorResponse;
     status: 500;
 };
 
-export type updateScenariosFromBranchResponseSuccess = updateScenariosFromBranchResponse200 & {
+export type updateScenariosFromBranchResponseSuccess = updateScenariosFromBranchResponse202 & {
     headers: Headers;
 };
-export type updateScenariosFromBranchResponseError = (updateScenariosFromBranchResponse404 | updateScenariosFromBranchResponse500) & {
+export type updateScenariosFromBranchResponseError = (
+    | updateScenariosFromBranchResponse404
+    | updateScenariosFromBranchResponse409
+    | updateScenariosFromBranchResponse500
+) & {
     headers: Headers;
 };
 

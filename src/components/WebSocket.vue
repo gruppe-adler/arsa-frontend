@@ -10,14 +10,17 @@ import {
     IsRunningUpdate,
     LogUpdate,
     PlayerCountUpdate,
+    ScenariosUpdateFinished,
     ServerStatusUpdate
 } from '../utils/interfaces';
 import { useAuthStore } from '../stores/auth';
+import { useScenarioStore } from '../stores/scenarios';
 import { useToast } from '../composables/useToast';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const authStore = useAuthStore();
+const scenarioStore = useScenarioStore();
 const { toast } = useToast();
 
 async function updateArsStatus() {
@@ -97,6 +100,14 @@ async function connectWebSocket() {
             } else if (update.type === 'createImageFinished') {
                 const createImageFinished: CreateImageFinished = update as CreateImageFinished;
                 logsStore.clearPullLog(createImageFinished.pullId);
+            } else if (update.type === 'scenariosUpdateFinished') {
+                const finished = update as ScenariosUpdateFinished;
+                scenarioStore.finishUpdate(finished.branch);
+                if (finished.success) {
+                    toast.info(`Updated ${finished.branch} scenarios`, `${finished.count} scenarios found`);
+                } else {
+                    toast.error(`Updating ${finished.branch} scenarios failed`, finished.error ?? undefined);
+                }
             }
         }
     });

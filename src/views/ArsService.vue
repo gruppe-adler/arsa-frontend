@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useServersStore } from '../stores/servers';
 import { useLogsStore } from '../stores/logs';
 import HostServerLog from '../components/HostServerLog.vue';
@@ -8,13 +8,13 @@ import ImagePullLog from '../components/ImagePullLog.vue';
 import { useRoute } from 'vue-router';
 import Dialog from '../components/Dialog.vue';
 import { useScenarioStore } from '../stores/scenarios.ts';
-// import { useToast } from '../composables/useToast.ts';
+import { useToast } from '../composables/useToast.ts';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
 const scenarioStore = useScenarioStore();
 const route = useRoute();
-// const { toast } = useToast();
+const { toast } = useToast();
 
 function parsePositiveInteger(value: unknown): number | undefined {
     const parsed = Number(value);
@@ -29,10 +29,11 @@ async function updateArsStatus() {
     serversStore.arsStatus = result;
 }
 
-// async function updateScenarios(branch: Branch) {
-//     toast.info('Updating Scenarios...', 'Takes about 30s');
-//     await scenarioStore.updateScenarios(branch);
-// }
+async function updateScenarios(branch: Branch) {
+    if (await scenarioStore.updateScenarios(branch)) {
+        toast.info('Updating scenarios...', 'Takes about 20s');
+    }
+}
 
 async function pullImage(branch: Branch) {
     await serversStore.pullImage(branch);
@@ -79,10 +80,34 @@ async function getScenarioCounts() {
 const branchVersions = ref(new Map<Branch, string>());
 const scenarioCounts = ref(new Map<Branch, number>());
 
+// the image version is 'n/a' when the branch's image isn't pulled, '' when the request failed
+function hasImage(branch: Branch): boolean {
+    const version = branchVersions.value.get(branch);
+    return !!version && version !== 'n/a';
+}
+
 onMounted(async () => {
     branchVersions.value = await getBranchVersions();
     scenarioCounts.value = await getScenarioCounts();
 });
+
+// a finished pull can add an image, so reload the versions
+watch(
+    () => serversStore.arsStatus,
+    async (status, previous) => {
+        if (previous === ArsStatus.Recreating && status !== ArsStatus.Recreating) {
+            branchVersions.value = await getBranchVersions();
+        }
+    }
+);
+
+// refresh the counts when an update finishes
+watch(
+    () => [...scenarioStore.updating],
+    async () => {
+        scenarioCounts.value = await getScenarioCounts();
+    }
+);
 
 const recreateDisabled = computed(() => serversStore.arsStatus === ArsStatus.Recreating || serversStore.arsStatus === ArsStatus.Unknown);
 
@@ -155,9 +180,14 @@ updateArsStatus();
                         :handleLabel="'Start pull'"
                         :handleFunction="() => pullImage(branch)"
                     ></Dialog>
-                    <button class="btn btn-danger" :disabled="recreateDisabled || true">
-                        <!-- @click="updateScenarios(branch)"-->
-                        Update vanilla scenarios (Current count: {{ scenarioCounts.get(branch) ?? 0 }})
+                    <button
+                        class="btn btn-danger"
+                        :disabled="recreateDisabled || !hasImage(branch) || scenarioStore.updating.includes(branch)"
+                        :title="hasImage(branch) ? undefined : `Pull the ${branch} image first`"
+                        @click="updateScenarios(branch)"
+                    >
+                        <template v-if="scenarioStore.updating.includes(branch)">Updating vanilla scenarios...</template>
+                        <template v-else>Update vanilla scenarios (Current count: {{ scenarioCounts.get(branch) ?? 0 }})</template>
                     </button>
                 </div>
             </div>
