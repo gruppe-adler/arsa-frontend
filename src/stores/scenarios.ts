@@ -6,18 +6,40 @@ import { useWorkshopStore } from './workshop';
 interface State {
     scenarios: Map<Branch, ScenarioEntry[]>;
     customScenarios: Map<string, ScenarioEntry[]>;
+    /** Branches whose vanilla scenario update is running on the backend. */
+    updating: Branch[];
 }
 
 export const useScenarioStore = defineStore('scenarios', {
     state: (): State => {
         return {
             scenarios: new Map<Branch, ScenarioEntry[]>(),
-            customScenarios: new Map<Branch, ScenarioEntry[]>()
+            customScenarios: new Map<Branch, ScenarioEntry[]>(),
+            updating: []
         };
     },
     actions: {
-        async updateScenarios(branch: Branch): Promise<void> {
-            await updateScenariosFromBranch(branch);
+        /**
+         * Starts a vanilla scenario update on the backend. Resolves once it has started;
+         * the result arrives later as a `scenariosUpdateFinished` websocket message.
+         */
+        async updateScenarios(branch: Branch): Promise<boolean> {
+            try {
+                await updateScenariosFromBranch(branch);
+            } catch {
+                // customFetch already showed an error toast
+                return false;
+            }
+            if (!this.updating.includes(branch)) {
+                this.updating.push(branch);
+            }
+            return true;
+        },
+
+        finishUpdate(branch: Branch): void {
+            this.updating = this.updating.filter(x => x !== branch);
+            // the stored list changed, fetch it again on the next read
+            this.scenarios.delete(branch);
         },
 
         async getScenarios(branch: Branch): Promise<ScenarioEntry[]> {

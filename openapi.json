@@ -706,8 +706,8 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Scenarios list updated",
+                    "202": {
+                        "description": "Scenario update started. The result is sent over the websocket as a `scenariosUpdateFinished` message.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -726,8 +726,18 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "An update for this branch is already running",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
                     "500": {
-                        "description": "Failed to start image or parse scenarios",
+                        "description": "Failed to inspect image",
                         "content": {
                             "application/json": {
                                 "schema": {
