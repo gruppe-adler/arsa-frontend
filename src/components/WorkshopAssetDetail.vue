@@ -133,11 +133,11 @@ function formatNumber(n: number): string {
                         </PopoverContent>
                     </PopoverPortal>
                 </PopoverRoot>
-                <span v-if="selectable && installedSet.has(asset.id)" class="btn btn-sm btn-installed">
+                <span v-if="selectable && installedSet.has(asset.id)" class="btn btn-sm btn-added">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 6L9 17l-5-5" />
                     </svg>
-                    Installed
+                    Added
                 </span>
                 <button v-else-if="selectable" class="btn btn-primary btn-sm" type="button" @click="emit('select', asset)">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

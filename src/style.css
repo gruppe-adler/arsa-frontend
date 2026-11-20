@@ -129,14 +129,14 @@ ul { padding-inline-start: 0; }
 .btn-ghost:hover { background: var(--bg-soft); border-color: transparent; }
 .btn-ghost:disabled { background: transparent; }
 
-/* Non-interactive "already installed" state shown in place of an Add button. */
-.btn-installed {
+/* Non-interactive "already in the mod list" state shown in place of an Add button. */
+.btn-added {
   color: var(--green);
   background: var(--green-soft);
   border-color: color-mix(in oklab, var(--green), transparent 60%);
   cursor: default;
 }
-.btn-installed:hover {
+.btn-added:hover {
   background: var(--green-soft);
   border-color: color-mix(in oklab, var(--green), transparent 60%);
 }
