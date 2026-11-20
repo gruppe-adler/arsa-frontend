@@ -219,8 +219,14 @@ onMounted(() => {
                                 </span>
                             </div>
                         </div>
+                        <span v-if="selectable && installedSet.has(asset.id)" class="btn btn-sm btn-installed card-add">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                            Installed
+                        </span>
                         <button
-                            v-if="selectable"
+                            v-else-if="selectable"
                             type="button"
                             class="btn btn-primary btn-sm card-add"
                             @click.stop="emit('select', asset)"
