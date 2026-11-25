@@ -11,7 +11,7 @@
         "docker-run": "docker run -d --rm -p 80:80 --name arsa-frontend arsa-frontend"
     },
     "dependencies": {
-        "@vueuse/core": "^11.1.0",
+        "@vueuse/core": "^15.0.0",
         "ajv": "^8.17.1",
         "ajv-formats": "^3.0.1",
         "ajv-keywords": "^5.1.0",
