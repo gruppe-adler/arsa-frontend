@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid';
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
-import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'reka-ui';
+import {
+    DialogRoot,
+    DialogPortal,
+    DialogOverlay,
+    DialogContent,
+    DialogTitle,
+    DialogClose,
+    DropdownMenuRoot,
+    DropdownMenuTrigger,
+    DropdownMenuPortal,
+    DropdownMenuContent,
+    DropdownMenuItem
+} from 'reka-ui';
 import InfoTooltip from './InfoTooltip.vue';
 
 import Ajv from 'ajv';
@@ -11,7 +23,7 @@ import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
 import { Asset, Dependency, Mod, ScenarioEntry } from '../api/model';
 import { useToast } from '../composables/useToast.ts';
 import { useWorkshopStore } from '../stores/workshop';
-import { depIdsOf } from '../utils/workshop';
+import { depIdsOf, reforgerWorkshopUrl } from '../utils/workshop';
 import WorkshopBrowser from './WorkshopBrowser.vue';
 
 const { toast } = useToast();
@@ -445,7 +457,11 @@ function openImport() {
     showWorkshopPanel.value = false;
 }
 
-function openWorkshop() {
+/** Asset whose detail view the workshop overlay shows; null shows the search results. */
+const workshopAssetId = ref<string | null>(null);
+
+function openWorkshop(assetId: string | null = null) {
+    workshopAssetId.value = assetId;
     showWorkshopPanel.value = true;
     showImportPanel.value = false;
     showExportPanel.value = false;
@@ -714,10 +730,75 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                         </button>
                     </span>
                     <span class="col-actions">
+                        <!-- Mobile: the actions collapse into a menu (see the 480px media query). -->
+                        <DropdownMenuRoot>
+                            <DropdownMenuTrigger class="btn-icon row-actions-menu-trigger" title="Mod actions" @click.stop>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                    <circle cx="5" cy="12" r="2" />
+                                    <circle cx="12" cy="12" r="2" />
+                                    <circle cx="19" cy="12" r="2" />
+                                </svg>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuPortal>
+                                <DropdownMenuContent class="row-actions-menu" align="end" :sideOffset="4">
+                                    <DropdownMenuItem class="row-actions-item" @select="openWorkshop(mod.modId)">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="7" />
+                                            <path d="M21 21l-4.3-4.3" />
+                                        </svg>
+                                        Open in workshop
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem as-child>
+                                        <a
+                                            class="row-actions-item"
+                                            :href="reforgerWorkshopUrl(mod.modId)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                                <path d="M15 3h6v6M10 14L21 3" />
+                                            </svg>
+                                            Open on Reforger Workshop
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        v-if="!props.readonly"
+                                        class="row-actions-item row-actions-item-danger"
+                                        @select="removeMod(mod.modId)"
+                                    >
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                                        </svg>
+                                        Remove mod
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuRoot>
+
+                        <button type="button" class="btn-icon row-action-inline" title="Open in workshop" @click.stop="openWorkshop(mod.modId)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="7" />
+                                <path d="M21 21l-4.3-4.3" />
+                            </svg>
+                        </button>
+                        <a
+                            class="btn-icon row-action-inline"
+                            :href="reforgerWorkshopUrl(mod.modId)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open on the Reforger Workshop (new tab)"
+                            @click.stop
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <path d="M15 3h6v6M10 14L21 3" />
+                            </svg>
+                        </a>
                         <button
                             v-if="!props.readonly"
                             type="button"
-                            class="btn-icon btn-icon-danger"
+                            class="btn-icon btn-icon-danger row-action-inline"
                             title="Remove mod"
                             @click.stop="removeMod(mod.modId)"
                         >
@@ -768,7 +849,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                 </div>
 
                 <!-- Workshop search -->
-                    <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop">
+                    <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop()">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="7" />
                             <path d="M21 21l-4.3-4.3" />
@@ -865,9 +946,11 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                         </div>
                         <div class="workshop-panel-body">
                             <WorkshopBrowser
-                                selectable
-                                mission-selectable
+                                :selectable="!props.readonly"
+                                :missionSelectable="!props.readonly"
                                 :installed-mod-ids="localModIds"
+                                :assetId="workshopAssetId"
+                                @detailChange="workshopAssetId = $event"
                                 @select="addFromWorkshop"
                                 @set-mission="onSetMission"
                             />
@@ -976,7 +1059,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-head,
 .mods-list-row {
     display: grid;
-    grid-template-columns: 24px 1fr 38px 90px 28px;
+    grid-template-columns: 24px 1fr 38px 90px 80px;
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
@@ -1078,7 +1161,40 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     justify-content: center;
 }
 .col-actions {
+    justify-content: flex-end;
+    gap: 4px;
     margin-left: -4px;
+}
+/* Compound selector so it beats .btn-icon's display, which is declared later. */
+.btn-icon.row-actions-menu-trigger {
+    display: none;
+}
+.row-actions-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: var(--radius);
+    color: var(--ink);
+    font-size: 13px;
+    padding: 9px 10px;
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+}
+.row-actions-item svg {
+    flex-shrink: 0;
+    color: var(--ink-3);
+}
+.row-actions-item[data-highlighted] {
+    background: var(--bg-soft);
+}
+.row-actions-item-danger,
+.row-actions-item-danger svg {
+    color: var(--red);
+}
+.row-actions-item-danger[data-highlighted] {
+    background: var(--red-soft);
 }
 .col-name {
     display: flex;
@@ -1370,7 +1486,15 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 @media (max-width: 480px) {
     .mods-list-head,
     .mods-list-row {
+        /* Row actions collapse into a single "⋯" menu button. */
         grid-template-columns: 20px 1fr 38px 92px 24px;
+    }
+    /* Too narrow for three action icons side by side: show the menu instead. */
+    .btn-icon.row-action-inline {
+        display: none;
+    }
+    .btn-icon.row-actions-menu-trigger {
+        display: inline-flex;
     }
     .add-mod-row {
         grid-template-columns: 1fr;
@@ -1379,5 +1503,23 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     .mods-actions {
         flex-wrap: wrap;
     }
+}
+</style>
+
+<style>
+/* Unscoped on purpose: reka-ui wraps DropdownMenuContent in a popper wrapper
+   that takes the scope attribute, so a scoped rule never matches the element
+   that actually receives this class. Portalled to <body>, so it must also sit
+   above the expanded mods overlay (z-index 1001). */
+.row-actions-menu {
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    min-width: 210px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
 }
 </style>

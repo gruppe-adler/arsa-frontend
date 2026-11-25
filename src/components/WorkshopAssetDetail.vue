@@ -1,9 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
+import {
+    PopoverRoot,
+    PopoverTrigger,
+    PopoverPortal,
+    PopoverContent,
+    DialogRoot,
+    DialogPortal,
+    DialogOverlay,
+    DialogContent,
+    DialogTitle,
+    DialogDescription,
+    DialogClose
+} from 'reka-ui';
 import { Asset, AssetDetailResponse, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
-import { depIdsOf } from '../utils/workshop';
+import { depIdsOf, reforgerWorkshopUrl } from '../utils/workshop';
 import DependencyBullets from './DependencyBullets.vue';
 
 const props = defineProps<{
@@ -40,13 +52,20 @@ async function copyId() {
     }, 1400);
 }
 
+// Incremented per load so a response for an asset we've since moved away from is dropped.
+let loadSeq = 0;
+
 async function load(id: string) {
+    const seq = ++loadSeq;
     loading.value = true;
     detail.value = undefined;
     try {
-        detail.value = await store.getDetail(id);
+        const result = await store.getDetail(id);
+        if (seq === loadSeq) detail.value = result;
+    } catch {
+        // Leave detail unset: the view falls back to the search-result data (previews, stats).
     } finally {
-        loading.value = false;
+        if (seq === loadSeq) loading.value = false;
     }
 }
 
@@ -65,6 +84,68 @@ const images = computed(() => {
     if (!d) return props.asset.previews;
     // Prefer screenshots, fall back to previews.
     return d.screenshots.length > 0 ? d.screenshots : d.previews;
+});
+
+// Lightbox: index of the image being viewed full-size, or null when closed.
+const lightboxIndex = ref<number | null>(null);
+const lightboxOpen = computed({
+    get: () => lightboxIndex.value !== null,
+    set: open => {
+        if (!open) lightboxIndex.value = null;
+    }
+});
+const lightboxImage = computed(() => (lightboxIndex.value === null ? undefined : images.value[lightboxIndex.value]));
+
+// The thumbnail that opened the lightbox. The DialogRoot has no DialogTrigger,
+// so focus has to be handed back to it manually on close.
+let lightboxOpener: HTMLElement | null = null;
+
+function openLightbox(idx: number, e: MouseEvent) {
+    lightboxOpener = e.currentTarget instanceof HTMLElement ? e.currentTarget : null;
+    lightboxIndex.value = idx;
+}
+function onLightboxCloseAutoFocus(e: Event) {
+    const opener = lightboxOpener;
+    lightboxOpener = null;
+    // The thumbnail may be gone if the asset changed while the lightbox was open.
+    if (opener?.isConnected) {
+        e.preventDefault();
+        opener.focus();
+    }
+}
+function stepLightbox(delta: number) {
+    if (lightboxIndex.value === null || images.value.length === 0) return;
+    const n = images.value.length;
+    lightboxIndex.value = (lightboxIndex.value + delta + n) % n;
+}
+function onLightboxKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        stepLightbox(-1);
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        stepLightbox(1);
+    }
+}
+// Switching asset closes the lightbox.
+watch(
+    () => props.asset.id,
+    () => {
+        lightboxIndex.value = null;
+    }
+);
+// The list also changes when the detail arrives (search-result previews ->
+// screenshots). Keep the lightbox open: stay on the same image if the new list
+// has it, otherwise clamp to the new length.
+watch(images, (next, prev) => {
+    if (lightboxIndex.value === null) return;
+    if (next.length === 0) {
+        lightboxIndex.value = null;
+        return;
+    }
+    const url = prev[lightboxIndex.value]?.url;
+    const same = next.findIndex(img => img.url === url);
+    lightboxIndex.value = same >= 0 ? same : Math.min(lightboxIndex.value, next.length - 1);
 });
 
 const installedSet = computed(() => new Set(props.installedModIds ?? []));
@@ -99,6 +180,19 @@ function formatNumber(n: number): string {
                 Back to results
             </button>
             <div class="detail-head-actions">
+                <a
+                    class="btn btn-sm"
+                    :href="reforgerWorkshopUrl(asset.id)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Open this asset on the official Reforger Workshop"
+                >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <path d="M15 3h6v6M10 14L21 3" />
+                    </svg>
+                    Reforger Workshop
+                </a>
                 <button
                     v-if="missionSelectable && scenarioEntries.length === 1"
                     type="button"
@@ -195,10 +289,61 @@ function formatNumber(n: number): string {
             <!-- Image gallery -->
             <div v-if="images.length > 0" class="gallery">
                 <div v-for="(img, idx) in images" :key="idx" class="gallery-item">
-                    <img :src="img.url" :alt="`${asset.name} preview ${idx + 1}`" class="gallery-img" loading="lazy" />
+                    <button
+                        type="button"
+                        class="gallery-thumb"
+                        :aria-label="`View image ${idx + 1} of ${images.length} full size`"
+                        @click="openLightbox(idx, $event)"
+                    >
+                        <img :src="img.url" :alt="`${asset.name} preview ${idx + 1}`" class="gallery-img" loading="lazy" />
+                    </button>
                     <DependencyBullets v-if="idx === 0" :dep-ids="dependencyIds" :installed-ids="installedSet" />
                 </div>
             </div>
+
+            <!-- Lightbox -->
+            <DialogRoot v-model:open="lightboxOpen">
+                <DialogPortal>
+                    <DialogOverlay class="lightbox-overlay" />
+                    <DialogContent
+                        class="lightbox"
+                        @keydown="onLightboxKeydown"
+                        @click.self="lightboxOpen = false"
+                        @close-auto-focus="onLightboxCloseAutoFocus"
+                    >
+                        <DialogTitle class="sr-only">{{ asset.name }} images</DialogTitle>
+                        <DialogDescription class="sr-only">Use the left and right arrow keys to browse images.</DialogDescription>
+
+                        <img
+                            v-if="lightboxImage"
+                            :key="lightboxImage.url"
+                            :src="lightboxImage.url"
+                            :alt="`${asset.name} image ${(lightboxIndex ?? 0) + 1}`"
+                            class="lightbox-img"
+                        />
+
+                        <DialogClose class="lightbox-btn lightbox-close" aria-label="Close">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        </DialogClose>
+
+                        <template v-if="images.length > 1">
+                            <button type="button" class="lightbox-btn lightbox-prev" aria-label="Previous image" @click="stepLightbox(-1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 18l-6-6 6-6" />
+                                </svg>
+                            </button>
+                            <button type="button" class="lightbox-btn lightbox-next" aria-label="Next image" @click="stepLightbox(1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                            </button>
+                            <span class="lightbox-counter">{{ (lightboxIndex ?? 0) + 1 }} / {{ images.length }}</span>
+                        </template>
+                    </DialogContent>
+                </DialogPortal>
+            </DialogRoot>
 
             <!-- Stats -->
             <div class="stats">
@@ -308,29 +453,18 @@ function formatNumber(n: number): string {
 }
 .detail-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
 }
 .detail-head-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
 
-.mission-popover-content {
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-    max-height: 240px;
-    overflow-y: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px;
-}
 .mission-popover-item {
     display: block;
     width: 100%;
@@ -379,8 +513,24 @@ function formatNumber(n: number): string {
     position: relative;
     flex-shrink: 0;
 }
+.gallery-thumb {
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: var(--radius);
+    cursor: zoom-in;
+}
+.gallery-thumb:hover .gallery-img {
+    border-color: var(--ink-4);
+}
+.gallery-thumb:focus-visible {
+    outline: 2px solid var(--indigo);
+    outline-offset: 2px;
+}
 .gallery-img {
     height: 200px;
+    transition: border-color 80ms ease;
     border-radius: var(--radius);
     border: 1px solid var(--line);
     object-fit: cover;
@@ -475,5 +625,101 @@ function formatNumber(n: number): string {
 }
 .scenario-item .btn {
     flex-shrink: 0;
+}
+
+/* Lightbox (portalled to <body>, so it must sit above the mod list's
+   workshop dialog at z-index 1001 and its mission popovers at 1100). */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(0, 0, 0, 0.88);
+}
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1201;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 72px;
+    box-sizing: border-box;
+}
+.lightbox:focus {
+    outline: none;
+}
+.lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.lightbox-btn {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background 80ms ease;
+}
+.lightbox-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+.lightbox-btn:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+.lightbox-close {
+    top: 12px;
+    right: 12px;
+}
+.lightbox-prev {
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.lightbox-next {
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.lightbox-counter {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 560px) {
+    .lightbox {
+        padding: 56px 12px;
+    }
+    .lightbox-prev,
+    .lightbox-next {
+        top: auto;
+        bottom: 8px;
+        transform: none;
+    }
 }
 </style>
