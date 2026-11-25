@@ -104,7 +104,10 @@
                     }
                 ],
                 "responses": {
-                    "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ImageVersionResponse" } } } }
+                    "200": {
+                        "description": "Version of the image for the branch, or \"n/a\" if it isn't pulled",
+                        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ImageVersionResponse" } } }
+                    }
                 }
             }
         },
@@ -167,7 +170,10 @@
                     }
                 ],
                 "responses": {
-                    "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessResponse" } } } }
+                    "200": {
+                        "description": "Image pull started, progress is sent over the WebSocket",
+                        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessResponse" } } }
+                    }
                 }
             }
         },
@@ -883,7 +889,12 @@
             "get": {
                 "tags": ["image"],
                 "operationId": "get_status",
-                "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ArsStatus" } } } } }
+                "responses": {
+                    "200": {
+                        "description": "Current status of the ARS service",
+                        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ArsStatus" } } }
+                    }
+                }
             }
         },
         "/api/v2/workshop": {
