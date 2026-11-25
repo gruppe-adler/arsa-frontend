@@ -6,3 +6,8 @@ import { AssetDetailResponse } from '../api/model';
 export function depIdsOf(detail: AssetDetailResponse | undefined): string[] {
     return (detail?.version_detail.dependencies ?? []).map(d => d.asset?.id).filter((id): id is string => !!id);
 }
+
+/** An asset's page on the official Reforger Workshop. */
+export function reforgerWorkshopUrl(id: string): string {
+    return `https://reforger.armaplatform.com/workshop/${encodeURIComponent(id)}`;
+}

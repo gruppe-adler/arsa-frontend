@@ -11,7 +11,7 @@ import { arsModSchema, arsModsetSchema } from '../utils/json-schema';
 import { Asset, Dependency, Mod, ScenarioEntry } from '../api/model';
 import { useToast } from '../composables/useToast.ts';
 import { useWorkshopStore } from '../stores/workshop';
-import { depIdsOf } from '../utils/workshop';
+import { depIdsOf, reforgerWorkshopUrl } from '../utils/workshop';
 import WorkshopBrowser from './WorkshopBrowser.vue';
 
 const { toast } = useToast();
@@ -445,7 +445,11 @@ function openImport() {
     showWorkshopPanel.value = false;
 }
 
-function openWorkshop() {
+/** Asset whose detail view the workshop overlay shows; null shows the search results. */
+const workshopAssetId = ref<string | null>(null);
+
+function openWorkshop(assetId: string | null = null) {
+    workshopAssetId.value = assetId;
     showWorkshopPanel.value = true;
     showImportPanel.value = false;
     showExportPanel.value = false;
@@ -714,6 +718,25 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                         </button>
                     </span>
                     <span class="col-actions">
+                        <button type="button" class="btn-icon" title="Open in workshop" @click.stop="openWorkshop(mod.modId)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="7" />
+                                <path d="M21 21l-4.3-4.3" />
+                            </svg>
+                        </button>
+                        <a
+                            class="btn-icon btn-icon-external"
+                            :href="reforgerWorkshopUrl(mod.modId)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open on the Reforger Workshop (new tab)"
+                            @click.stop
+                        >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <path d="M15 3h6v6M10 14L21 3" />
+                            </svg>
+                        </a>
                         <button
                             v-if="!props.readonly"
                             type="button"
@@ -768,7 +791,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                 </div>
 
                 <!-- Workshop search -->
-                    <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop">
+                    <button class="btn" type="button" :class="{ 'has-panel': showWorkshopPanel }" @click="openWorkshop()">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="7" />
                             <path d="M21 21l-4.3-4.3" />
@@ -865,9 +888,11 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
                         </div>
                         <div class="workshop-panel-body">
                             <WorkshopBrowser
-                                selectable
-                                mission-selectable
+                                :selectable="!props.readonly"
+                                :missionSelectable="!props.readonly"
                                 :installed-mod-ids="localModIds"
+                                :assetId="workshopAssetId"
+                                @detailChange="workshopAssetId = $event"
                                 @select="addFromWorkshop"
                                 @set-mission="onSetMission"
                             />
@@ -976,7 +1001,7 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 .mods-list-head,
 .mods-list-row {
     display: grid;
-    grid-template-columns: 24px 1fr 38px 90px 28px;
+    grid-template-columns: 24px 1fr 38px 90px 80px;
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
@@ -1078,6 +1103,8 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
     justify-content: center;
 }
 .col-actions {
+    justify-content: flex-end;
+    gap: 4px;
     margin-left: -4px;
 }
 .col-name {
@@ -1370,7 +1397,12 @@ async function onSetMission({ asset, scenario }: { asset: Asset; scenario: Scena
 @media (max-width: 480px) {
     .mods-list-head,
     .mods-list-row {
-        grid-template-columns: 20px 1fr 38px 92px 24px;
+        /* Two 24px action buttons + gap; the external link is hidden below. */
+        grid-template-columns: 20px 1fr 38px 92px 52px;
+    }
+    /* Too narrow for three actions: the detail view still links to the Reforger Workshop. */
+    .btn-icon-external {
+        display: none;
     }
     .add-mod-row {
         grid-template-columns: 1fr;

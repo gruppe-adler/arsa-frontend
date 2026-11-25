@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { PopoverRoot, PopoverTrigger, PopoverPortal, PopoverContent } from 'reka-ui';
 import { Asset, GetWorkshopSort, ScenarioEntry } from '../api/model';
 import { useWorkshopStore } from '../stores/workshop';
@@ -12,11 +12,15 @@ const props = defineProps<{
     missionSelectable?: boolean;
     /** modIds already configured on the server this browser was opened from, used to flag dependencies as already installed. */
     installedModIds?: string[];
+    /** Asset to show the detail view for (e.g. a mod picked from the mod list). Fetched by id if it isn't in the current results. */
+    assetId?: string | null;
 }>();
 
 const emit = defineEmits<{
     select: [asset: Asset];
     setMission: [payload: { asset: Asset; scenario: ScenarioEntry }];
+    /** Fired when the detail view opens (with the asset id) or closes (null). */
+    detailChange: [id: string | null];
 }>();
 
 const store = useWorkshopStore();
@@ -51,12 +55,82 @@ function nextPage() {
     if (store.page < store.totalPages) runSearch(store.page + 1);
 }
 
+// The initial search is deferred while a by-id detail view is up, so opening a
+// single mod doesn't also fetch a results page (and its per-asset detail checks).
+let initialSearchDone = false;
+function ensureInitialSearch() {
+    if (initialSearchDone) return;
+    initialSearchDone = true;
+    if (store.assets.length === 0) {
+        runSearch(1);
+    }
+}
+
+const assetLoading = ref(false);
+/** A by-id fetch failed (asset removed, private, or upstream unreachable). */
+const assetError = ref(false);
+// Incremented per by-id fetch (and on cancel) so only the latest one may update the view.
+let assetRequestSeq = 0;
+
 function openDetail(asset: Asset) {
     selectedAsset.value = asset;
+    emit('detailChange', asset.id);
 }
 function closeDetail() {
+    assetRequestSeq++;
+    assetLoading.value = false;
+    assetError.value = false;
     selectedAsset.value = null;
+    ensureInitialSearch();
+    emit('detailChange', null);
 }
+
+async function showAssetById(id: string | null | undefined) {
+    if (!id) {
+        assetRequestSeq++;
+        assetLoading.value = false;
+        assetError.value = false;
+        selectedAsset.value = null;
+        ensureInitialSearch();
+        return;
+    }
+    if (selectedAsset.value?.id === id) return;
+
+    const fromResults = store.assets.find(a => a.id === id);
+    if (fromResults) {
+        assetRequestSeq++;
+        assetLoading.value = false;
+        assetError.value = false;
+        selectedAsset.value = fromResults;
+        return;
+    }
+
+    const seq = ++assetRequestSeq;
+    assetLoading.value = true;
+    assetError.value = false;
+    selectedAsset.value = null;
+    try {
+        // AssetDetail is a superset of Asset, so the detail payload can back the view directly.
+        const detail = await store.getDetail(id);
+        if (seq !== assetRequestSeq) return;
+        if (detail) {
+            selectedAsset.value = detail.asset;
+        } else {
+            assetError.value = true;
+        }
+    } catch {
+        if (seq === assetRequestSeq) assetError.value = true;
+    } finally {
+        if (seq === assetRequestSeq) assetLoading.value = false;
+    }
+}
+
+// Initialise from the store so re-opening the browser keeps prior results.
+// Done in setup (not onMounted) because the immediate watcher below may already run a search.
+searchInput.value = store.searchTerm;
+sort.value = store.sort;
+
+watch(() => props.assetId, showAssetById, { immediate: true });
 
 function thumbnail(asset: Asset): string | undefined {
     return asset.previews[0]?.url;
@@ -84,9 +158,13 @@ async function checkAssets(assets: Asset[]) {
         return;
     }
 
-    const pending = assets.filter(asset => !checkedAssetIds.has(asset.id));
-    for (let i = 0; i < pending.length; i += CHECK_BATCH_SIZE) {
-        const batch = pending.slice(i, i + CHECK_BATCH_SIZE);
+    // Re-evaluated per batch: stop once the grid is hidden (a detail view opened)
+    // or replaced by a new search. The watcher below restarts the check when the
+    // grid is shown again, and checkedAssetIds keeps a restarted run from
+    // refetching what an earlier one already covered.
+    while (resultsVisible.value && store.assets === assets) {
+        const batch = assets.filter(asset => !checkedAssetIds.has(asset.id)).slice(0, CHECK_BATCH_SIZE);
+        if (batch.length === 0) break;
         await Promise.all(
             batch.map(async asset => {
                 checkedAssetIds.add(asset.id);
@@ -109,27 +187,49 @@ async function checkAssets(assets: Asset[]) {
     }
 }
 
-watch(() => store.assets, checkAssets, { immediate: true });
+// Only check the grid while it's actually shown, so a by-id detail view
+// doesn't trigger detail fetches for results the user hasn't looked at.
+const resultsVisible = computed(() => !selectedAsset.value && !assetLoading.value && !assetError.value);
+watch(
+    () => (resultsVisible.value ? store.assets : null),
+    assets => {
+        if (assets) checkAssets(assets);
+    },
+    { immediate: true }
+);
 
 function scenariosFor(asset: Asset): ScenarioEntry[] {
     return scenarioCheck.get(asset.id) ?? [];
 }
-
-onMounted(() => {
-    // Initialise from the store so re-opening the browser keeps prior results.
-    searchInput.value = store.searchTerm;
-    sort.value = store.sort;
-    if (store.assets.length === 0) {
-        runSearch(1);
-    }
-});
 </script>
 
 <template>
     <div class="browser">
+        <div v-if="assetLoading && !selectedAsset" class="state-msg state-loading">
+            <span>Loading asset…</span>
+            <button class="btn btn-ghost btn-sm" type="button" @click="closeDetail">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back to results
+            </button>
+        </div>
+
+        <div v-else-if="assetError" class="state-msg state-error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <path d="M12 9v4M12 17h.01" />
+            </svg>
+            <div>
+                <p class="state-title">Couldn't load this mod</p>
+                <p class="state-sub">It may have been removed or made private, or the workshop is unreachable.</p>
+            </div>
+            <button class="btn btn-sm" type="button" @click="closeDetail">Back to results</button>
+        </div>
+
         <!-- Detail view -->
         <WorkshopAssetDetail
-            v-if="selectedAsset"
+            v-else-if="selectedAsset"
             :asset="selectedAsset"
             :selectable="selectable"
             :mission-selectable="missionSelectable"
@@ -378,6 +478,12 @@ onMounted(() => {
     font-size: 14px;
     padding: 32px 0;
     text-align: center;
+}
+.state-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 .state-error {
     display: flex;
