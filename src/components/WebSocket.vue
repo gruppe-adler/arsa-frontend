@@ -51,7 +51,7 @@ async function connectWebSocket() {
     ws = useWebSocket(`${wsProtocol}://${api}/ws`, {
         heartbeat: {
             message: 'ping',
-            interval: 1000,
+            // vueuse >=15: default scheduler is a 1000ms interval
             pongTimeout: 1000
         },
         autoReconnect: true,
