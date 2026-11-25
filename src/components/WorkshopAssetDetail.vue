@@ -465,19 +465,6 @@ function formatNumber(n: number): string {
     gap: 8px;
 }
 
-.mission-popover-content {
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-    max-height: 240px;
-    overflow-y: auto;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px;
-}
 .mission-popover-item {
     display: block;
     width: 100%;

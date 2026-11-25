@@ -561,6 +561,25 @@ ul { padding-inline-start: 0; }
   }
 }
 
+/* ---------- popovers ---------- */
+/* "Set as mission" scenario picker (WorkshopBrowser, WorkshopAssetDetail).
+   Global rather than scoped: reka-ui wraps PopoverContent in a popper wrapper
+   that takes the component's scope attribute, so a scoped rule never matches
+   the element carrying this class. Sits above the workshop dialog (1001). */
+.mission-popover-content {
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+}
+
 /* ---------- mobile ---------- */
 @media (max-width: 480px) {
   :root { --gutter: 16px; }
