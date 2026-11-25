@@ -18,10 +18,10 @@ jobs:
 
         steps:
             - name: Checkout Repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Setup Node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v7
               with:
                   node-version: '23.x'
 
@@ -37,7 +37,7 @@ jobs:
               run: pnpm run build
 
             - name: Upload Production-Ready Build Files
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: production-files
                   path: ./dist
@@ -55,16 +55,16 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
             - name: Download Production-Ready Build Files
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: production-files
                   path: ./dist
 
             - name: Log in to the Container registry
-              uses: docker/login-action@v3
+              uses: docker/login-action@v4
               with:
                   registry: ${{ env.REGISTRY }}
                   username: ${{ github.actor }}
@@ -72,13 +72,13 @@ jobs:
 
             - name: Extract metadata (tags, labels) for Docker
               id: meta
-              uses: docker/metadata-action@v5
+              uses: docker/metadata-action@v6
               with:
                   images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
             - name: Build and push Docker image
               id: push
-              uses: docker/build-push-action@v6
+              uses: docker/build-push-action@v7
               with:
                   context: .
                   push: true
@@ -86,7 +86,7 @@ jobs:
                   labels: ${{ steps.meta.outputs.labels }}
 
             - name: Generate artifact attestation
-              uses: actions/attest-build-provenance@v2
+              uses: actions/attest-build-provenance@v4
               with:
                   subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
                   subject-digest: ${{ steps.push.outputs.digest }}
