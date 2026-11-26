@@ -11,34 +11,34 @@
         "docker-run": "docker run -d --rm -p 80:80 --name arsa-frontend arsa-frontend"
     },
     "dependencies": {
-        "@vueuse/core": "^11.1.0",
-        "ajv": "^8.17.1",
+        "@vue/devtools-api": "^8.2.1",
+        "@vueuse/core": "^15.0.0",
+        "ajv": "^8.20.0",
         "ajv-formats": "^3.0.1",
         "ajv-keywords": "^5.1.0",
         "fluent-json-schema": "^5.0.0",
         "is-ip": "^5.0.1",
-        "pinia": "^2.2.2",
-        "pretty-bytes": "^7.1.0",
-        "reka-ui": "^2.9.7",
-        "uuid": "^10.0.0",
-        "vue": "^3.4.37",
-        "vue-router": "^4.4.5"
+        "pinia": "^4.1.0",
+        "pretty-bytes": "^7.2.0",
+        "reka-ui": "^2.11.0",
+        "uuid": "^14.0.3",
+        "vue": "^3.5.46",
+        "vue-router": "^4.6.5"
     },
     "devDependencies": {
-        "@types/uuid": "^10.0.0",
         "@vitejs/plugin-vue": "^5.1.2",
-        "@vitest/eslint-plugin": "^1.6.17",
+        "@vitest/eslint-plugin": "^1.6.28",
         "@vue/eslint-config-prettier": "^10.2.0",
-        "@vue/eslint-config-typescript": "^14.7.0",
-        "eslint": "^10.3.0",
+        "@vue/eslint-config-typescript": "^14.9.0",
+        "eslint": "^10.15.0",
         "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-prettier": "^5.5.5",
-        "eslint-plugin-vue": "^10.9.1",
+        "eslint-plugin-prettier": "^5.5.7",
+        "eslint-plugin-vue": "^10.12.1",
         "jiti": "^2.7.0",
-        "orval": "^8.10.0",
-        "prettier": "^3.8.3",
-        "typescript": "^5.5.3",
+        "orval": "^8.49.0",
+        "prettier": "^3.10.1",
+        "typescript": "^6.0.3",
         "vite": "^5.4.1",
-        "vue-tsc": "^2.0.29"
+        "vue-tsc": "^3.3.14"
     }
 }
