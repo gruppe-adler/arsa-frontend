@@ -3,6 +3,9 @@
     "private": true,
     "version": "0.0.0",
     "type": "module",
+    "engines": {
+        "node": ">=26"
+    },
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc -b && vite build",
@@ -26,7 +29,7 @@
         "vue-router": "^4.6.5"
     },
     "devDependencies": {
-        "@vitejs/plugin-vue": "^5.1.2",
+        "@vitejs/plugin-vue": "^6.0.11",
         "@vitest/eslint-plugin": "^1.6.28",
         "@vue/eslint-config-prettier": "^10.2.0",
         "@vue/eslint-config-typescript": "^14.9.0",
@@ -38,7 +41,15 @@
         "orval": "^8.49.0",
         "prettier": "^3.10.1",
         "typescript": "^6.0.3",
-        "vite": "^5.4.1",
+        "vite": "^8.4.0",
         "vue-tsc": "^3.3.14"
+    },
+    "overrides": {
+        "typedoc": {
+            "minimatch": "^11.0.1"
+        }
+    },
+    "allowScripts": {
+        "esbuild": false
     }
 }

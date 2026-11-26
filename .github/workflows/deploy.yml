@@ -12,8 +12,8 @@ env:
     IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-    build-pnpm:
-        name: Build with PNPM
+    build-npm:
+        name: Build with npm
         runs-on: ubuntu-latest
 
         steps:
@@ -23,18 +23,14 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v7
               with:
-                  node-version: '23.x'
-
-            - name: Setup PNPM
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 10
+                  node-version-file: .nvmrc
+                  cache: npm
 
             - name: Install Dependencies
-              run: pnpm install
+              run: npm ci
 
             - name: Build Project
-              run: pnpm run build
+              run: npm run build
 
             - name: Upload Production-Ready Build Files
               uses: actions/upload-artifact@v7
@@ -44,7 +40,7 @@ jobs:
 
     build-and-push-docker-image:
         name: Build and Push Docker Image
-        needs: build-pnpm
+        needs: build-npm
         runs-on: ubuntu-latest
 
         permissions:
