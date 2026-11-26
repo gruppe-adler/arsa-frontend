@@ -3,11 +3,11 @@ See [here](https://github.com/gruppe-adler/arsa/blob/main/README.md) for install
 Install dependencies:
 
 ```bash
-pnpm i
+npm ci
 ```
 
 Run dev:
 
 ```bash
-pnpm run dev
+npm run dev
 ```
