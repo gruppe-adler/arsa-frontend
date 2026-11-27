@@ -291,7 +291,7 @@
         },
         "responses": {
           "200": {
-            "description": "The port group was updated",
+            "description": "The port group was updated. Servers on the group move to its new ports; running ones use them once started again.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/PortGroup" }

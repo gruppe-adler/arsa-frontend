@@ -19,7 +19,7 @@ import {
 } from 'reka-ui';
 import { PortConflictReason, PortConflictResponse, PortGroup, ServerConfig } from '../api/model';
 import { useServersStore } from '../stores/servers';
-import { PORT_ROLES, a2sPort, portGroupLabel, portOf, portRoleLabel, rconPort } from '../utils/portGroups';
+import { PORT_ROLES, a2sPort, matchingPortGroup, portGroupLabel, portOf, portRoleLabel, rconPort } from '../utils/portGroups';
 
 const props = defineProps<{
     serverName: string;
@@ -38,11 +38,17 @@ const emit = defineEmits<{
 
 const selectedId = ref<string>('');
 
+// Switching to the group the server is already on would fail the same way. The backend leaves it
+// out already; this keeps the dialog right if it doesn't.
+const choices = computed<PortGroup[]>(
+    () => props.conflict?.freePortGroups.filter(group => !matchingPortGroup(props.config, [group])) ?? []
+);
+
 // Preselect the first free group whenever a new conflict comes in.
 watch(
     () => props.conflict,
-    conflict => {
-        selectedId.value = conflict?.freePortGroups[0] ? String(conflict.freePortGroups[0].id) : '';
+    () => {
+        selectedId.value = choices.value[0] ? String(choices.value[0].id) : '';
     },
     { immediate: true }
 );
@@ -77,7 +83,7 @@ const portRows = computed(() =>
     })
 );
 
-const selectedGroup = computed(() => props.conflict?.freePortGroups.find(g => String(g.id) === selectedId.value));
+const selectedGroup = computed(() => choices.value.find(g => String(g.id) === selectedId.value));
 
 function onOpenChange(open: boolean) {
     if (!open) {
@@ -121,7 +127,7 @@ function onSwitch() {
                     </tbody>
                 </table>
 
-                <template v-if="conflict.freePortGroups.length">
+                <template v-if="choices.length">
                     <label class="form-input-label" for="port-conflict-group">Switch to a free port group</label>
                     <SelectRoot v-model="selectedId" :disabled="busy">
                         <SelectTrigger id="port-conflict-group" class="select-input select-trigger">
@@ -142,12 +148,7 @@ function onSwitch() {
                         <SelectPortal>
                             <SelectContent class="select-content" position="popper" :sideOffset="4">
                                 <SelectViewport>
-                                    <SelectItem
-                                        v-for="group in conflict.freePortGroups"
-                                        :key="group.id"
-                                        :value="String(group.id)"
-                                        class="select-item"
-                                    >
+                                    <SelectItem v-for="group in choices" :key="group.id" :value="String(group.id)" class="select-item">
                                         <SelectItemText>{{ portGroupLabel(group) }}</SelectItemText>
                                     </SelectItem>
                                 </SelectViewport>
@@ -166,12 +167,7 @@ function onSwitch() {
 
                 <div class="dialog-actions">
                     <DialogClose class="btn btn-ghost" :disabled="busy">Cancel</DialogClose>
-                    <button
-                        v-if="conflict.freePortGroups.length"
-                        class="btn btn-primary"
-                        :disabled="busy || !selectedGroup"
-                        @click="onSwitch"
-                    >
+                    <button v-if="choices.length" class="btn btn-primary" :disabled="busy || !selectedGroup" @click="onSwitch">
                         {{ busy ? 'Starting…' : 'Switch and start' }}
                     </button>
                 </div>

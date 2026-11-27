@@ -16,11 +16,11 @@ import { applyPortGroup, portGroupForNewServer } from '../utils/portGroups';
 const router = useRouter();
 const serversStore = useServersStore();
 const defaultsStore = useDefaultsStore();
-const server = ref<Server>(Object.assign({}, defaultServer));
+// Deep copy, so filling in the form (and assigning a port group) doesn't change the defaults it started from.
+const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+const server = ref<Server>(copy(defaultServer));
 const inputViolationCounter = ref(0);
 
-// Global defaults live on the backend (editable via /defaults); fall back to the
-// bundled static defaults if they can't be reached rather than blocking the form.
 const portGroupsStore = usePortGroupsStore();
 const settingsStore = useSettingsStore();
 
@@ -37,6 +37,8 @@ async function assignFreePortGroup() {
     }
 }
 
+// Global defaults live on the backend (editable via /defaults); fall back to the
+// bundled static defaults if they can't be reached rather than blocking the form.
 defaultsStore
     .get()
     .then(defaults => {
@@ -46,8 +48,8 @@ defaultsStore
             playerCount: 0,
             name: defaults.name,
             branch: defaults.branch,
-            config: defaults.config,
-            startupParameters: defaults.startupParameters
+            config: copy(defaults.config),
+            startupParameters: copy(defaults.startupParameters)
         };
     })
     .catch(() => {})

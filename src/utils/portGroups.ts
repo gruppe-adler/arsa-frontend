@@ -101,13 +101,24 @@ export function firewallRanges(groups: PortGroup[]): string {
     return ranges.map(([from, to]) => `${from}–${to}`).join(', ');
 }
 
-/** The next game port after the highest group, or 2001 (the ARS default) when there are none. */
+/**
+ * The next game port after the highest group, or 2001 (the ARS default) when there are none.
+ * When that would pass the highest allowed port, the lowest port that overlaps no group.
+ */
 export function nextGamePort(groups: PortGroup[]): number {
     if (groups.length === 0) {
         return 2001;
     }
     const next = Math.max(...groups.map(a2sPort)) + 1;
-    return next <= MAX_GAME_PORT ? next : MIN_GAME_PORT;
+    if (next <= MAX_GAME_PORT) {
+        return next;
+    }
+    for (let port = MIN_GAME_PORT; port <= MAX_GAME_PORT; port++) {
+        if (groups.every(group => Math.abs(group.gamePort - port) >= 3)) {
+            return port;
+        }
+    }
+    return MIN_GAME_PORT;
 }
 
 /** The conflict details when starting a server failed because its ports are taken. */

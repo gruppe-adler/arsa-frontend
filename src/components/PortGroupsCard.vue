@@ -118,10 +118,23 @@ function saveGroup(group: PortGroup) {
     if (!draft) {
         return;
     }
+    // The backend moves the group's servers to the new ports, so say which ones.
+    const users = serversInPortGroup(group, serversStore.servers);
+    if (draft.gamePort !== group.gamePort && users.length) {
+        const names = users.map(s => `"${s.name}"`).join(', ');
+        const running = users.some(s => s.isRunning) ? ' Running servers use the new ports once they are started again.' : '';
+        const question = `Move ${names} to ports ${draft.gamePort}–${draft.gamePort + 2} along with "${group.name}"?${running}`;
+        if (!confirm(question)) {
+            return;
+        }
+    }
     run(async () => {
         const updated = await portGroupsStore.update(group.id, { name: draft.name.trim(), gamePort: draft.gamePort });
         if (updated) {
             drafts.set(group.id, { name: updated.name, gamePort: updated.gamePort });
+            if (users.length && updated.gamePort !== group.gamePort) {
+                await serversStore.getAll();
+            }
         }
     });
 }
@@ -132,8 +145,11 @@ function revertGroup(group: PortGroup) {
 
 function deleteGroup(group: PortGroup) {
     const users = serversInPortGroup(group, serversStore.servers);
+    const blocked = settingsStore.portGroupsOnly
+        ? ` Only port groups are allowed, so ${users.length === 1 ? 'it' : 'they'} can't be saved or started until ${users.length === 1 ? 'it picks' : 'they pick'} another group.`
+        : '';
     const note = users.length
-        ? ` ${users.length} server${users.length === 1 ? '' : 's'} keep${users.length === 1 ? 's' : ''} these ports as custom ports.`
+        ? ` ${users.length} server${users.length === 1 ? '' : 's'} keep${users.length === 1 ? 's' : ''} these ports as custom ports.${blocked}`
         : '';
     if (confirm(`Delete port group "${group.name}" (${group.gamePort}–${a2sPort(group)})?${note}`)) {
         run(() => portGroupsStore.remove(group.id));
