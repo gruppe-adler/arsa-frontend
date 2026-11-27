@@ -9,6 +9,9 @@ import ConfigUploadDownload from '../components/ConfigUploadDownload.vue';
 import FormTabs from '../components/FormTabs.vue';
 import { Server } from '../api/model';
 import { SettingOrModTab } from '../utils/type.ts';
+import { usePortGroupsStore } from '../stores/portGroups';
+import { useSettingsStore } from '../stores/settings';
+import { applyPortGroup, portGroupForNewServer } from '../utils/portGroups';
 
 const router = useRouter();
 const serversStore = useServersStore();
@@ -18,6 +21,22 @@ const inputViolationCounter = ref(0);
 
 // Global defaults live on the backend (editable via /defaults); fall back to the
 // bundled static defaults if they can't be reached rather than blocking the form.
+const portGroupsStore = usePortGroupsStore();
+const settingsStore = useSettingsStore();
+
+// Put the new server on a port group no server uses yet, so it can run next to the others.
+async function assignFreePortGroup() {
+    try {
+        const [groups, settings] = await Promise.all([portGroupsStore.load(), settingsStore.load(), serversStore.getAll()]);
+        const group = portGroupForNewServer(server.value.config, groups, serversStore.servers, !!settings.portGroupsOnly);
+        if (group) {
+            applyPortGroup(server.value.config, group);
+        }
+    } catch {
+        // Keep the default ports.
+    }
+}
+
 defaultsStore
     .get()
     .then(defaults => {
@@ -31,7 +50,8 @@ defaultsStore
             startupParameters: defaults.startupParameters
         };
     })
-    .catch(() => {});
+    .catch(() => {})
+    .finally(assignFreePortGroup);
 const disabled = computed<boolean>(() => inputViolationCounter.value > 0);
 const activeTab = ref<string>('settings');
 const configForm = ref<InstanceType<typeof ConfigForm>>();

@@ -63,8 +63,10 @@ export async function getServer(uuid: string): Promise<Server> {
     return response.data as unknown as Server;
 }
 
+/** Throws an `ApiError` with status 409 and a `PortConflictResponse` body when the server's ports are taken. */
 export async function startServer(uuid: string): Promise<boolean> {
-    const response = await apiStartServer(uuid);
+    // Port conflicts are shown in a dialog instead of an error toast.
+    const response = await apiStartServer(uuid, { silentStatuses: [409] });
     return response.status === 200;
 }
 

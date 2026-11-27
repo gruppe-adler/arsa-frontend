@@ -22,6 +22,9 @@ import type {
     LogType,
     PaginatedResponseGlobalLog,
     PlayerIdentityId,
+    PortConflictResponse,
+    PortGroup,
+    PortGroupRequest,
     PostServerBody,
     ProfileFileListResponse,
     PullLog,
@@ -31,6 +34,7 @@ import type {
     ResultSize,
     Server,
     ServerDefaults,
+    Settings,
     SuccessResponse,
     UuidResponse,
     WorkshopResponse
@@ -276,6 +280,165 @@ export const getGlobalLogs = async (
     return customFetch<getGlobalLogsResponse>(getGetGlobalLogsUrl(params), {
         ...options,
         method: 'GET'
+    });
+};
+
+export type getPortGroupsResponse200 = {
+    data: PortGroup[];
+    status: 200;
+};
+
+export type getPortGroupsResponseSuccess = getPortGroupsResponse200 & {
+    headers: Headers;
+};
+export type getPortGroupsResponse = getPortGroupsResponseSuccess;
+
+export const getGetPortGroupsUrl = () => {
+    return `/api/v2/port-groups`;
+};
+
+export const getPortGroups = async (options?: Parameters<typeof customFetch>[1]): Promise<getPortGroupsResponse> => {
+    return customFetch<getPortGroupsResponse>(getGetPortGroupsUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type postPortGroupResponse200 = {
+    data: PortGroup;
+    status: 200;
+};
+
+export type postPortGroupResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type postPortGroupResponse401 = {
+    data: ErrorResponse;
+    status: 401;
+};
+
+export type postPortGroupResponse409 = {
+    data: ErrorResponse;
+    status: 409;
+};
+
+export type postPortGroupResponseSuccess = postPortGroupResponse200 & {
+    headers: Headers;
+};
+export type postPortGroupResponseError = (postPortGroupResponse400 | postPortGroupResponse401 | postPortGroupResponse409) & {
+    headers: Headers;
+};
+
+export type postPortGroupResponse = postPortGroupResponseSuccess | postPortGroupResponseError;
+
+export const getPostPortGroupUrl = () => {
+    return `/api/v2/port-groups`;
+};
+
+export const postPortGroup = async (
+    portGroupRequest: PortGroupRequest,
+    options?: Parameters<typeof customFetch>[1]
+): Promise<postPortGroupResponse> => {
+    return customFetch<postPortGroupResponse>(getPostPortGroupUrl(), {
+        ...options,
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+        body: JSON.stringify(portGroupRequest)
+    });
+};
+
+export type putPortGroupResponse200 = {
+    data: PortGroup;
+    status: 200;
+};
+
+export type putPortGroupResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type putPortGroupResponse401 = {
+    data: ErrorResponse;
+    status: 401;
+};
+
+export type putPortGroupResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type putPortGroupResponse409 = {
+    data: ErrorResponse;
+    status: 409;
+};
+
+export type putPortGroupResponseSuccess = putPortGroupResponse200 & {
+    headers: Headers;
+};
+export type putPortGroupResponseError = (
+    putPortGroupResponse400 | putPortGroupResponse401 | putPortGroupResponse404 | putPortGroupResponse409
+) & {
+    headers: Headers;
+};
+
+export type putPortGroupResponse = putPortGroupResponseSuccess | putPortGroupResponseError;
+
+export const getPutPortGroupUrl = (id: number) => {
+    return `/api/v2/port-groups/${id}`;
+};
+
+export const putPortGroup = async (
+    id: number,
+    portGroupRequest: PortGroupRequest,
+    options?: Parameters<typeof customFetch>[1]
+): Promise<putPortGroupResponse> => {
+    return customFetch<putPortGroupResponse>(getPutPortGroupUrl(id), {
+        ...options,
+        method: 'PUT',
+        headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+        body: JSON.stringify(portGroupRequest)
+    });
+};
+
+export type deletePortGroupResponse200 = {
+    data: SuccessResponse;
+    status: 200;
+};
+
+export type deletePortGroupResponse401 = {
+    data: ErrorResponse;
+    status: 401;
+};
+
+export type deletePortGroupResponse404 = {
+    data: ErrorResponse;
+    status: 404;
+};
+
+export type deletePortGroupResponse409 = {
+    data: ErrorResponse;
+    status: 409;
+};
+
+export type deletePortGroupResponseSuccess = deletePortGroupResponse200 & {
+    headers: Headers;
+};
+export type deletePortGroupResponseError = (deletePortGroupResponse401 | deletePortGroupResponse404 | deletePortGroupResponse409) & {
+    headers: Headers;
+};
+
+export type deletePortGroupResponse = deletePortGroupResponseSuccess | deletePortGroupResponseError;
+
+export const getDeletePortGroupUrl = (id: number) => {
+    return `/api/v2/port-groups/${id}`;
+};
+
+export const deletePortGroup = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<deletePortGroupResponse> => {
+    return customFetch<deletePortGroupResponse>(getDeletePortGroupUrl(id), {
+        ...options,
+        method: 'DELETE'
     });
 };
 
@@ -884,10 +1047,15 @@ export type startServerResponse404 = {
     status: 404;
 };
 
+export type startServerResponse409 = {
+    data: PortConflictResponse;
+    status: 409;
+};
+
 export type startServerResponseSuccess = startServerResponse200 & {
     headers: Headers;
 };
-export type startServerResponseError = startServerResponse404 & {
+export type startServerResponseError = (startServerResponse404 | startServerResponse409) & {
     headers: Headers;
 };
 
@@ -961,6 +1129,64 @@ export const stopServer = async (id: string, options?: Parameters<typeof customF
     return customFetch<stopServerResponse>(getStopServerUrl(id), {
         ...options,
         method: 'GET'
+    });
+};
+
+export type getSettingsResponse200 = {
+    data: Settings;
+    status: 200;
+};
+
+export type getSettingsResponseSuccess = getSettingsResponse200 & {
+    headers: Headers;
+};
+export type getSettingsResponse = getSettingsResponseSuccess;
+
+export const getGetSettingsUrl = () => {
+    return `/api/v2/settings`;
+};
+
+export const getSettings = async (options?: Parameters<typeof customFetch>[1]): Promise<getSettingsResponse> => {
+    return customFetch<getSettingsResponse>(getGetSettingsUrl(), {
+        ...options,
+        method: 'GET'
+    });
+};
+
+export type putSettingsResponse200 = {
+    data: Settings;
+    status: 200;
+};
+
+export type putSettingsResponse400 = {
+    data: ErrorResponse;
+    status: 400;
+};
+
+export type putSettingsResponse401 = {
+    data: ErrorResponse;
+    status: 401;
+};
+
+export type putSettingsResponseSuccess = putSettingsResponse200 & {
+    headers: Headers;
+};
+export type putSettingsResponseError = (putSettingsResponse400 | putSettingsResponse401) & {
+    headers: Headers;
+};
+
+export type putSettingsResponse = putSettingsResponseSuccess | putSettingsResponseError;
+
+export const getPutSettingsUrl = () => {
+    return `/api/v2/settings`;
+};
+
+export const putSettings = async (settings: Settings, options?: Parameters<typeof customFetch>[1]): Promise<putSettingsResponse> => {
+    return customFetch<putSettingsResponse>(getPutSettingsUrl(), {
+        ...options,
+        method: 'PUT',
+        headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
+        body: JSON.stringify(settings)
     });
 };
 

@@ -7,6 +7,7 @@ import { useServerOrganization } from '../composables/useServerOrganization';
 import ServerItem from '../components/ServerItem.vue';
 import HostServerLog from '../components/HostServerLog.vue';
 import { Server } from '../api/model';
+import { usePortGroupsStore } from '../stores/portGroups';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -109,6 +110,12 @@ function onClusterDrop(targetCluster: string, event: DragEvent) {
 }
 
 onMounted(async () => {
+    // Fresh groups, so each server shows its current port group.
+    usePortGroupsStore()
+        .load(true)
+        .catch(() => {
+            // customFetch already showed the error; servers then show their game port only
+        });
     await serversStore.getPublicIp();
     await updateServerList();
 });
