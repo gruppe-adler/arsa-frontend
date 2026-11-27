@@ -9,6 +9,7 @@ import { useRoute } from 'vue-router';
 import Dialog from '../components/Dialog.vue';
 import { useScenarioStore } from '../stores/scenarios.ts';
 import { useToast } from '../composables/useToast.ts';
+import PortGroupsCard from '../components/PortGroupsCard.vue';
 
 const serversStore = useServersStore();
 const logsStore = useLogsStore();
@@ -191,6 +192,8 @@ updateArsStatus();
                     </button>
                 </div>
             </div>
+
+            <PortGroupsCard />
         </div>
         <ImagePullLog></ImagePullLog>
         <div class="log-header">

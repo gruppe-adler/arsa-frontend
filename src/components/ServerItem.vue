@@ -1,15 +1,71 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useServersStore } from '../stores/servers';
 import { useServerOrganization } from '../composables/useServerOrganization';
-import { ArsStatus, Server } from '../api/model';
+import { ArsStatus, PortConflictResponse, PortGroup, Server } from '../api/model';
+import PortConflictDialog from './PortConflictDialog.vue';
+import { usePortGroupsStore } from '../stores/portGroups';
+import { useSettingsStore } from '../stores/settings';
+import { applyPortGroup, asPortConflict, matchingPortGroup, portGroupForNewServer } from '../utils/portGroups';
 
 const model = defineModel<Server>();
 const emit = defineEmits(['serverDeleted', 'serverCloned']);
 const router = useRouter();
 const serversStore = useServersStore();
 const { moveServer } = useServerOrganization();
+const portGroupsStore = usePortGroupsStore();
+
+const portGroup = computed(() => (model.value ? matchingPortGroup(model.value.config, portGroupsStore.portGroups) : undefined));
+const portsTitle = computed(() => {
+    const config = model.value?.config;
+    if (!config) {
+        return '';
+    }
+    const ports = `Game ${config.bindPort} · RCON ${config.rcon.port} · A2S ${config.a2s.port}`;
+    return portGroup.value ? `Port group "${portGroup.value.name}": ${ports}` : `Custom ports: ${ports}`;
+});
+
+const portConflict = ref<PortConflictResponse | null>(null);
+const starting = ref(false);
+
+async function onClickStart() {
+    if (!model.value?.uuid) {
+        return;
+    }
+    starting.value = true;
+    try {
+        await serversStore.start(model.value.uuid);
+        portConflict.value = null;
+    } catch (error) {
+        // Other errors were already shown as a toast.
+        portConflict.value = asPortConflict(error);
+    } finally {
+        starting.value = false;
+    }
+}
+
+async function switchPortGroupAndStart(group: PortGroup) {
+    if (!model.value?.uuid) {
+        return;
+    }
+    starting.value = true;
+    try {
+        // Fetch the stored server so only its ports change, not other unsaved state.
+        const server = await serversStore.get(model.value.uuid);
+        applyPortGroup(server.config, group);
+        if (!(await serversStore.update(server))) {
+            return;
+        }
+        model.value.config = server.config;
+    } catch {
+        return;
+    } finally {
+        starting.value = false;
+    }
+    // Opens the dialog again if the new ports are taken by now, too.
+    await onClickStart();
+}
 
 const copyState = ref<'idle' | 'copied'>('idle');
 let copyTimer: ReturnType<typeof setTimeout>;
@@ -57,14 +113,29 @@ function onClickDelete() {
         serversStore.delete(model.value.uuid).then(() => emit('serverDeleted'));
     }
 }
-function onClickClone() {
+async function onClickClone() {
     if (!model.value) {
         return;
     }
-    const server: Server = { ...model.value };
+    // Deep copy, so changing the clone's ports doesn't change this server.
+    const server: Server = JSON.parse(JSON.stringify(model.value));
     server.name = server.name.concat(' Duplicate');
     server.uuid = '';
     server.isRunning = false;
+    server.playerCount = 0;
+
+    // The clone would share this server's ports, so give it a port group no server uses yet.
+    const [groups, settings] = await Promise.all([
+        portGroupsStore.load().catch(() => []),
+        useSettingsStore()
+            .load()
+            .catch(() => ({ portGroupsOnly: false }))
+    ]);
+    const group = portGroupForNewServer(server.config, groups, serversStore.servers, !!settings.portGroupsOnly);
+    if (group) {
+        applyPortGroup(server.config, group);
+    }
+
     serversStore.add(server).then(() => emit('serverCloned'));
 }
 function serverRoute(tab?: string) {
@@ -120,7 +191,9 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
         <div class="server-meta">
             <a class="server-name">{{ model!.name }}</a>
             <div class="server-info">
-                <span class="port-tag">:{{ model!.config.bindPort }}</span>
+                <span class="port-tag" :class="{ 'port-group-tag': portGroup }" :title="portsTitle">
+                    <template v-if="portGroup">{{ portGroup.name }} · </template>:{{ model!.config.bindPort }}
+                </span>
                 <span class="players-tag" :title="`${model!.playerCount} player${model!.playerCount === 1 ? '' : 's'} online`">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -175,10 +248,18 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="1" /></svg>
                 Stop
             </button>
-            <button v-else class="btn btn-start" :disabled="!arsAvailable()" @click="serversStore.start(model!.uuid!)">
+            <button v-else class="btn btn-start" :disabled="!arsAvailable() || starting" @click="onClickStart">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l16 8-16 8z" /></svg>
                 Start
             </button>
+            <PortConflictDialog
+                :serverName="model!.name"
+                :config="model!.config"
+                :conflict="portConflict"
+                :busy="starting"
+                @close="portConflict = null"
+                @switch="switchPortGroupAndStart"
+            />
 
             <span class="divider-v"></span>
 
@@ -272,6 +353,13 @@ const arsAvailable = () => serversStore.arsStatus === ArsStatus.Available;
     align-items: center;
     font-size: 12px;
     color: var(--ink-3);
+}
+
+.port-group-tag {
+    color: var(--indigo);
+    background: var(--indigo-soft);
+    border-color: color-mix(in oklab, var(--indigo), transparent 65%);
+    white-space: nowrap;
 }
 
 .players-tag {

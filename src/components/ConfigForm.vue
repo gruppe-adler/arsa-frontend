@@ -15,6 +15,9 @@ import FormTabs from './FormTabs.vue';
 import MissionSelect from './MissionSelect.vue';
 import { Branch, Server } from '../api/model';
 import FormAdminInput from './FormAdminInput.vue';
+import FormPortGroupInput from './FormPortGroupInput.vue';
+import { usePortGroupsStore } from '../stores/portGroups';
+import { useSettingsStore } from '../stores/settings';
 
 const props = defineProps({
     readonly: Boolean,
@@ -53,6 +56,19 @@ watch(namesCoupled, coupled => {
         server.value.config.game.name = server.value.name;
     }
 });
+
+const portGroupsStore = usePortGroupsStore();
+// Refetch each time a form opens, so groups an admin just added can be picked.
+portGroupsStore.load(true).catch(() => {
+    // customFetch already showed the error; the port group field then says there are no groups
+});
+
+const settingsStore = useSettingsStore();
+settingsStore.load().catch(() => {
+    // customFetch already showed the error; the backend still rejects custom ports if they aren't allowed
+});
+// Ports come from the port group only, so the port fields can't be edited by hand.
+const portsLocked = computed(() => props.readonly || settingsStore.portGroupsOnly);
 
 type SettingsSubTab = 'server' | 'advanced';
 type ViolationLocation = { tab: 'settings' | 'mods'; subTab?: SettingsSubTab };
@@ -179,6 +195,21 @@ defineExpose({
                     </div>
                 </div>
 
+                <!-- Ports -->
+                <div class="form-section">
+                    <div class="form-section-head">
+                        <h2>Ports</h2>
+                        <p>Servers that run at the same time need different ports. Pick a port group no other server uses.</p>
+                    </div>
+                    <div class="field-list">
+                        <FormPortGroupInput
+                            v-model:server="server"
+                            :readonly="props.readonly"
+                            @violation="v => setViolation('portGroup', 'settings', 'server', v)"
+                        />
+                    </div>
+                </div>
+
                 <!-- Branch -->
                 <div class="form-section">
                     <div class="form-section-head">
@@ -222,6 +253,9 @@ defineExpose({
                     <div class="form-section-head">
                         <h2>Network — bind &amp; public</h2>
                         <p>The interface ARS binds to locally, and the address advertised to the server browser.</p>
+                        <p v-if="settingsStore.portGroupsOnly" class="locked-note">
+                            This host only allows port groups. Game, public, A2S and RCON ports come from the port group in the Basic tab.
+                        </p>
                     </div>
                     <div class="field-list">
                         <FormIpAddressInput
@@ -238,7 +272,7 @@ defineExpose({
                             :tooltip="'Local UDP port the server binds to. Must be open in firewall and forwarded if behind NAT. Range: 1-65535, Default: 2001'"
                             :minVal="1"
                             :maxVal="65535"
-                            :readonly="props.readonly"
+                            :readonly="portsLocked"
                             field-id="network.bindPort"
                             @violation="v => setViolation('network.bindPort', 'settings', 'advanced', v)"
                         />
@@ -256,7 +290,7 @@ defineExpose({
                             :tooltip="'Public UDP port advertised to server browser and players. Should match bindPort or forwarded port if using NAT. Range: 1-65535, Default: 2001'"
                             :minVal="1"
                             :maxVal="65535"
-                            :readonly="props.readonly"
+                            :readonly="portsLocked"
                             field-id="network.publicPort"
                             @violation="v => setViolation('network.publicPort', 'settings', 'advanced', v)"
                         />
@@ -284,7 +318,7 @@ defineExpose({
                             :tooltip="'UDP port for Steam A2S query protocol. Must be accessible from internet for server listing. Range: 1-65535, Default: 17777'"
                             :minVal="1"
                             :maxVal="65535"
-                            :readonly="props.readonly"
+                            :readonly="portsLocked"
                             field-id="a2s.port"
                             @violation="v => setViolation('a2s.port', 'settings', 'advanced', v)"
                         />
@@ -312,7 +346,7 @@ defineExpose({
                             :tooltip="'TCP port for RCON connections. Used by admin tools to remotely control the server. Range: 1-65535, Default: 19999'"
                             :minVal="1"
                             :maxVal="65535"
-                            :readonly="props.readonly"
+                            :readonly="portsLocked"
                             field-id="rcon.port"
                             @violation="v => setViolation('rcon.port', 'settings', 'advanced', v)"
                         />
@@ -606,6 +640,11 @@ defineExpose({
 
 .sub-tabs {
     margin-bottom: 24px;
+}
+
+.locked-note {
+    margin-top: 8px;
+    color: oklch(55% 0.1 75);
 }
 
 .violation-notice {

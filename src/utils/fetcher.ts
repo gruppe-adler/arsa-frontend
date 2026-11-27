@@ -21,13 +21,31 @@ const getBody = <T>(c: Response | Request): Promise<T> => {
     return c.text() as Promise<T>;
 };
 
-export const customFetch = async <T>(url: string, options: RequestInit): Promise<T> => {
+/** Thrown for every non-2xx response. Keeps the status and parsed body so callers can react to specific errors. */
+export class ApiError extends Error {
+    constructor(
+        message: string,
+        readonly status: number,
+        readonly body: unknown
+    ) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
+
+export type FetchOptions = RequestInit & {
+    /** Statuses the caller handles itself, so no error toast is shown for them. */
+    silentStatuses?: number[];
+};
+
+export const customFetch = async <T>(url: string, options: FetchOptions): Promise<T> => {
     if (API_URL) {
         url = API_URL + url;
     }
 
+    const { silentStatuses, ...requestOptions } = options;
     const response = await fetch(url, {
-        ...options,
+        ...requestOptions,
         headers: {
             ...options.headers,
             'Content-Type': 'application/json'
@@ -43,6 +61,9 @@ export const customFetch = async <T>(url: string, options: RequestInit): Promise
 
         const body = await response.json().catch(() => null);
         const message = body?.message || `Error ${response.status}`;
+        if (silentStatuses?.includes(response.status)) {
+            throw new ApiError(message, response.status, body);
+        }
         window.dispatchEvent(
             new CustomEvent<ToastParameters>('app:toast', {
                 detail: {
@@ -53,7 +74,7 @@ export const customFetch = async <T>(url: string, options: RequestInit): Promise
             })
         );
 
-        throw new Error(message);
+        throw new ApiError(message, response.status, body);
     }
 
     const data = await getBody<T>(response);
