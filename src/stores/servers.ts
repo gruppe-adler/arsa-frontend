@@ -89,8 +89,15 @@ export const useServersStore = defineStore('servers', {
         async getLogs(uuid: string, options?: FetchOptions): Promise<ResultLogs> {
             return await getLogs(uuid, options);
         },
-        async getLog(uuid: string, log: string, file: LogType, offset?: number, options?: FetchOptions): Promise<LogFileChunkResponse> {
-            return await getLog(uuid, log, file, offset, options);
+        async getLog(
+            uuid: string,
+            log: string,
+            file: LogType,
+            offset?: number,
+            head?: string,
+            options?: FetchOptions
+        ): Promise<LogFileChunkResponse> {
+            return await getLog(uuid, log, file, offset, head, options);
         },
         async getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
             return await getCrashReportsLog(uuid);

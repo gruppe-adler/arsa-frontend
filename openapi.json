@@ -1074,6 +1074,13 @@
             "description": "Byte offset to read from (the `offset` returned by the previous request).\nOmit to read the whole file.",
             "required": false,
             "schema": { "type": "integer", "format": "int64", "minimum": 0 }
+          },
+          {
+            "name": "head",
+            "in": "query",
+            "description": "The `head` returned by the previous request. When the start of the file no\nlonger matches it, the file was replaced and is read from the start again.",
+            "required": false,
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -2133,7 +2140,7 @@
       "LogFileChunkResponse": {
         "type": "object",
         "description": "A chunk of a (possibly still growing) log file, read from a byte offset.",
-        "required": ["file_content", "offset", "reset"],
+        "required": ["file_content", "offset", "reset", "head"],
         "properties": {
           "file_content": {
             "type": "string",
@@ -2147,7 +2154,11 @@
           },
           "reset": {
             "type": "boolean",
-            "description": "True when the requested offset was past the end of the file (the file was\ntruncated or replaced) and the content was read from the start instead"
+            "description": "True when the file was truncated or replaced since the previous request (the\noffset is past its end, or its start no longer matches `head`), so the content\nwas read from the start instead"
+          },
+          "head": {
+            "type": "string",
+            "description": "Fingerprint of the start of the file; pass it with `offset` on the next request"
           }
         }
       },

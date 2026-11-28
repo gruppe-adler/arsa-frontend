@@ -16,8 +16,16 @@ const TOPBAR_HEIGHT_PX = 60;
 const REQUEST_TIMEOUT_MS = 10_000;
 /** How often to check whether the server started a new log session. */
 const SESSION_CHECK_INTERVAL_MS = 15_000;
+/**
+ * Lines kept on screen. Past this the oldest are dropped (down to TRIM_TO of it),
+ * so a Live tab left open for days stays responsive.
+ */
+const MAX_LINES = 100_000;
+const TRIM_TO = 0.8;
+/** Log session directories, as named by the server (matches the backend's LOG_DIR_NAME_REGEX). */
+const LOG_DIR_REGEX = /^logs_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$/;
 /** Polls run in the background: no error toasts, never served from cache, never hang. */
-const SILENT_STATUSES = [400, 404, 500, 502, 503, 504];
+const SILENT_STATUSES = [400, 401, 403, 404, 500, 502, 503, 504];
 function pollOptions(): FetchOptions {
     return { silentStatuses: SILENT_STATUSES, cache: 'no-store', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
 }
@@ -30,6 +38,8 @@ const loading = ref(true);
 const found = ref(false);
 const arsVersion = ref('');
 const pollError = ref(false);
+/** Old lines were dropped to stay under the line limit. */
+const trimmed = ref(false);
 const logEl = ref<HTMLElement | null>(null);
 /** New lines that arrived while the reader was scrolled away from the live end. */
 const unseenLines = ref(0);
@@ -42,19 +52,26 @@ const visibility = useDocumentVisibility();
 
 /**
  * The log is kept as append-only chunks of complete lines, one per fetch that
- * returned data. Each chunk renders as a single text node, so a poll only ever
- * inserts one new node and never rebuilds what is already on screen.
+ * returned data, oldest chunk first. Each chunk renders as a single text node, so a
+ * poll only ever inserts one new node and never rebuilds what is already on screen.
+ * A chunk's `text` holds its lines in display order (newest line first when
+ * `newestFirst` is on), so only one copy of the log is kept.
  */
 interface Chunk {
     id: number;
     text: string;
-    reversed: string;
+    lines: number;
 }
 const chunks = shallowRef<Chunk[]>([]);
 /** Trailing partial line (no newline yet); merged into the next chunk. */
 const tail = ref('');
 
 let offset = 0;
+/** Fingerprint of the file start, so the backend can tell when the file was replaced. */
+let head: string | undefined;
+let totalLines = 0;
+/** Line limit for this load: at least the size of the file as first loaded. */
+let lineLimit = MAX_LINES;
 let nextChunkId = 0;
 /** Bumped on every full reload so in-flight polls for the old state are dropped. */
 let generation = 0;
@@ -64,6 +81,7 @@ let lastSessionCheck = 0;
 
 const orderedChunks = computed(() => (newestFirst.value ? [...chunks.value].reverse() : chunks.value));
 const isEmpty = computed(() => chunks.value.length === 0 && !tail.value);
+const trimmedNote = 'Older lines were removed to keep the page responsive. Refresh to load the whole file.';
 
 const versionRegEx = /version ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) built ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{1,2}:[0-9]{2}:[0-9]{2} UTC)/;
 
@@ -79,20 +97,63 @@ function resetContent() {
     chunks.value = [];
     tail.value = '';
     offset = 0;
+    head = undefined;
+    totalLines = 0;
+    trimmed.value = false;
     arsVersion.value = '';
     unseenLines.value = 0;
+}
+
+function reverseLines(text: string): string {
+    return text.split('\n').reverse().join('\n');
+}
+
+/** Index of the `n`th newline (1-based) from the start, or from the end when `fromEnd`. */
+function nthNewline(text: string, n: number, fromEnd: boolean): number {
+    let index = fromEnd ? text.length : -1;
+    for (let i = 0; i < n; i++) {
+        index = fromEnd ? text.lastIndexOf('\n', index - 1) : text.indexOf('\n', index + 1);
+    }
+    return index;
+}
+
+/** Drop the oldest lines once the log grows past the line limit. */
+function trimOldest() {
+    if (totalLines <= lineLimit) return;
+
+    let excess = totalLines - Math.floor(lineLimit * TRIM_TO);
+    let kept = chunks.value;
+    let first = 0;
+    while (first < kept.length - 1 && kept[first].lines <= excess) {
+        excess -= kept[first].lines;
+        first++;
+    }
+    kept = kept.slice(first);
+
+    if (excess > 0) {
+        // Cut the oldest lines off the oldest remaining chunk, which sit at its end in newest-first order.
+        const chunk = kept[0];
+        const cut = nthNewline(chunk.text, excess, newestFirst.value);
+        const text = newestFirst.value ? chunk.text.slice(0, cut) : chunk.text.slice(cut + 1);
+        kept = [{ ...chunk, text, lines: chunk.lines - excess }, ...kept.slice(1)];
+    }
+
+    chunks.value = kept;
+    totalLines = kept.reduce((sum, chunk) => sum + chunk.lines, 0);
+    trimmed.value = true;
 }
 
 /** Add fetched content; returns the number of completed lines. */
 function ingest(content: string): number {
     if (!content) return 0;
 
+    const combined = tail.value + content;
+    // Match on the tail as well, so a version line split across two polls is still found.
     if (!arsVersion.value) {
-        const match = versionRegEx.exec(content);
+        const match = versionRegEx.exec(combined);
         if (match) arsVersion.value = `Arma Reforger Server v${match[1]} (build date ${match[2]})`;
     }
 
-    const combined = tail.value + content;
     const lastNewline = combined.lastIndexOf('\n');
     if (lastNewline === -1) {
         tail.value = combined;
@@ -104,8 +165,20 @@ function ingest(content: string): number {
     const lines = text.split('\n');
     // Replace the array rather than mutating it: `orderedChunks` hands this same array
     // to the template in oldest-first mode, and a mutated array would look unchanged.
-    chunks.value = [...chunks.value, { id: nextChunkId++, text, reversed: lines.reverse().join('\n') }];
+    chunks.value = [
+        ...chunks.value,
+        { id: nextChunkId++, text: newestFirst.value ? lines.reverse().join('\n') : text, lines: lines.length }
+    ];
+    totalLines += lines.length;
+    trimOldest();
     return lines.length;
+}
+
+/** Load a whole file. It is never trimmed, and leaves room to grow before trimming starts. */
+function ingestWhole(content: string) {
+    lineLimit = Infinity;
+    ingest(content);
+    lineLimit = Math.max(MAX_LINES, Math.ceil(totalLines / TRIM_TO));
 }
 
 /** Is the reader looking at the end of the log where new lines appear? */
@@ -128,6 +201,19 @@ function jumpToLiveEnd() {
 }
 
 /**
+ * Position of chunk `id`'s edge that faces the older lines. Measured on the chunk
+ * that was newest before an update: new lines and the tail only ever appear on its
+ * other side, and trimmed lines only beyond the older ones, so this edge moves
+ * exactly as far as the lines the reader is looking at. Null once it is trimmed away.
+ */
+function anchorEdge(id: number | undefined): number | null {
+    const el = id === undefined ? null : logEl.value?.querySelector(`[data-chunk="${id}"]`);
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return newestFirst.value ? rect.top : rect.bottom;
+}
+
+/**
  * Add polled content without yanking the reader around. At the live end the new
  * lines simply show up. Scrolled away, the view is held still and an indicator
  * counts the new lines. (Browser scroll anchoring is off for this page: it would
@@ -135,16 +221,21 @@ function jumpToLiveEnd() {
  */
 async function appendLive(content: string) {
     const following = isAtLiveEnd();
+    // Remember the chunk, not "the newest one": ingest() is about to add a newer one.
+    const anchorId = chunks.value[chunks.value.length - 1]?.id;
+    const anchorBefore = anchorEdge(anchorId);
     const heightBefore = logEl.value?.offsetHeight ?? 0;
     const added = ingest(content);
     await nextTick();
 
     if (following) {
         if (!newestFirst.value) scrollToBottom();
-    } else {
-        if (newestFirst.value) window.scrollBy(0, (logEl.value?.offsetHeight ?? 0) - heightBefore);
-        unseenLines.value += added;
+        return;
     }
+    const anchorAfter = anchorBefore === null ? null : anchorEdge(anchorId);
+    if (anchorBefore !== null && anchorAfter !== null) window.scrollBy(0, anchorAfter - anchorBefore);
+    else if (newestFirst.value) window.scrollBy(0, (logEl.value?.offsetHeight ?? 0) - heightBefore);
+    unseenLines.value += added;
 }
 
 useEventListener(
@@ -169,7 +260,10 @@ async function checkForNewerSession() {
     const { id, log } = params();
     try {
         const result = await serversStore.getLogs(id, pollOptions());
-        const newest = result.logs.reduce<Log | null>((max, entry) => (!max || entry.dir > max.dir ? entry : max), null);
+        // Only real session directories: anything else in the logs folder cannot be opened.
+        const newest = result.logs
+            .filter(entry => LOG_DIR_REGEX.test(entry.dir))
+            .reduce<Log | null>((max, entry) => (!max || entry.dir > max.dir ? entry : max), null);
         if (params().log === log) newerLog.value = newest && newest.dir > log ? newest : null;
     } catch {
         // Not important enough to report; try again on the next check.
@@ -192,6 +286,8 @@ async function reload(initial = false) {
     const gen = ++generation;
     reloading = true;
     pollError.value = false;
+    // A manual refresh only jumps to the end if the reader was already there.
+    const following = initial || isAtLiveEnd();
     if (initial) {
         loading.value = true;
         newerLog.value = null;
@@ -199,11 +295,12 @@ async function reload(initial = false) {
 
     try {
         const { id, log, file } = params();
-        const result = await serversStore.getLog(id, log, file, undefined, initial ? undefined : pollOptions());
+        const result = await serversStore.getLog(id, log, file, undefined, undefined, initial ? undefined : pollOptions());
         if (gen !== generation) return;
         resetContent();
-        ingest(result.file_content);
+        ingestWhole(result.file_content);
         offset = result.offset;
+        head = result.head;
         found.value = true;
     } catch {
         if (gen !== generation) return;
@@ -218,7 +315,7 @@ async function reload(initial = false) {
 
     if (gen === generation && found.value) {
         void checkForNewerSession();
-        if (!newestFirst.value) {
+        if (!newestFirst.value && following) {
             await nextTick();
             scrollToBottom();
         }
@@ -232,14 +329,26 @@ async function poll() {
 
     try {
         const { id, log, file } = params();
-        const result = await serversStore.getLog(id, log, file, offset, pollOptions());
+        const result = await serversStore.getLog(id, log, file, offset, head, pollOptions());
         if (gen !== generation) return;
         pollError.value = false;
 
-        if (result.reset) resetContent();
+        // Like a manual refresh, a replaced file only jumps to the end if the reader was there.
+        const following = isAtLiveEnd();
+        if (result.reset) {
+            // The file was replaced: this is the new file from the start.
+            resetContent();
+            ingestWhole(result.file_content);
+        }
         offset = result.offset;
+        head = result.head;
 
-        if (result.file_content) {
+        if (result.reset) {
+            if (!newestFirst.value && following) {
+                await nextTick();
+                scrollToBottom();
+            }
+        } else if (result.file_content) {
             await appendLive(result.file_content);
         } else if (!newerLog.value && Date.now() - lastSessionCheck >= SESSION_CHECK_INTERVAL_MS) {
             // Only worth checking while the file is quiet: a growing file is still the live one.
@@ -271,6 +380,7 @@ watch(
 
 watch(newestFirst, async value => {
     unseenLines.value = 0;
+    chunks.value = chunks.value.map(chunk => ({ ...chunk, text: reverseLines(chunk.text) }));
     if (!value) {
         await nextTick();
         scrollToBottom();
@@ -363,9 +473,11 @@ watch(
         <div ref="logEl" class="log-block log-text">
             <span v-if="isEmpty" class="log-empty">This log is empty{{ live ? ' — new lines will appear here.' : '.' }}</span>
             <template v-else>
+                <div v-if="trimmed && !newestFirst" class="log-trimmed">{{ trimmedNote }}</div>
                 <div v-if="newestFirst && tail" class="log-chunk">{{ tail }}</div>
-                <div v-for="chunk in orderedChunks" :key="chunk.id" class="log-chunk">{{ newestFirst ? chunk.reversed : chunk.text }}</div>
+                <div v-for="chunk in orderedChunks" :key="chunk.id" class="log-chunk" :data-chunk="chunk.id">{{ chunk.text }}</div>
                 <div v-if="!newestFirst && tail" class="log-chunk">{{ tail }}</div>
+                <div v-if="trimmed && newestFirst" class="log-trimmed">{{ trimmedNote }}</div>
             </template>
         </div>
     </main>
@@ -499,6 +611,10 @@ watch(
 }
 .log-empty {
     color: var(--ink-4);
+}
+.log-trimmed {
+    color: var(--ink-4);
+    font-style: italic;
 }
 
 @media (max-width: 640px) {

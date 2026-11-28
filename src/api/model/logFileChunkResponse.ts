@@ -17,8 +17,11 @@ export interface LogFileChunkResponse {
      */
     offset: number;
     /**
-     * True when the requested offset was past the end of the file (the file was
-     * truncated or replaced) and the content was read from the start instead
+     * True when the file was truncated or replaced since the previous request (the
+     * offset is past its end, or its start no longer matches `head`), so the content
+     * was read from the start instead
      */
     reset: boolean;
+    /** Fingerprint of the start of the file; pass it with `offset` on the next request */
+    head: string;
 }

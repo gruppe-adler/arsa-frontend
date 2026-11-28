@@ -12,4 +12,9 @@ export type GetLogFileParams = {
      * @minimum 0
      */
     offset?: number;
+    /**
+     * The `head` returned by the previous request. When the start of the file no
+     * longer matches it, the file was replaced and is read from the start again.
+     */
+    head?: string;
 };

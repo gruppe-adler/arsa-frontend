@@ -99,9 +99,10 @@ export async function getLog(
     log: string,
     file: LogType,
     offset?: number,
+    head?: string,
     options?: FetchOptions
 ): Promise<LogFileChunkResponse> {
-    const response = await apiGetLogFile(uuid, log, file, offset === undefined ? undefined : { offset }, options);
+    const response = await apiGetLogFile(uuid, log, file, offset === undefined ? undefined : { offset, head }, options);
     if (response.status === 200) {
         return response.data;
     }
