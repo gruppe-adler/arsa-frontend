@@ -26,6 +26,7 @@ import {
     Branch,
     DockerStats,
     FileContentResponse,
+    LogFileChunkResponse,
     ProfileFileListResponse,
     LogType,
     PlayerIdentityId,
@@ -34,6 +35,7 @@ import {
     Server
 } from '../api/model';
 import { getImageVersion, getPullImage } from '../api/backend';
+import type { FetchOptions } from '../utils/fetcher';
 
 interface State {
     servers: Server[];
@@ -84,11 +86,11 @@ export const useServersStore = defineStore('servers', {
         async isRunning(uuid: string): Promise<boolean> {
             return await isRunning(uuid);
         },
-        async getLogs(uuid: string): Promise<ResultLogs> {
-            return await getLogs(uuid);
+        async getLogs(uuid: string, options?: FetchOptions): Promise<ResultLogs> {
+            return await getLogs(uuid, options);
         },
-        async getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
-            return await getLog(uuid, log, file);
+        async getLog(uuid: string, log: string, file: LogType, offset?: number, options?: FetchOptions): Promise<LogFileChunkResponse> {
+            return await getLog(uuid, log, file, offset, options);
         },
         async getCrashReportsLog(uuid: string): Promise<FileContentResponse> {
             return await getCrashReportsLog(uuid);

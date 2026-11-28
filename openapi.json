@@ -1067,6 +1067,13 @@
             "required": true,
             "schema": { "$ref": "#/components/schemas/LogType" },
             "example": "console.log"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Byte offset to read from (the `offset` returned by the previous request).\nOmit to read the whole file.",
+            "required": false,
+            "schema": { "type": "integer", "format": "int64", "minimum": 0 }
           }
         ],
         "responses": {
@@ -1074,7 +1081,9 @@
             "description": "Log file content",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/FileContentResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/LogFileChunkResponse"
+                }
               }
             }
           },
@@ -2120,6 +2129,27 @@
           "ServerLogDeleted",
           "ImagePullStarted"
         ]
+      },
+      "LogFileChunkResponse": {
+        "type": "object",
+        "description": "A chunk of a (possibly still growing) log file, read from a byte offset.",
+        "required": ["file_content", "offset", "reset"],
+        "properties": {
+          "file_content": {
+            "type": "string",
+            "description": "File content from the requested offset up to the returned `offset`"
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Byte offset to pass on the next request to receive only new content",
+            "minimum": 0
+          },
+          "reset": {
+            "type": "boolean",
+            "description": "True when the requested offset was past the end of the file (the file was\ntruncated or replaced) and the content was read from the start instead"
+          }
+        }
       },
       "LogType": {
         "type": "string",

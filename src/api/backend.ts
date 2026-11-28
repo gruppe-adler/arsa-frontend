@@ -15,10 +15,12 @@ import type {
     ErrorResponse,
     FileContentResponse,
     GetGlobalLogsParams,
+    GetLogFileParams,
     GetWorkshopParams,
     IPv4Response,
     ImageVersionResponse,
     ListScenariosResponse,
+    LogFileChunkResponse,
     LogType,
     PaginatedResponseGlobalLog,
     PlayerIdentityId,
@@ -866,7 +868,7 @@ export const deleteLog = async (id: string, log: string, options?: Parameters<ty
 };
 
 export type getLogFileResponse200 = {
-    data: FileContentResponse;
+    data: LogFileChunkResponse;
     status: 200;
 };
 
@@ -889,17 +891,30 @@ export type getLogFileResponseError = (getLogFileResponse400 | getLogFileRespons
 
 export type getLogFileResponse = getLogFileResponseSuccess | getLogFileResponseError;
 
-export const getGetLogFileUrl = (id: string, log: string, logType: LogType) => {
-    return `/api/v2/server/${id}/logs/${log}/${logType}`;
+export const getGetLogFileUrl = (id: string, log: string, logType: LogType, params?: GetLogFileParams) => {
+    const normalizedParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined) {
+            normalizedParams.append(key, value === null ? 'null' : String(value));
+        }
+    });
+
+    const stringifiedParams = normalizedParams.toString();
+
+    return stringifiedParams.length > 0
+        ? `/api/v2/server/${id}/logs/${log}/${logType}?${stringifiedParams}`
+        : `/api/v2/server/${id}/logs/${log}/${logType}`;
 };
 
 export const getLogFile = async (
     id: string,
     log: string,
     logType: LogType,
+    params?: GetLogFileParams,
     options?: Parameters<typeof customFetch>[1]
 ): Promise<getLogFileResponse> => {
-    return customFetch<getLogFileResponse>(getGetLogFileUrl(id, log, logType), {
+    return customFetch<getLogFileResponse>(getGetLogFileUrl(id, log, logType, params), {
         ...options,
         method: 'GET'
     });
