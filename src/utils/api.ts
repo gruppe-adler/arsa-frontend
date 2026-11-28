@@ -35,6 +35,7 @@ import {
     type Server,
     type LogType,
     type FileContentResponse,
+    type LogFileChunkResponse,
     type ProfileFileListResponse,
     type PutServerBody,
     type ServerDefaults,
@@ -45,7 +46,7 @@ import {
     EditProfileFileRequest,
     Claims
 } from '../api/model';
-import { API_URL } from './fetcher';
+import { API_URL, type FetchOptions } from './fetcher';
 
 // TODO:
 // const baseUrl = import.meta.env.VITE_API_URL || 'localhost:8080';
@@ -85,16 +86,23 @@ export async function isRunning(uuid: string): Promise<boolean> {
     return response.status === 200;
 }
 
-export async function getLogs(uuid: string): Promise<ResultLogs> {
-    const response = await apiGetLogs(uuid);
+export async function getLogs(uuid: string, options?: FetchOptions): Promise<ResultLogs> {
+    const response = await apiGetLogs(uuid, options);
     if (response.status === 200) {
         return response.data as ResultLogs;
     }
     throw new Error('Failed to get logs');
 }
 
-export async function getLog(uuid: string, log: string, file: LogType): Promise<FileContentResponse> {
-    const response = await apiGetLogFile(uuid, log, file);
+export async function getLog(
+    uuid: string,
+    log: string,
+    file: LogType,
+    offset?: number,
+    head?: string,
+    options?: FetchOptions
+): Promise<LogFileChunkResponse> {
+    const response = await apiGetLogFile(uuid, log, file, offset === undefined ? undefined : { offset, head }, options);
     if (response.status === 200) {
         return response.data;
     }

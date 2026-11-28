@@ -14,13 +14,20 @@ const crashReportsLog = ref('');
 
 refresh();
 function refresh() {
-    serversStore.getCrashReportsLog(route.params.id as string).then(log => {
-        if (log) {
-            crashReportsLog.value = log.file_content.replace(/\n/g, '<br>');
-            found.value = true;
-        }
-        loading.value = false;
-    });
+    serversStore
+        .getCrashReportsLog(route.params.id as string)
+        .then(log => {
+            if (log) {
+                crashReportsLog.value = log.file_content;
+                found.value = true;
+            }
+        })
+        .catch(() => {
+            // Keep showing the last content on a failed refresh; customFetch already toasted.
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
 </script>
 
@@ -44,8 +51,8 @@ function refresh() {
             </button>
         </div>
 
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div class="log-block" v-html="crashReportsLog"></div>
+        <!-- Plain text interpolation: log content must never be interpreted as HTML. -->
+        <div class="log-block log-text">{{ crashReportsLog }}</div>
     </main>
 </template>
 
@@ -86,5 +93,8 @@ function refresh() {
     font-weight: 600;
     letter-spacing: -0.02em;
     margin: 0;
+}
+.log-text {
+    white-space: pre-wrap;
 }
 </style>
