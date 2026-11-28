@@ -3,10 +3,11 @@ import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDocumentVisibility, useEventListener, useIntervalFn, useLocalStorage } from '@vueuse/core';
 import { useServersStore } from '../stores/servers';
+import { useAuthStore } from '../stores/auth';
 import Loading from '../components/Loading.vue';
 import NotFound from '../components/NotFound.vue';
 import { Log, LogType } from '../api/model';
-import type { FetchOptions } from '../utils/fetcher';
+import { ApiError, type FetchOptions } from '../utils/fetcher';
 
 const POLL_INTERVAL_MS = 3000;
 /** Slack (px) for deciding whether the reader is at the live end of the log. */
@@ -24,8 +25,9 @@ const MAX_LINES = 100_000;
 const TRIM_TO = 0.8;
 /** Log session directories, as named by the server (matches the backend's LOG_DIR_NAME_REGEX). */
 const LOG_DIR_REGEX = /^logs_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$/;
+const AUTH_STATUSES = [401, 403];
 /** Polls run in the background: no error toasts, never served from cache, never hang. */
-const SILENT_STATUSES = [400, 401, 403, 404, 500, 502, 503, 504];
+const SILENT_STATUSES = [400, ...AUTH_STATUSES, 404, 500, 502, 503, 504];
 function pollOptions(): FetchOptions {
     return { silentStatuses: SILENT_STATUSES, cache: 'no-store', signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
 }
@@ -33,11 +35,17 @@ function pollOptions(): FetchOptions {
 const route = useRoute();
 const router = useRouter();
 const serversStore = useServersStore();
+const authStore = useAuthStore();
 
 const loading = ref(true);
 const found = ref(false);
 const arsVersion = ref('');
 const pollError = ref(false);
+/**
+ * Polling stopped on an auth error: 'expired' (401) when the login session ran out,
+ * 'forbidden' (403) when the user is signed in but no longer has access.
+ */
+const authError = ref<'expired' | 'forbidden' | null>(null);
 /** Old lines were dropped to stay under the line limit. */
 const trimmed = ref(false);
 const logEl = ref<HTMLElement | null>(null);
@@ -238,6 +246,13 @@ async function appendLive(content: string) {
     unseenLines.value += added;
 }
 
+/** On a 401/403, stop polling instead of failing every few seconds. */
+function handleAuthError(err: unknown): boolean {
+    if (!(err instanceof ApiError) || !AUTH_STATUSES.includes(err.status)) return false;
+    authError.value = err.status === 401 ? 'expired' : 'forbidden';
+    return true;
+}
+
 useEventListener(
     window,
     'scroll',
@@ -265,8 +280,9 @@ async function checkForNewerSession() {
             .filter(entry => LOG_DIR_REGEX.test(entry.dir))
             .reduce<Log | null>((max, entry) => (!max || entry.dir > max.dir ? entry : max), null);
         if (params().log === log) newerLog.value = newest && newest.dir > log ? newest : null;
-    } catch {
+    } catch (err) {
         // Not important enough to report; try again on the next check.
+        handleAuthError(err);
     }
 }
 
@@ -286,6 +302,7 @@ async function reload(initial = false) {
     const gen = ++generation;
     reloading = true;
     pollError.value = false;
+    authError.value = null;
     // A manual refresh only jumps to the end if the reader was already there.
     const following = initial || isAtLiveEnd();
     if (initial) {
@@ -302,10 +319,10 @@ async function reload(initial = false) {
         offset = result.offset;
         head = result.head;
         found.value = true;
-    } catch {
+    } catch (err) {
         if (gen !== generation) return;
         if (initial) found.value = false;
-        else pollError.value = true;
+        else if (!handleAuthError(err)) pollError.value = true;
     } finally {
         if (gen === generation) {
             loading.value = false;
@@ -354,8 +371,8 @@ async function poll() {
             // Only worth checking while the file is quiet: a growing file is still the live one.
             await checkForNewerSession();
         }
-    } catch {
-        if (gen === generation) pollError.value = true;
+    } catch (err) {
+        if (gen === generation && !handleAuthError(err)) pollError.value = true;
     } finally {
         polling = false;
     }
@@ -363,7 +380,19 @@ async function poll() {
 
 const { pause, resume } = useIntervalFn(poll, POLL_INTERVAL_MS, { immediate: false });
 
-const shouldPoll = computed(() => live.value && visibility.value === 'visible' && found.value && !loading.value);
+/** Live is on and actually running: an auth error stops polling until the user acts. */
+const liveActive = computed(() => live.value && !authError.value);
+function toggleLive() {
+    if (authError.value) {
+        // Try again: signing in in another tab may have fixed it.
+        authError.value = null;
+        live.value = true;
+    } else {
+        live.value = !live.value;
+    }
+}
+
+const shouldPoll = computed(() => live.value && visibility.value === 'visible' && found.value && !loading.value && !authError.value);
 watch(
     shouldPoll,
     active => {
@@ -414,17 +443,22 @@ watch(
                 <p v-if="arsVersion" class="mono version-line">{{ arsVersion }}</p>
             </div>
             <div class="row controls">
-                <span v-if="pollError" class="poll-error">{{ live ? 'Live update failed, retrying…' : 'Refresh failed.' }}</span>
+                <span v-if="authError === 'expired'" class="poll-error">
+                    Your session has expired.
+                    <button class="poll-error-link" type="button" @click="authStore.login()">Sign in again</button>
+                </span>
+                <span v-else-if="authError === 'forbidden'" class="poll-error">You no longer have access to this server.</span>
+                <span v-else-if="pollError" class="poll-error">{{ live ? 'Live update failed, retrying…' : 'Refresh failed.' }}</span>
                 <button
                     class="btn"
-                    :class="{ 'live-on': live }"
+                    :class="{ 'live-on': liveActive }"
                     type="button"
-                    :aria-pressed="live"
-                    :title="live ? 'Pause live updates' : 'Resume live updates'"
-                    @click="live = !live"
+                    :aria-pressed="liveActive"
+                    :title="liveActive ? 'Pause live updates' : 'Resume live updates'"
+                    @click="toggleLive"
                 >
                     <span class="live-dot" aria-hidden="true"></span>
-                    {{ live ? 'Live' : 'Paused' }}
+                    {{ liveActive ? 'Live' : 'Paused' }}
                 </button>
                 <button
                     class="btn"
@@ -615,6 +649,16 @@ watch(
 .log-trimmed {
     color: var(--ink-4);
     font-style: italic;
+}
+.poll-error-link {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 @media (max-width: 640px) {
